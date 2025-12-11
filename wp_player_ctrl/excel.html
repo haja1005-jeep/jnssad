@@ -1,0 +1,125 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=선수목록.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<body>
+<?
+	$where = " WHERE isuse='0' ";
+	if($clu_code)
+		$where .= " AND clu_code = '$clu_code'";
+	if($year)
+		$where .= " AND year='$year'";
+	if($kubun)
+		$where .= " AND kubun='$kubun'";
+	if($tro_code)
+		$where .= " AND tro_code = '$tro_code'";
+	//출력순
+	$orderby = " ORDER BY clu_code ASC, ";
+	if(!$orderby1 && !$orderby2 && !$orderby3 && !$orderby4)
+		$orderby .= " kubun ASC, name ASC, tro_code ASC, ";
+	if($orderby1)
+		$orderby .= " $orderby1 ASC, ";
+	if($orderby2)
+		$orderby .= " $orderby2 ASC, ";
+	if($orderby3)
+		$orderby .= " $orderby3 ASC, ";
+	if($orderby4)
+		$orderby .= " $orderby4 ASC, ";
+	$orderby .= " uid desc ";
+
+	// 레코드 쿼리 //
+	$query = "SELECT * FROM wp_player_ctrl $where $orderby ";
+	$result = mysql_query($query);
+	if(!$result)
+	{
+		Error("QUERY_ERROR");
+		exit;
+	}
+
+	?>
+<table border="1" cellpadding="0" cellspacing="0">
+	<tr>
+		<td align="center">
+			<font size="5"><b>선수목록</b></font>
+			<br>
+			<table border="1" cellpadding="0" cellspacing="0">
+				<tr>
+					<th width="4%">번호</th>
+					<th align="center">시/군</th>
+					<th align="center">구 분</th>
+					<th align="center">성 명</th>
+					<th align="center">주민번호</th>
+					<th align="center">성 별</th>
+					<th align="center">장애유형</th>
+					<th align="center">장애등급</th>
+					<th align="center">연락처</th>
+					<th align="center">핸드폰</th>
+					<th align="center">우편번호</th>
+					<th align="center">주소</th>
+				</tr>
+				<?
+					// 총 레코드 수 //
+					$total_record = $Mysql->getTotalRecord("wp_player_ctrl", $where);
+
+					// 페이지 목록 //
+					$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+					// 일련 번호 //
+					$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+					while($obj = mysql_fetch_object($result)){
+
+						if($obj->kubun == $wp_kubun_종목인솔자 || $obj->kubun == $wp_kubun_감독 || $obj->kubun == $wp_kubun_코치)
+							$my_kubun = $wp_sports_code[$obj->spo_code].$wp_kubun_code[$obj->kubun];
+						else $my_kubun = $wp_kubun_code[$obj->kubun];
+						//장애등급
+						if($obj->trouble_level)
+							$my_level = $obj->trouble_level."급";
+						else $my_level = "";
+				?>
+				<tr>
+					<td align="center"><?=$article_num?></td>
+					<td align="center"><?=$wp_club_code[$obj->clu_code]?></td>
+					<td align="center"><?=$my_kubun?></td>
+					<td align="center"><?=$obj->name?></td>
+					<td align="center"><?=$obj->jumin1?>-
+						<?
+						$my_ju = substr($obj->jumin2,0,1);
+						echo $my_ju."******";
+						?>
+					</td>
+					<td align="center"><?=$wp_sex_code[$obj->sex]?></td>
+					<td align="center"><?=$wp_trouble_code[$obj->tro_code]?></td>
+					<td align="center"><?=$my_level?></td>
+					<td align="center"><?=$obj->tel1?>-<?=$obj->tel2?>-<?=$obj->tel3?></td>
+					<td align="center"><?=$obj->hp1?>-<?=$obj->hp2?>-<?=$obj->hp3?></td>
+					<td align="center"><?=$obj->zip1?>-<?=$obj->zip2?></td>
+					<td align="left"><?=$obj->address1?> <?=$obj->address2?></td>
+				</tr>
+				<?
+					$article_num--;
+					} //while ?>
+			</table>
+		</td>
+	</tr>
+</table>
+</body>

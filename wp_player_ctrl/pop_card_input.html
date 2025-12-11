@@ -1,0 +1,40 @@
+<?
+	require_once "../wp_object/head_pop.html";
+
+	$x_width = 480;
+	$y_height = 180;
+	if($type == "welfare_card") $title="복지카드 등록하기";
+	if($type == "sport_card") $title="등급분류카드 등록하기";
+
+?>
+<script>
+	window.onload = function(){
+		window.resizeTo(<?=$x_width?>,<?=$y_height?>);
+	}
+</script>
+<br>
+<form name="sForm" action="pop_card_input.php" enctype="multipart/form-data" method="post" onSubmit="return validate(this) ">
+<input type="hidden" name="type" value="<?=$type?>">
+<input type="hidden" name="pla_id" value="<?=$pla_id?>">
+<table width="100%"  border="0" cellspacing="5" cellpadding="3" bgcolor="#cacaca">
+<tr bgcolor="#ffffff">
+	<td align="left" style="padding-bottom:10px">
+		<!-- Document Start -->
+		<table width="100%" border="0" cellspacing="0" cellpadding="3">
+		<tr>
+			<td align="center"><font size="4"><b><?=$title?></b></font></td>
+		</tr>
+		<tr>
+			<td valign="top" align="center">
+				<input type="file" name="<?=$type?>" size="30" class="input" hname="첨부파일" required>
+				<input type="image" src="../wp_button/p_confirm.gif" align="absmiddle">
+			</td>
+		</tr>
+		</table>
+		<!-- Document End -->
+	</td>
+</tr>
+</table>
+</form>
+</body>
+</html>

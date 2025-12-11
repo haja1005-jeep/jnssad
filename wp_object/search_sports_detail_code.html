@@ -1,0 +1,80 @@
+<?
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+if($kind == "1"){
+	// 배열 갯수 //
+	$c_que = "SELECT * FROM wp_game_event
+			  WHERE gam_uid='$gam_uid'
+			   	AND spo_code = '$spo_code'
+			   	AND tro_code = '$tro_code'
+			   	AND sex ='$sex'
+			  GROUP BY tro_level_code
+			  ORDER BY spo_code_detail ASC";
+	$c_res = mysql_query($c_que);
+	$num = mysql_num_rows($c_res);
+
+
+	// 생성시 빈공백 오류 체크 //
+	printf ("document.sForm.tro_level_code.length = $num + 1; \n");
+	printf ("document.sForm.tro_level_code.options[0].text = '---선택--'; \n");
+	printf ("document.sForm.tro_level_code.options[0].value = ''; \n");
+
+	$i=1;
+	// 레코드 결과 //
+	while($z_row = mysql_fetch_object($c_res))
+	{
+		$code = $z_row->tro_level_code;
+		$name = getTrouble_level_code($z_row->spo_code, $z_row->tro_level_code);
+
+		if($code)
+		{
+			printf ("document.sForm.tro_level_code.options[$i].text = '$name($code)'; \n");
+			printf ("document.sForm.tro_level_code.options[$i].value = '$code'; \n");
+			$i++;
+		}
+	}
+}else if($kind == "2"){
+	// 배열 갯수 //
+	$c_que = "SELECT * FROM wp_game_event
+			  WHERE gam_uid='$gam_uid'
+			   	AND spo_code = '$spo_code'
+			   	AND tro_code = '$tro_code'
+			   	AND sex ='$sex'
+			   	AND tro_level_code ='$tro_level_code'
+			  ORDER BY spo_code_detail ASC";
+	$c_res = mysql_query($c_que);
+	$num = mysql_num_rows($c_res);
+
+
+	// 생성시 빈공백 오류 체크 //
+	printf ("document.sForm.spo_code_detail.length = $num + 1; \n");
+	printf ("document.sForm.spo_code_detail.options[0].text = '---선택--'; \n");
+	printf ("document.sForm.spo_code_detail.options[0].value = ''; \n");
+
+	$i=1;
+	// 레코드 결과 //
+	while($z_row = mysql_fetch_object($c_res))
+	{
+		$code = $z_row->spo_code_detail;
+		$name = $wp_sports_detail_code[$z_row->spo_code_detail];
+
+		if($code)
+		{
+			printf ("document.sForm.spo_code_detail.options[$i].text = '$name($code)'; \n");
+			printf ("document.sForm.spo_code_detail.options[$i].value = '$code'; \n");
+			$i++;
+		}
+	}
+
+}
+
+?>

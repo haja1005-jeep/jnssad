@@ -1,0 +1,75 @@
+<?
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// 경로 체크 //
+Referer_Check($admin_domain);
+
+// 레코드 쿼리 //
+$f_que = "SELECT real_file,change_file FROM wp_file WHERE t_name='$code' AND uid='$uid'";
+$f_val = mysql_query($f_que);
+if(!$f_val)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+$f_row = mysql_fetch_array($f_val);
+
+// 레코드 결과 //
+$f_real_file = $f_row[0];
+$f_change_file = $f_row[1];
+
+// 파일 체크 //
+if(!file_exists("$file_path$f_change_file"))
+{
+	Error("DOWN_ERROR");
+	exit;
+}
+
+// attachment = 무조건 다운 ; inline = 브라우져가 인식 //
+$down_type = "1";
+$down_type = ($down_type) ? "attachment" : "inline";
+
+// r = 바이너리 다운 불가 ; rb = 바이너리 다운 가능 //
+$bin_type = "1";
+$bin_type = ($bin_txt) ? "r" : "rb";
+
+// 파일 다운로드 //
+Header("Content-type: application/octet-stream");
+Header("Content-Length: ".filesize("$file_path$f_change_file"));
+Header("Content-Disposition: $down_type; filename=$f_real_file");
+Header("Content-Transfer-Encoding: binary");
+Header("Pragma: no-cache");
+Header("Expires: 0");
+
+// 파일 확인 //
+if(is_file("$file_path$f_change_file"))
+{
+	// 파일 읽기 //
+	$fp = fopen("$file_path$f_change_file", "$bin_type");
+	if(!fpassthru($fp))
+	{
+		fclose($fp);
+	}
+
+	// 다운수 증가 //
+	mysql_query("UPDATE wp_file SET down=down+1 WHERE uid='$uid'");
+}
+else
+{
+	Error("DOWN_ERROR");
+	exit;
+}
+?>

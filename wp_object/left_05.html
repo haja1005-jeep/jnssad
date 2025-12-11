@@ -1,0 +1,146 @@
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0" class="border_gray_d">
+<tr>
+	<td valign="top" style="padding:10 10 0 10">
+		<table class="tbLeft-a">
+		<!--
+		<tr>
+			<th><a href="../wp_game_player/index.html?mode=search"><b>대회참가</b></a></th>
+		</tr>
+		-->
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<?
+		if($Admin_auth == "user" || $Admin_auth == "s_group")
+		{
+		?>
+		<tr>
+			<th><a href="../wp_game_player/index.html?mode=list"><font color="#cc0000"><b>참가자조회</b></font></a></th>
+		</tr>
+		<?
+		}
+		else
+		{
+		?>
+		<tr>
+			<th><a href="../wp_game_player/index.html?mode=list"><font color="#cc0000"><b>참가자조회/취소</b></font></a></th>
+		</tr>
+		<?
+		}
+		?>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<th>출력</th>
+		</tr>
+		<? if($Admin_auth == "top"){?>
+		<tr>
+			<td align="center">- 관리자 전용 -</td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print16">전체총계표</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print6">시군별총계표</a></td>
+		</tr>
+		<tr>
+			<!--<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print5">종목총계표</a></td>-->
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print5">종목총계표</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print25">종목별인솔자명단</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print10">장애유형별<br>&nbsp;&nbsp;총계표</a></td>
+		</tr>
+		<!--<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print15">시군별참가자<br>&nbsp;&nbsp;명부</a></td>
+		</tr>-->
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print14">연령대별총계표</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print9">종목별이벤트<br>&nbsp;&nbsp;총계표</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print">대회참가자명부</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print8">종목별/시군별<br>&nbsp;&nbsp;총계표</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print11">전년대비증감표</a></td>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<td align="center">- 시/군 전용 -</td>
+		</tr>
+		<?
+		}
+		else if($Admin_auth == "user")
+		{
+		?>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print9">종목별이벤트총계표</a></td>
+		</tr>
+		<?
+		}
+		else if($Admin_auth == "s_group")
+		{
+		?>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print5">종목총계표</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print9">종목별이벤트총계표</a></td>
+		</tr>
+<!-- 대진추첨전까지 클릭 안되게 -->
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print20">종목별이벤트 검수용</a></td>
+		</tr>
+		<?
+		}
+		else
+		{
+		?>
+
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print2">총괄인원표</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print3">참가자명부</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print31">체육회 제출 명부</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print4">상해보험가입명부</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print_idcard">ID 카드출력</a></td>
+		</tr>
+	<!--	<tr>
+			<td id="submenu">&#149; <a href="../wp_game_player/index.html?mode=print7">개별참가신청서</a></td>
+		</tr> -->
+		<?
+		}
+		?>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<td style="padding-top:20px">
+				<?
+				$a_code = notice;
+				require_once "../wp_board/am_board.html";
+				?>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+

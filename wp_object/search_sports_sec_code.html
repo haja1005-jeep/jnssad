@@ -1,0 +1,39 @@
+<?
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// 배열 갯수 //
+$c_que = "SELECT * FROM wp_sports_event_detail WHERE gam_uid='$gam_uid' AND spo_code = '$spo_code' AND isuse = '0' GROUP BY code ORDER BY code ASC, orderby ASC";
+$c_res = mysql_query($c_que);
+$num = mysql_num_rows($c_res);
+
+// 생성시 빈공백 오류 체크 //
+printf ("document.sForm.spo_sec_code.length = $num + 1; \n");
+printf ("document.sForm.spo_sec_code.options[0].text = '--2차종목--'; \n");
+printf ("document.sForm.spo_sec_code.options[0].value = ''; \n");
+printf ("document.sForm.spo_sec_code.options[0].selected = true; \n");
+
+$i=1;
+// 레코드 결과 //
+while($z_row = mysql_fetch_object($c_res))
+{
+	$code = $z_row->code;
+	$name = $z_row->name;
+
+	if($code)
+	{
+		printf ("document.sForm.spo_sec_code.options[$i].text = '$name'; \n");
+		printf ("document.sForm.spo_sec_code.options[$i].value = '$code'; \n");
+		$i++;
+	}
+}
+?>

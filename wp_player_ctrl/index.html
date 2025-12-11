@@ -1,0 +1,96 @@
+<?
+	require_once "../wp_object/head.html";
+	$top_over_01 = ""; //종목관리
+	$top_over_02 = ""; //장애등급관리
+	$top_over_03 = ""; //대회일정관리
+	$top_over_04 = "o"; //신상등록
+	$top_over_05 = ""; //대회참가
+	$top_over_06 = ""; //대진표관리
+	$top_over_07 = ""; //경기실적관리
+	$top_over_08 = ""; //시/군클럽관리
+	$top_over_09 = ""; //집계관리
+	$top_over_10 = ""; //부가관리
+
+?>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<!-- 탑메뉴 시작-->
+		<? require_once "../wp_object/top.html"?>
+		<!-- 탑메뉴 끝 -->
+	</td>
+</tr>
+<tr>
+	<td align="left" style="padding-bottom:30px">
+		<!-- Document Start -->
+		<table width="100%" height="700" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td width="150" height="100% valign="top" style="padding:20 0 0 5">
+				<!-- 왼쪽메뉴 시작-->
+				<? require_once "../wp_object/left_04.html"?>
+				<!-- 왼쪽메뉴 끝 -->
+			</td>
+			<td width="4" height="100%" style="border-right:1 solid #fsfsfs;">&nbsp;</td>
+			<td valign="top" align="center">
+				<table width="95%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td class="tbTitleBlock">
+						<?
+						if(!$mode || $mode=="list")
+							$title_txt = "선수 조회";
+						else if($mode=="input")
+							$title_txt = "선수 등록";
+						else if($mode=="modify")
+							$title_txt = "선수 수정";
+						else if($mode=="view")
+							$title_txt = "선수 상세 정보";
+						else if($mode=="print")
+							$title_txt = "선수 정보 출력";
+						else if($mode=="print2")
+							$title_txt = "개별참가신청서";
+						?>
+						<img src="../wp_icon/title_icon.gif" align="absmiddle">&nbsp;&nbsp;<?=$title_txt?>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<?
+						//로그인 체크
+						if(!$site_auth->isLogin()){
+							Error("ADMIN_ERROR");
+							exit;
+						}
+
+						//권한 체크
+						/*
+						if(!$site_auth->isConn($cd_player,$Admin_auth)){
+							Error("AUTH_ERROR");
+							exit;
+						}
+						*/
+
+						if(!$mode || $mode=="list")
+							require_once "./list.html";
+						else if($mode=="input")
+							require_once "./input.html";
+						else if($mode=="modify")
+							require_once "./modify.html";
+						else if($mode=="view")
+							require_once "./view.html";
+						else if($mode=="print")
+							require_once "./print.html";
+						else if($mode=="print2")
+							require_once "./print2.html";
+						?>
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		<!-- Document End -->
+	</td>
+</tr>
+</table>
+</body>
+</html>

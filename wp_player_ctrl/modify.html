@@ -1,0 +1,328 @@
+<!-- 내용 출력 시작-->
+<?
+//다음 정렬순서값을 구한다.
+$query = "SELECT * FROM wp_player_ctrl where uid='$uid'";
+
+$result = mysql_query($query);
+if (!$result) {
+   	Error("QUERY_ERROR");
+}
+$obj = mysql_fetch_object($result);
+
+$birthday =  split("-",$obj->birthday);
+$mar_date = split("-",$obj->mar_date);
+
+//스포츠등급 쿼리
+$query2 = "SELECT level_code, level_name FROM wp_trouble_ctrl
+			WHERE spo_code='$obj->spo_code' AND code = '$obj->tro_code'
+			   AND isuse = '0' order by orderby asc, uid desc";
+$result2 = mysql_query($query2);
+if (!$result2) {
+   	Error("QUERY_ERROR");
+}
+while ($row = mysql_fetch_object($result2)){
+	$wp_sports_level_code[$row->level_code] = $row->level_name;
+}
+?>
+<form name="sForm" action="modify.php?<?=$basic_get.$add_get?>" enctype="multipart/form-data" method="post" onSubmit="return modPlayerData(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>설명</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbInput-a">
+		<tbody>
+		<tr>
+			<th width="10%">소속 시/도</th>
+			<td width="40%">
+				<?
+				//시/군구 이면 자기 데이터 출력
+				if($Admin_auth == "normal" || $Admin_auth == "sponsor") {
+				?>
+				<input type="hidden" name="clu_code" hname="대회주최기관" required value="<?=$Admin_code?>"><?=$wp_club_code[$Admin_code]?>
+				<? }else{?>
+					<select name="clu_code" tabindex="1" hname="소속시도" required>
+						<option value="">--선택-- </option>
+						<?
+							foreach($wp_club_code as $keys => $values){
+								if($keys == $obj->clu_code)
+									$is_selected = " selected ";
+								else $is_selected = "";
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+						?>
+					</select>
+				<?}?>
+			</td>
+			<th width="10%">선 수 구 분</th>
+			<td width="40%">
+				<select name="kubun" tabindex="2" hname="선수구분" required onchange="chgFieldAttr(this.form, this.value)">
+					<option value="">--선택-- </option>
+					<?
+						foreach($wp_kubun_code as $keys => $values){
+							if($keys == $obj->kubun)
+								$is_selected = " selected ";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>장 애 유 형</th>
+			<td>
+				<select name="tro_code" tabindex="4" hname="장애유형">
+					<option value="">--선택-- </option>
+					<?
+						foreach($wp_trouble_code as $keys => $values){
+							if($keys == $obj->tro_code)
+								$is_selected = " selected ";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+				<select name="trouble_level" tabindex="7" hname="장애등급" align="absmiddle">
+					<option value="">등급</option>
+					<?
+						foreach($wp_trouble_level as $keys => $values){
+							if($keys == $obj->trouble_level)
+								$is_selected = " selected ";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+			</td>
+			<th>휠체어 사용</th>
+			<td>
+				<?
+					foreach($wp_wheel_code as $keys => $values){
+						if($keys == $obj->wheel)
+							$is_selected = " checked ";
+						else $is_selected = "";
+						echo "<label name='lb'><input id='lb' type='radio' name='wheel' value='$keys' tabindex='6' $is_selected>$values</label>";
+					}
+				?>
+			</td>
+		</tr>
+		<tr>
+			<?
+			if($Admin_auth == "top") {
+				$is_readonly = "";
+			}else{
+				$is_readonly = "readonly";
+			}
+			?>
+			<th>선 수 성 명</th>
+			<td><input type="text" name="name" class="input" size="20" maxlength="5" tabindex="7" value="<?=$obj->name?>" hname="선수성명" required <?=$is_readonly?>>
+			</td>
+			<th>주 민 번 호</th>
+			<td>
+				<input type="text" name="jumin1" class="input" size="6" maxlength="6" tabindex="9" value="<?=$obj->jumin1?>" hname="주민번호" required chksize style="ime-mode:disabled" onkeypress="Num_Check()" onBlur="autoFillBirth(this.form, this.value)" <?=$is_readonly?>>
+				-
+				<input type="text" name="jumin2" class="input" size="7" maxlength="7" tabindex="9" value="<?=$obj->jumin2?>" hname="주민번호" required chksize opt="jumin" with="jumin1" style="ime-mode:disabled" onkeypress="Num_Check()" onBlur="autoFillSex(this.form, this.value)" <?=$is_readonly?>>
+			</td>
+
+		</tr>
+		<tr>
+			<th>생 년 월 일</th>
+			<td>
+				<input type="text" name="birthday_y" class="input" size="4" maxlength="4" tabindex="10" value="<?=$birthday[0]?>" hname="생년월일" required chksize style="ime-mode:disabled" onkeypress="Num_Check()">년
+				<input type="text" name="birthday_m" class="input" size="2" maxlength="2" tabindex="10" value="<?=$birthday[1]?>" hname="생년월일" required chksize style="ime-mode:disabled" onkeypress="Num_Check()">월
+				<input type="text" name="birthday_d" class="input" size="2" maxlength="2" tabindex="10" value="<?=$birthday[2]?>" hname="생년월일" required chksize style="ime-mode:disabled" onkeypress="Num_Check()">일
+			</td>
+			<th>성&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;별</th>
+			<td>
+				<label name="lb"><input id="lb" type="radio" name="sex" value="male" tabindex="11" <? if($obj->sex == "male"){echo " checked";}?>>남자</label>
+				<label name="lb"><input id="lb" type="radio" name="sex" value="female" tabindex="11" <? if($obj->sex == "female"){echo " checked";}?>>여자</label>
+			</td>
+		</tr>
+		<tr>
+			<th>연&nbsp;&nbsp;&nbsp;락&nbsp;&nbsp;&nbsp;처</th>
+			<td>
+				<input type="text" name="tel1" class="input" size="3" maxlength="3" tabindex="12" value="<?=$obj->tel1?>" hname="연락처" required style="ime-mode:disabled" onkeypress="Num_Check()">
+				-
+				<input type="text" name="tel2" class="input" size="4" maxlength="4" tabindex="12" value="<?=$obj->tel2?>" hname="연락처" required style="ime-mode:disabled" onkeypress="Num_Check()">
+				-
+				<input type="text" name="tel3" class="input" size="4" maxlength="4" tabindex="12" value="<?=$obj->tel3?>" hname="연락처" required style="ime-mode:disabled" onkeypress="Num_Check()">
+			</td>
+			<th>핸&nbsp;&nbsp;&nbsp;드&nbsp;&nbsp;&nbsp;폰</th>
+			<td>
+				<input type="text" name="hp1" class="input" size="3" maxlength="3" tabindex="13" value="<?=$obj->hp1?>" hname="핸드폰" style="ime-mode:disabled" onkeypress="Num_Check()">
+				-
+				<input type="text" name="hp2" class="input" size="4" maxlength="4" tabindex="13" value="<?=$obj->hp2?>" hname="핸드폰" style="ime-mode:disabled" onkeypress="Num_Check()">
+				-
+				<input type="text" name="hp3" class="input" size="4" maxlength="4" tabindex="13" value="<?=$obj->hp3?>" hname="핸드폰" style="ime-mode:disabled" onkeypress="Num_Check()">
+			</td>
+		</tr>
+		<!--
+		<tr>
+			<th>주&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;소</th>
+			<td colspan="3">
+				<input type="text" name="zip1" class="input" size="5" maxlength="5" tabindex="14" value="<?=$obj->zip1?>" hname="우편번호" required chksize style="ime-mode:disabled" onkeypress="Num_Check()">
+				-
+				<input type="text" name="zip2" class="input" size="5" maxlength="5" tabindex="14" value="<?=$obj->zip2?>" hname="우편번호" required chksize style="ime-mode:disabled" onkeypress="Num_Check()">
+				<a href="#none" hidefocus="true" onClick="window.open('../wp_zip/zip_search.html','win_zip','width=360,height=230,left=0,top=0')"><img src="../wp_button/address.gif" width="101" height="19" border="0" align="absmiddle"></a>
+				※ 우편번호 검색을 이용하세요.<br>
+				<input type="text" name="address1" class="input" size="50" maxlength="50" tabindex="14" value="<?=$obj->address1?>" hname="주소" required><br>
+				<input type="text" name="address2" class="input" size="50" maxlength="50" tabindex="14" value="<?=$obj->address2?>" hname="주소" required>
+			</td>
+		</tr>-->
+
+		<tr>
+			<th>도로명 주소</th>
+			<td colspan="3">
+				<input type="text" name="zip1" class="input" size="5" maxlength="5" tabindex="13" value="<?=$obj->zip1?>" hname="우편번호" required chksize style="ime-mode:disabled" onkeypress="Num_Check()">
+
+                <input type="button" onclick="execDaumPostcode()" value="우편번호 찾기"><br>
+
+				<input type="text" name="address1" class="input" size="50" maxlength="50" tabindex="14" value="<?=$obj->address1?>" hname="주소"  ><br>
+				<input type="text" name="address2" class="input" size="50" maxlength="50" tabindex="14" value="<?=$obj->address2?>" hname="상세주소"  >
+			</td>
+
+
+<script src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
+<script>
+    function execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+
+                // 각 주소의 노출 규칙에 따라 주소를 조합한다.
+                // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+                var fullAddr = ''; // 최종 주소 변수
+                var extraAddr = ''; // 조합형 주소 변수
+
+                // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+                if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                    fullAddr = data.roadAddress;
+
+                } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                    fullAddr = data.jibunAddress;
+                }
+
+                // 사용자가 선택한 주소가 도로명 타입일때 조합한다.
+                if(data.userSelectedType === 'R'){
+                    //법정동명이 있을 경우 추가한다.
+                    if(data.bname !== ''){
+                        extraAddr += data.bname;
+                    }
+                    // 건물명이 있을 경우 추가한다.
+                    if(data.buildingName !== ''){
+                        extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                    }
+                    // 조합형주소의 유무에 따라 양쪽에 괄호를 추가하여 최종 주소를 만든다.
+                    fullAddr += (extraAddr !== '' ? ' ('+ extraAddr +')' : '');
+                }
+
+                // 우편번호와 주소 정보를 해당 필드에 넣는다.
+                document.getElementById('zip1').value = data.zonecode; //5자리 새우편번호 사용
+                document.getElementById('address1').value = fullAddr;
+
+                // 커서를 상세주소 필드로 이동한다.
+                document.getElementById('address2').focus();
+            }
+        }).open();
+    }
+</script>
+
+		</tr>
+
+		<tr>
+			<th>사&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;진</th>
+			<td colspan="3">
+				<img src="../wp_icon/tip_03.gif">&nbsp;[<?=$u_file_type[img]?>]파일만 가능, <font color="#cc0000">최적 사이즈 : 120 X 160</font><br>
+				<input type="file" name="picture" class="input" size="70" tabindex="16" hname="사진" chkfile="img">
+				<?
+				// 주민등록증 파일 //
+				if($obj->picture)
+				{
+					echo "<br><font color='#996600'>[파일명 : $obj->picture <b>|</b> 파일삭제 <input type='checkbox' name='file_change[]' value='picture:$obj->picture_chg'>]</b></font>";
+					$picture_n = "$obj->picture_chg";
+				}else{
+					$picture_n = "n";
+				}
+				?>
+				<input type="hidden" name="picture_n" value="<?=$picture_n?>">
+			</td>
+		</tr>
+		<tr>
+			<th>복 지 카 드</th>
+			<td colspan="3">
+				<img src="../wp_icon/tip_03.gif" align="absmiddle">&nbsp;[<?=$u_file_type[img]?>]파일만 가능, <font color="#cc0000">최적 사이즈 : 335 X 210</font>
+				<br><img src="../wp_icon/tip_03.gif" align="absmiddle">&nbsp;<font color="red"><b>선수는 필히 입력하여주세요!</b></font>
+				<br><input type="file" name="welfare_card" class="input" size="70" tabindex="17" hname="복지카드" chkfile="img">
+				<?
+				// 주민등록증 파일 //
+				if($obj->welfare_card)
+				{
+					echo "<br><font color='#996600'>[파일명 : $obj->welfare_card <b>|</b> 파일삭제 <input type='checkbox' name='file_change[]' value='welfare_card:$obj->welfare_card_chg'>]</b></font>";
+					$welfare_card_n = "$obj->welfare_card_chg";
+				}else{
+					$welfare_card_n = "n";
+				}
+				?>
+				<input type="hidden" name="welfare_card_n" value="<?=$welfare_card_n?>">
+			</td>
+		</tr>
+		<tr>
+			<th>스&nbsp;&nbsp;&nbsp;포&nbsp;&nbsp;&nbsp;츠<br>등 급 카 드</th>
+			<td colspan="3">
+				<img src="../wp_icon/tip_03.gif" align="absmiddle">&nbsp;[<?=$u_file_type[img]?>]파일만 가능<br>
+				<input type="file" name="sport_card" class="input" size="70" tabindex="36" hname="스포츠등급카드" chkfile="img">
+				<?
+				// 스포츠등급카드 파일 //
+				if($obj->sport_card)
+				{
+					echo "<br><font color='#996600'>[파일명 : $obj->sport_card <b>|</b> 파일삭제 <input type='checkbox' name='file_change[]' value='sport_card:$obj->sport_card_chg'>]</b></font>";
+					$sport_card_n = "$obj->sport_card_chg";
+				}else{
+					$sport_card_n = "n";
+				}
+				?>
+				<input type="hidden" name="sport_card_n" value="<?=$sport_card_n?>">
+			</td>
+		</tr>
+		<tr>
+			<th>사 용 유 무</th>
+			<td colspan="3">
+				<?
+					foreach($wp_isuse_code as $keys => $values){
+						if($keys == $obj->isuse)
+							$is_checked = " checked ";
+						else $is_checked = "";
+						echo "<label name='lb'><input id='lb' type='radio' name='isuse' value='$keys' tabindex='19' $is_checked>$values</label>";
+					}
+				?>
+			</td>
+		</tr>
+
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-b">
+		<tr>
+			<td align="center">
+				<input type="submit" name="send" value="수정하기" class="btnBox3" tabindex="20">
+				<input type="button" name="send" value="목록으로" class="btn_send" tabindex="21" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>
+<!-- 내용 출력 끝 -->

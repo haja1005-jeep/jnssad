@@ -1,0 +1,63 @@
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td width="300" align="right"><a href="../wp_main/index.html"><img src="../wp_images/logo.gif" width="277" height="60"></a></td>
+			<td width="300" align="center"valign="middle"><font color="#004B98"><b>[<?=$Admin_name?>]</a></font>님 로그인 중.. <a href="../wp_member/logout.php"><font color="#cc0000"><b>로그아웃<b></font></a></td>
+			<td><a href='#none' onclick="window.open('/wp_search/searchPy.html','player','width=900,height=780,scrollbars=yes')"><img src="/wp_images/img_searchPyMain.png"></a></td>
+			<td align="right"><img src="../wp_images/sub_top.gif" width="320" height="60"></td>
+		</tr>
+		</table>
+	</td>
+	<td width="120" rowspan="2" align="right" valign="top"><img src="../wp_images/sub_right.gif" width="120" height="100"></td>
+</tr>
+<tr>
+	<td valign="top">
+		<!-- 하위메뉴 출력 -->
+	 	<?
+	 	if($Admin_auth == "top")
+	 	{
+	 		//전장체 관리자일 경우
+			require_once "../wp_object/top_1.html";
+		}
+		else if($Admin_auth == "sponsor")
+		{
+			//경기주최관리자일경우
+			if($Admin_level == "2")
+			{
+				// 기록관리자이면
+				require_once "../wp_object/top_5.html";
+			}
+			else
+			{
+				require_once "../wp_object/top_2.html";
+			}
+		}
+		else if($Admin_auth == "normal")
+		{
+			//일반관리자일경우
+			require_once "../wp_object/top_3.html";
+		}
+		else if($Admin_auth == "user")
+		{
+			// 선수 //
+			require_once "../wp_object/top_6.html";
+		}
+		else if($Admin_auth == "s_group")
+		{
+			// 경기단체 //
+			require_once "../wp_object/top_7.html";
+		}
+		else
+		{ //선수
+			require_once "../wp_object/top_4.html";
+		}
+		?>
+	</td>
+</tr>
+<tr>
+	<td height="30" colspan="2"><font color="#3366FF"><b>    </b></font></td>
+</tr>
+</table>
+

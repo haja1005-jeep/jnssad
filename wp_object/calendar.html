@@ -1,0 +1,233 @@
+<html>
+<head>
+<title>날짜 검색</title>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+<link type="text/css" rel="stylesheet" href="../wp_config/style.css">
+<link type="text/css" rel="stylesheet" href="../wp_config/calendar.css">
+<script language="javascript" src="../wp_config/calendar.js"></script>
+<script language="javascript">
+<!--//
+// property //
+var m_CurrentDate = null;
+
+// picker 기본값 //
+function init(date)
+{
+	if(date == null)
+		date = new Date();
+	m_CurrentDate = date;
+	_build();
+}
+
+// 지정 날짜 출력 //
+function _build(date)
+{
+	var DPYear = document.all.DPYear;
+	var DPMonth = document.all.DPMonth;
+	var DPCalendar = document.all.DPCalendar;
+	var DPToday = document.all.DPToday;
+
+	var today = new Date();
+	if(date == null)
+	{
+		date = m_CurrentDate;
+	}
+	if(date == null)
+	{
+		date = today;
+	}
+
+	// 년, 월 //
+	var year = date.getFullYear();
+	var month = date.getMonth() + 1;
+	var i, y;
+
+	// 현재 연도 선택 //
+	DPYear.options.length = 0;
+	for(i = 0, y = year - 3 ; y < year + 4 ; i++, y++)
+	{
+		DPYear.options[i] = new Option(y + "년", y);
+		if(y == year)
+		{
+			DPYear.selectedIndex = i;
+		}
+	}
+
+	// 현재 월 선택 //
+	DPMonth.selectedIndex = month - 1;
+
+	// 오늘 날짜 입력 //
+	DPToday.innerHTML = DP_FormatDate(today);
+
+	// 달력 초기화 //
+	while(DPCalendar.rows.length > 4)
+	{
+		DPCalendar.deleteRow(2);
+	}
+
+	var cal = new DP_Calendar(year, month);
+	i = 2;
+	while(cal.hasNextWeek())
+	{
+		var w = cal.nextWeek();
+		var tr = DPCalendar.insertRow(i);
+		while(w.hasNextDate())
+		{
+			var d = w.nextDate();
+			var td = tr.insertCell();
+			td.id = DP_FormatDate(d);
+			td.className = (cal.month == d.getMonth())? 'DPDate': 'DPDate2';
+			if(DP_DateEquals(d, m_CurrentDate))
+			{
+				td.style.fontWeight = 'bold';
+			}
+			td.innerHTML = d.getDate();
+		}
+		i++;
+	}
+
+	// Iframe 크기 재조정 //
+	var DPTable = document.all.DPTable;
+	window.resizeTo(DPTable.offsetWidth, DPTable.offsetHeight);
+
+	return cal;
+}
+
+function _pickDate(date_str)
+{
+	if(parent.DP_GetPickedDate != null)
+	{
+		parent.DP_GetPickedDate(date_str);
+	}
+}
+
+function _disablePicker()
+{
+	if(parent.DP_DisablePicker != null)
+	{
+		parent.DP_DisablePicker();
+	}
+}
+
+// HTML event handlers //
+function DPCalendar_click()
+{
+	var e = event.srcElement;
+
+	if(e.tagName == 'SPAN' && e.id == 'DPToday')
+	{
+		_pickDate(e.innerHTML);
+	}
+	else if(e.tagName == 'TD' && (e.className == 'DPDate' || e.className == 'DPDate2'))
+	{
+		_pickDate(e.id);
+	}
+	return false;
+}
+
+function DPCalendar_PrevMonth()
+{
+	var DPYear = document.all.DPYear;
+	var DPMonth = document.all.DPMonth;
+	if((DPYear.selectedIndex == -1 || DPYear.options[DPYear.selectedIndex].value == '') || (DPMonth.selectedIndex == -1 || DPMonth.options[DPMonth.selectedIndex].value == ''))
+	{
+		return;
+	}
+	var year = Number(DPYear.options[DPYear.selectedIndex].value);
+	var month = Number(DPMonth.options[DPMonth.selectedIndex].value);
+	var date = new Date(year, month - 2, 1);
+	_build(date);
+}
+
+function DPCalendar_NextMonth()
+{
+	var DPYear = document.all.DPYear;
+	var DPMonth = document.all.DPMonth;
+	if((DPYear.selectedIndex == -1 || DPYear.options[DPYear.selectedIndex].value == '') || (DPMonth.selectedIndex == -1 || DPMonth.options[DPMonth.selectedIndex].value == ''))
+	{
+		return;
+	}
+	var year = Number(DPYear.options[DPYear.selectedIndex].value);
+	var month = Number(DPMonth.options[DPMonth.selectedIndex].value);
+	var date = new Date(year, month, 1);
+	_build(date);
+}
+
+function DPCalendar_ChangeMonth()
+{
+	var DPYear = document.all.DPYear;
+	var DPMonth = document.all.DPMonth;
+	if((DPYear.selectedIndex == -1 || DPYear.options[DPYear.selectedIndex].value == '') || (DPMonth.selectedIndex == -1 || DPMonth.options[DPMonth.selectedIndex].value == ''))
+	{
+		return;
+	}
+	var year = Number(DPYear.options[DPYear.selectedIndex].value);
+	var month = Number(DPMonth.options[DPMonth.selectedIndex].value);
+	var date = new Date(year, month - 1, 1);
+	_build(date);
+}
+//-->
+</script>
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table id="DPTable" width="180" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<form name="DPForm" onSubmit="return false" style="margin:0px;">
+	<td align="center">
+		<table id="DPSelector" width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td align="center" width="25"><a href="#none" hidefocus="true" onClick="DPCalendar_PrevMonth();this.blur();return false"><img src="../wp_button/back.gif" width="15" height="15" border="0"></a></td>
+			<td align="center">
+				<select name="DPYear" id="DPYear" onChange="DPCalendar_ChangeMonth();this.blur()" class="input"></select>
+				<select name="DPMonth" id="DPMonth" onChange="DPCalendar_ChangeMonth();this.blur()" class="input">
+					<option value="1">1월</option>
+					<option value="2">2월</option>
+					<option value="3">3월</option>
+					<option value="4">4월</option>
+					<option value="5">5월</option>
+					<option value="6">6월</option>
+					<option value="7">7월</option>
+					<option value="8">8월</option>
+					<option value="9">9월</option>
+					<option value="10">10월</option>
+					<option value="11">11월</option>
+					<option value="12">12월</option>
+				</select>
+			</td>
+			<td align="center" width="25"><a href="#none" hidefocus="true" onClick="DPCalendar_NextMonth();this.blur();return false"><img src="../wp_button/next.gif" width="15" height="15" border="0"></a></td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="center">
+		<table id="DPCalendar" width="100%" border="0" cellspacing="2" cellpadding="1" onClick="DPCalendar_click()">
+		<tr>
+			<th class="DPHeader"><font color="#ff6600">일</font></th>
+			<th class="DPHeader">월</th>
+			<th class="DPHeader">화</th>
+			<th class="DPHeader">수</th>
+			<th class="DPHeader">목</th>
+			<th class="DPHeader">금</th>
+			<th class="DPHeader"><font color="#3366cc">토</font></th>
+		</tr>
+		<tr>
+			<td height="1" colspan="7" background="../icon/sdot.gif"></td>
+		</tr>
+		<tr>
+			<td height="1" colspan="7" bgcolor="#cccccc"></td>
+		</tr>
+		<tr>
+			<td colspan="7" align="center">
+				오늘(<font color="#996600"><u><span id="DPToday"></span></u></font>)
+				<b>|</b>
+				<a href="#none" hidefocus="true" onClick="_disablePicker(); return false">닫기</a>
+			</td>
+		</tr>
+		</table>
+	</td>
+	</form>
+</tr>
+</table>
+</body>
+</html>

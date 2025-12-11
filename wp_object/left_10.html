@@ -1,0 +1,108 @@
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0" class="border_gray_d">
+<tr>
+	<td valign="top" style="padding:10 10 0 10">
+		<table class="tbLeft-a">
+		<tr>
+			<th><a href="../wp_club_ctrl/index.html?mode=modify_club"><b>정보변경</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<th><a href="../wp_board/index.html?code=notice&mode=list"><b>공지사항</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<th><a href="../wp_board/index.html?code=qna&mode=list"><b>질문과답변</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<?
+		if($Admin_auth == "top" || $Admin_auth == "normal")
+		{
+		?>
+		<tr>
+			<th><a href="../wp_board/index.html?code=club_only&mode=list"><b>시군담당 전용</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<?
+		}
+		if($Admin_auth == "s_group")
+		{
+		?>
+		<tr>
+			<th><a href="../wp_team_agree/index.html?code=team_agree&mode=input"><b>경기단체 최종승인</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<th><a href="../wp_board/index.html?code=team_only&mode=list"><b>경기단체 전용</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<?
+		}
+		?>
+		<? if($Admin_auth == "top"){?>
+		<tr>
+			<th><a href="../wp_board/index.html?code=team_only&mode=list"><b>경기단체 전용</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<th><a href="../wp_board/index.html?code=pds&mode=list"><b>자료실</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<th><a href="../wp_confirm/index.html?mode=input"><b>확인자 이름지정</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<!--<th><a href="../wp_team_agree/index.html?code=team_agree&mode=list"><b>경기단체(ID 신청)</b></a></th>-->
+			<th><a href="../wp_club_ctrl/index.html?code=club&mode=apply_list&jnsad=jnsad"><b>경기단체(ID 신청)</b></a></th>
+
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<th><a href="../wp_club_ctrl/index.html?code=club&mode=apply_list"><b>담당자(ID 신청)</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<th><a href="../wp_board/index.html?code=data&mode=list"><b>전산기록원 자료실</b></a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<?}?>
+		<tr>
+			<td style="padding-top:20px">
+				<?
+				$a_code = notice;
+				require_once "../wp_board/am_board.html";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td><a href="../wp_game_player/excel13.html">.</a></td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+

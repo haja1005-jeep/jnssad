@@ -1,0 +1,31 @@
+<?
+// 파일 크기 //
+$img_size = getimagesize($img_path);
+$b_width = $img_size[0]+30;
+$b_height = $img_size[1]+90;
+$scroll = "yes";
+if($b_width > 800) $b_width = 800;
+if($b_height > 650) $b_height = 650;
+?>
+<html>
+<head>
+<title>이미지보기</title>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+<script language="JavaScript" type="text/JavaScript">
+<!--//
+// 창크기 //
+window.onload = function(){
+	window.resizeTo(<?=$b_width?>,<?=$b_height?>);
+}
+//-->
+</script>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" scroll="<?=$scroll?>">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td align="center">
+		<a href="javascript:self.close();" hidefocus="true"><img name="big_photo" src="<?=$img_path?>" border="0" ></a>
+	</td>
+</tr>
+</table>
+</body>
+</html>

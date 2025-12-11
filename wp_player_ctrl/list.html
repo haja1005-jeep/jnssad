@@ -1,0 +1,357 @@
+<?
+//LIMIT절 생성
+if(!$page) $page=1;
+$offset = ($page - 1) * $max_record;
+$limit = $max_record;
+
+//ORDER BY절 생성
+//출력순
+if(!$orderby1 && !$orderby2 && !$orderby3 && !$orderby4)
+	//$orderby .= " isuse asc, clu_code asc, tea_code asc, spo_code asc, tro_code asc, tro_level_code asc,";
+	$orderby .= " isuse asc,  clu_code ASC, kubun ASC, name ASC, sex ASC, tro_code asc, ";
+if($orderby1)
+	$orderby .= " $orderby1 ASC, ";
+if($orderby2)
+	$orderby .= " $orderby2 ASC, ";
+if($orderby3)
+	$orderby .= " $orderby3 ASC, ";
+if($orderby4)
+	$orderby .= " $orderby4 ASC, ";
+$orderby .= " uid desc ";
+
+//WHERE절 생성 //
+$where = " WHERE 1=1 ";
+//삭제데이터까지 출력
+if(!$s_isuse) $where .= " AND isuse = '0' ";
+//시군가있으면
+if($clu_code) $where .= " AND clu_code = '$clu_code' ";
+//복지카드 미등록자
+if($s_welfare == "1") $where .=" AND (welfare_card is null OR welfare_card = '')";
+//사진미등록자
+if($s_picture == "1") $where .=" AND (picture is null OR picture = '')";
+
+//시/군구 이면 자기 데이터 출력
+if($Admin_auth == "normal" || $Admin_auth == "sponsor")
+	 $where .= " AND clu_code = '$Admin_code' ";
+
+if(eregi("[^[:space:]]+",$key))
+	$Q_key = " AND  $keyfield LIKE '%$key%' ";
+$where .= $Q_key;
+
+// 레코드 쿼리 //
+$query = "SELECT *
+		   FROM wp_player_ctrl p
+		 $where ORDER BY $orderby LIMIT $offset, $limit";
+
+$result = mysql_query($query);
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+?>
+<form name="schForm" action="index.html?mode=list" method="post">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>
+					정렬순서란? 검색 후 하단에 선수정보 리스트를 출력할 때 정렬할 순서를 나타냅니다.
+					<br>
+					출력순서 미지정시 <font color="#cc0000"><b>1:선수구분, 2:성명순, 3:성별순, 4:장애유형  </b></font>으로 정렬하여 출력
+				</li>
+				<li>
+					미사용데이터란? <font color="#cc0000">일시적으로 등록상태를 해제시킨 선수</font>도 포함하여 출력한다.
+				</li>
+				<li>
+					선수정보를 수정을 원할 시에는 관리의 <img src="../wp_button/s_modify.gif" align="absmiddle"> 버튼을 클릭하여 수정한다.
+				</li>
+				<li>
+					선수정보를 삭제를 원할 시에는 관리의 <img src="../wp_button/s_delete.gif" align="absmiddle"> 버튼을 클릭하여 수정한다.
+				</li>
+				<li>
+					선수경기 실적을 원할 시에는 관리의 <img src="/wp_images/img_searchPy.png" align="absmiddle"> 버튼을 클릭하여 확인한다.
+					<br><font color="#cc0000">삭제된 정보는 복구되지 않으므로 주의하세요.</font>
+				</li>				
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th width="10%">정렬순서</th>
+					<td align="left">
+						1순위
+						<select name="orderby1" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby1)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						2순위
+						<select name="orderby2" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby2)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						3순위
+						<select name="orderby3" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby3)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						4순위
+						<select name="orderby4" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby4)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>검색조건</th>
+					<td>
+						<? if($Admin_auth == "top"){ // 최고관리자만 출력 ?>
+						<select name="clu_code">
+							<option value=''>시/군 전체</option>
+							<?
+							foreach($wp_club_code as $keys => $values){
+								if($keys == $clu_code)
+									$is_selected = " selected ";
+								else $is_selected = "";
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+							?>
+						</select> |
+						<?}?>
+						<label name="lb"><input id="lb" type="checkbox" name="s_isuse" value="1" <? if($s_isuse=="1"){ echo " checked";}?>>미사용데이터출력</label> |
+						<label name="lb"><input id="lb" type="checkbox" name="s_picture" value="1" <? if($s_picture=="1"){ echo " checked";}?>>사진미등록자</label> |
+						<label name="lb"><input id="lb" type="checkbox" name="s_welfare" value="1" <? if($s_welfare=="1"){ echo " checked";}?>>복지카드미등록자</label>
+						<br>
+						<select name="keyfield">
+							<option value="name">성 명</option>
+							<option value="jumin1">주민번호1</option>
+							<option value="jumin2">주민번호2</option>
+						</select>
+						<input type="text" size="15" maxlength="30" name="key" class="input">
+						<input type="submit" name="sch" class="btnBox3" value=" 검 색 ">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<?
+				if($Admin_auth == "top")
+				{
+				?>
+				<input type="button" name="input" value="선수등록" class="btnBox3" onclick="location.href='./index.html?mode=input'">
+				<?
+				}
+				?>
+				<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='index.html'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="4%">번호</th>
+			<th width="5%">시/군</th>
+			<th width="5%">선수구분</th>
+			<th width="7%">선수명</th>
+			<th width="5%">성별</th>
+			<th width="10%">주민번호</th>
+			<th width="12%">장애유형</th>
+			<th width="7%">장애등급</th>
+			<th width="7%">휠체어</th>
+			<th width="3%">사진</th>
+			<th width="3%">복지</th>
+			<th width="3%">등급</th>
+			<th width="8%">등록일</th>
+			<!--<th width="7%">추가</th>-->
+			<th width="5%">관리</th>
+		</tr>
+		<?
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord("wp_player_ctrl", $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result))
+		{
+			$my_name = $obj->name;
+			// 검색단어 처리 //
+			if(!strcmp($keyfield,"name") && $key)
+			{
+				$my_name = eregi_replace("($key)", "<font color='#FF0000'>\\1</font>", $my_name);
+			}
+
+			if($obj->isuse == "1"){
+				$bgcolor = "bgcolor='#e7944a' ";
+			}else $bgcolor = "";
+
+			$signdate_d = date('y.m.d',$obj->signdate);
+
+			$my_wheel = $wp_wheel_code[$obj->wheel];
+			if($obj->wheel == "0"){ //사용이면
+				$my_wheel = "<font color='#cc0000'>".$wp_wheel_code[$obj->wheel]."</font>";
+			}
+
+			unset($picture_org);
+			unset($welfare_card_org);
+			unset($sport_card_org);
+
+			if($obj->picture){
+				$picture_org = $photo_path.$obj->picture_chg;
+				$pimg = getimagesize($picture);
+				$picture_x = $pimg[0];
+				$picture_y = $pimg[1];
+
+			}
+
+			if($obj->welfare_card){
+				$welfare_card_org = $photo_path.$obj->welfare_card_chg;
+				$pimg = getimagesize($welfare_card);
+				$welfare_card_x = $pimg[0];
+				$welfare_card_y = $pimg[1];
+			}
+
+			if($obj->sport_card){
+				$sport_card_org = $photo_path.$obj->sport_card_chg;
+				$pimg = getimagesize($sport_card);
+				$sport_card_x = $pimg[0];
+				$sport_card_y = $pimg[1];
+			}
+		?>
+		<tr <?=$bgcolor?>>
+			<td align="center"><?=$article_num?></td>
+			<td align="center"><?=$wp_club_code[$obj->clu_code]?></td>
+			<td align="center"><?=$wp_kubun_code[$obj->kubun]?></td>
+			<td align="center"><a href="index.html?<?=$basic_get.$add_get?>&mode=view&uid=<?=$obj->uid?>&pla_id=<?=$obj->wp_id?>"><?=$my_name?></a></td>
+			<td align="center"><?=$wp_sex_code[$obj->sex]?></td>
+			<td align="center">
+				<?
+				if($Admin_auth == "top")
+				{
+					echo $obj->jumin1."-".$obj->jumin2;
+				}
+				else
+				{
+					echo $obj->jumin1."-*******";
+				}
+				?>
+			</td>
+			<td align="center"><?=$wp_trouble_code[$obj->tro_code]?></td>
+			<td align="center"><?=$wp_trouble_level[$obj->trouble_level]?></td>
+			<td align="center"><?=$my_wheel?></td>
+			<td align="center">
+				<?
+				if($picture_org) echo "<a href='#none' onclick=\"window.open('../wp_object/zoom.html?img_path=$picture_org','p1','width=$picture_x,height=$picture_y,menubars=no,scrollbars=no')\"><img src='../wp_icon/tip_jpg.gif'></a>";
+				else echo "&nbsp;";
+				?>
+			</td>
+			<td align="center">
+				<?
+				if($welfare_card_org) echo "<a href='#none' onclick=\"window.open('../wp_object/zoom.html?img_path=$welfare_card_org','p1','width=$welfare_card_x,height=$welfare_card_y,menubars=no,scrollbars=no')\"><img src='../wp_icon/tip_jpg.gif'></a>";
+				else echo "&nbsp;";
+				?>
+			</td>
+			<td align="center">
+				<?
+				if($sport_card_org) echo "<a href='#none' onclick=\"window.open('../wp_object/zoom.html?img_path=$sport_card_org','p1','width=$sport_card_x,height=$sport_card_y,menubars=no,scrollbars=no')\"><img src='../wp_icon/tip_jpg.gif'></a>";
+				else echo "&nbsp;";
+				?>
+			</td>
+			<td align="center"><?=$signdate_d?></td>
+			<!--
+			<td align="center">
+				<a href="../wp_player_school/index.html?<?=$basic_get.$add_get?>&mode=list&player=<?=$obj->wp_id?>">학력</a>
+				<a href="../wp_player_prize/index.html?<?=$basic_get.$add_get?>&mode=list&player=<?=$obj->wp_id?>">상벌</a>
+			</td>
+			-->
+			<td align="center">
+				<a href="./index.html?<?=$basic_get.$add_get?>&mode=modify&uid=<?=$obj->uid?>"><img src="../wp_button/s_modify.gif"></a>&nbsp;
+				<a href="./delete.php?<?=$basic_get.$add_get?>&mode=list&uid=<?=$obj->uid?>" onClick="return confirm('정말 삭제하시겠습니까?')"><img src="../wp_button/s_delete.gif"></a>&nbsp;
+				<a href='#none' onclick="window.open('/wp_search/searchPyId.html?wp_id=<?php echo $obj->wp_id ?>','player','width=900,height=700,scrollbars=yes')"><img src="/wp_images/img_searchPy.png"></a>
+			</td>
+		</tr>
+		<?
+			$article_num--;
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td align="center">
+			<? require_once "../wp_object/page_move.html";?>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="button" name="input" value="선수등록" class="btnBox3" onclick="location.href='./index.html?mode=input'">
+				<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='index.html?'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>

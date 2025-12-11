@@ -1,0 +1,70 @@
+<?
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+//Setup 설정 //
+require_once "../wp_library/setup.php";
+
+
+
+//경기종목별 참가가능한 장애유형 셋팅
+// 배열 갯수 //
+$c_que = "SELECT * FROM wp_game_event WHERE gam_uid='$gam_uid' AND spo_code = '$spo_code' AND spo_sec_code='$spo_sec_code' GROUP BY tro_code ORDER BY tro_code ASC";
+$c_res = mysql_query($c_que);
+$num = mysql_num_rows($c_res);
+
+// 생성시 빈공백 오류 체크 //
+printf ("document.sForm.tro_code.length = $num + 1; \n");
+printf ("document.sForm.tro_code.options[0].text = '--장애유형--'; \n");
+printf ("document.sForm.tro_code.options[0].value = ''; \n");
+printf ("document.sForm.tro_code.options[0].selected = true; \n");
+
+$i=1;
+// 레코드 결과 //
+while($z_row = mysql_fetch_object($c_res))
+{
+	$code = $z_row->tro_code;
+	$name = $wp_trouble_code[$z_row->tro_code];
+
+	if($code)
+	{
+		printf ("document.sForm.tro_code.options[$i].text = '$name'; \n");
+		printf ("document.sForm.tro_code.options[$i].value = '$code'; \n");
+		$i++;
+	}
+}
+
+//경기종목별 참가가능한 성별 셋팅
+// 배열 갯수 //
+$c_que = "SELECT * FROM wp_game_event WHERE gam_uid='$gam_uid' AND spo_code = '$spo_code' AND spo_sec_code='$spo_sec_code' GROUP BY sex ORDER BY sex ASC";
+$c_res = mysql_query($c_que);
+$num = mysql_num_rows($c_res);
+
+// 생성시 빈공백 오류 체크 //
+printf ("document.sForm.sex.length = $num + 1; \n");
+printf ("document.sForm.sex.options[0].text = '--성별--'; \n");
+printf ("document.sForm.sex.options[0].value = ''; \n");
+printf ("document.sForm.sex.options[0].selected = true; \n");
+
+$i=1;
+// 레코드 결과 //
+while($z_row = mysql_fetch_object($c_res))
+{
+	$code = $z_row->sex;
+	$name = $wp_sex_code[$z_row->sex];
+
+	if($code)
+	{
+		printf ("document.sForm.sex.options[$i].text = '$name'; \n");
+		printf ("document.sForm.sex.options[$i].value = '$code'; \n");
+		$i++;
+	}
+}
+
+?>

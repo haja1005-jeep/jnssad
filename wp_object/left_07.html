@@ -1,0 +1,74 @@
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0" class="border_gray_d">
+<tr>
+	<td valign="top" style="padding:10 10 0 10">
+		<table class="tbLeft-a">
+		<tr>
+			<th>기록관리</th>
+		</tr>
+		<?
+		if($Admin_auth == "top")
+		{
+		?>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_game_result/index.html?mode=input&type=real">기록등록</a></th>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_game_result/index.html?mode=game_list&type=real"><font color="#0000ff">경기별기록조회</font></a></th>
+		</tr>
+		<?
+		}
+		else if($Admin_auth == "sponsor" && $Admin_level == "2")
+		{ // 기록관리자이면
+		?>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_game_result/index.html?mode=input&type=real">기록등록</a></th>
+		</tr>
+		<!--
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_game_player/excel.html?s_gam_uid=<?=$gam_uid?>&spo_code=<?=$Admin_code?>">명부총괄인원표</a></td>
+		</tr>
+		-->
+		<?
+		}
+		?>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_game_result/index.html?mode=list&type=real">기록조회</a></th>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<? if($Admin_auth == "top"){?>
+		<tr>
+			<th>테스트용 기록관리</th>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_game_result/index.html?mode=input&type=test">기록등록</a></th>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_game_result/index.html?mode=list&type=test">기록조회</a></th>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_game_result/index.html?mode=test_data">테스트데이터 생성</a></th>
+		</tr>
+		<!--
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_game_result/conv.php">변환</a></th>
+		</tr>
+		-->
+		<?}?>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<td style="padding-top:20px">
+				<?
+				$a_code = notice;
+				require_once "../wp_board/am_board.html";
+				?>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+

@@ -1,0 +1,179 @@
+<?
+
+//LIMIT절 생성
+if(!$page) $page=1;
+$offset = ($page - 1) * $max_record;
+$limit = $max_record;
+
+//ORDER BY절 생성
+if(!$orderby) $orderby = " isuse asc, clu_code asc, name ASC, tro_code asc";
+else $orderby = $orderby." ".$desc;
+
+//WHERE절 생성 //
+$where = " WHERE isuse='0' ";
+if($year) $where .= " AND year= '$year' ";
+if($kubun) $where .= " AND kubun= '$kubun' ";
+if($spo_code) $where .= " AND spo_code= '$spo_code' ";
+if($tro_code) $where .= " AND tro_code= '$tro_code' ";
+if($clu_code) $where .= " AND clu_code= '$clu_code' ";
+
+//시/군구 이면 자기 데이터 출력
+//if($Admin_auth == "normal" || $Admin_auth == "sponsor")
+//	 $where .= " AND clu_code = '$Admin_code' ";
+
+if(eregi("[^[:space:]]+",$key))
+	$Q_key = " AND  $keyfield LIKE '%$key%' ";
+$where .= $Q_key;
+
+// 레코드 쿼리 //
+$query = "SELECT *
+		   FROM wp_player_ctrl
+		 $where ORDER BY $orderby LIMIT $offset, $limit";
+
+$result = mysql_query($query);
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+?>
+<form name="schForm" action="excel.html" method="post" target="_blank">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>
+					정렬순서란? 검색 후 하단에 선수정보 리스트를 출력할 때 정렬할 순서를 나타냅니다.
+					<br>
+					출력순서 미지정시 <font color="#cc0000"><b>1:선수구분, 2:성명순, 3:성별순, 4:장애유형  </b></font>으로 정렬하여 출력
+				</li>
+
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th width="10%">정렬순서</th>
+					<td align="left" colspan="4">
+						1순위
+						<select name="orderby1" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby1)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						2순위
+						<select name="orderby2" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby2)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						3순위
+						<select name="orderby3" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby3)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						4순위
+						<select name="orderby4" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby4)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th width="10%">검색조건</th>
+					<td>
+						<?
+						//시/군구 이면 자기 데이터 출력
+						if($Admin_auth == "normal" || $Admin_auth == "sponsor") {
+							echo "<input type='hidden' name='clu_code' hname='대회주최기관' value='$Admin_code'>";
+						}else{
+							echo "
+							<select name='clu_code' tabindex='1' hname='소속시도'>
+								<option value=''>--시/도 선택-- </option>
+							";
+									foreach($wp_club_code as $keys => $values){
+										if($keys == $clu_code) $is_selected = " selected";
+										else $is_selected = "";
+										echo "<option value='$keys' $is_selected>$values</option>";
+									}
+							echo"</select>";
+						}
+						?>
+						<select name="year" tabindex="2" hname="연도구분">
+							<option value="">--연도구분-- </option>
+							<?
+								foreach($year_type as $keys => $values){
+									if($keys == $year)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<select name="kubun" tabindex="3" hname="선수구분">
+							<option value="">--선수구분-- </option>
+							<?
+								foreach($wp_kubun_code as $keys => $values){
+									if($keys == $kubun)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<select name="tro_code" tabindex="4" hname="장애유형">
+							<option value="">--장애유형-- </option>
+							<?
+								foreach($wp_trouble_code as $keys => $values){
+									if($keys == $tro_code)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<input type="submit" name="sch" class="btnBox3" value="선수정보출력">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>

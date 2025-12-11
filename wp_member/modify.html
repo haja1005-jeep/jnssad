@@ -1,0 +1,129 @@
+<?
+	require_once "../wp_object/head.html";
+?>
+	<!-- 전체를 감싸 안는 테이블 -->
+	<table class="table-global">
+	<tr>
+		<td valign="top">
+			<table width="100%" cellpadding="0" cellspacing="0">
+			<!-- 탑메뉴 시작-->
+			<tr>
+				<td>
+					<? require_once "../wp_object/top.html"?>
+				</td>
+			</tr>
+			<!-- 탑메뉴 끝 -->
+			<tr>
+				<td>
+				<!-- 하단을 감싸 안는 bodyBlock -->
+				<div class="bodyBlock">
+					<!-- 패스 출력 시작 -->
+					<div class="pathBlock">
+						<img src="../wp_icon/title_icon.gif" align="absmiddle"><a href="../wp_main/index.html">&nbsp;홈</a> &gt; 대회관리
+					</div>
+					<!-- 패스 출력 끝 -->
+					<!-- 타이틀 출력 시작 -->
+					<div class="titleBlock">
+						<table cellpadding="0" cellspacing="0">
+						<tr>
+							<td width="30%">
+								<div id="title">
+									<img src="../wp_icon/title_icon.gif">대회관리
+								</div>
+							</td>
+						</tr>
+						</table>
+					</div>
+					<!-- 타이틀 출력 끝 -->
+					<!-- 팁 출력 시작 -->
+					<div class="tipBlock">
+						<fieldset class="tipBox">
+							<legend><img src="../wp_icon/tip_01.gif"></legend>
+							<br>
+							<li>장애인종류를 선택하세요.</li><br>
+							<li>장애코드 : 관리할 코드를 입력하세요. 영문 또는 숫자로 입력하세요.</li>
+						</fieldset>
+						<table class="tipBox">
+						<tr>
+				                	<th><img src="../wp_images/tip_round01.gif"></th>
+				             	</tr>
+						<tr>
+							<td>
+								<img src="../wp_icon/tip_01.gif"> 장애인종류를 선택하세요.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								장애코드 : 관리할 코드를 입력하세요. 영문 또는 숫자로 입력하세요.
+							</td>
+						</tr>
+						<tr>
+				                	<th><img src="../wp_images/tip_round02.gif"></th>
+				             	</tr>
+						</table>
+					</div>
+					<!-- 팁출력 끝 -->
+					<!-- 내용 출력 시작-->
+					<?
+					//로그인 체크
+					if(!$site_auth->isLogin()){
+						Error("ADMIN_ERROR");
+						exit;
+					}
+					?>
+
+					<!-- 내용 출력 시작-->
+					<div class="contentBlock">
+						<form name="sForm" action="../wp_member/modify.php" method="post" onSubmit="return validate(this)">
+						<table width="50%" class="tbList-input-a">
+						<tr>
+							<th width="50">사용자ID</hd>
+							<td><input type="text" name="wp_id" size="15" maxlength="15" value="<?=$Site_Admin?>" class="input" hname="사용자ID" readonly required ></td>
+						</tr>
+						<tr>
+							<th width="50">사용자명</hd>
+							<td><input type="text" name="name" size="30" maxlength="30" value="<?=$Admin_name?>" class="input" hname="사용자명" required readonly></td>
+						</tr>
+						<tr>
+							<th width="50">기존 비밀번호</hd>
+							<td><input type="password" name="wp_passwd" size="15" maxlength="15" tabindex="1" hname="기존 비밀번호" required range="5:12" style="ime-mode:disabled" onkeypress="Input_Eng_Num()"></td>
+						</tr>
+						<tr>
+							<th width="50">신규 비밀번호</hd>
+							<td><input type="password" name="new_passwd" size="15" maxlength="15" tabindex="2" hname="신규 비밀번호" required range="5:12" style="ime-mode:disabled" onkeypress="Input_Eng_Num()"></td>
+						</tr>
+						<tr>
+							<th width="50">신규 비밀번호확인</hd>
+							<td><input type="password" name="re_new_passwd" size="15" maxlength="15" tabindex="3" hname="신규 비밀번호확인" required matching="new_passwd" range="5:12" style="ime-mode:disabled" onkeypress="Input_Eng_Num()"></td>
+						</tr>
+						</table>
+						<br>
+						<div class="btnBox">
+						<input type="submit" name="send" value="변경하기" class="btn_send" tabindex="4">
+						</div>
+						</form>
+					</div>
+					<!-- 내용 출력 끝 -->
+				</div>
+				<!-- bodyBlock 끝 -->
+			</td>
+		</tr>
+		</table>
+
+
+
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+	장애인 체육회 인덱스화면
+	<a href="#"><img src="../wp_images/a.gif"></a>
+	<a href="#">링크설정1</a>
+	<a href="#">링크설정2</a>
+
+</body>
+</html>

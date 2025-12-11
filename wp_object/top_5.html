@@ -1,0 +1,35 @@
+<?
+if($Admin_level == "2")
+{
+	$spo_code = $Admin_code;
+	if($Admin_code == "ATHIETICS1")
+	{
+		$spo_code = "ATHIETICS";
+		$spo_sec_code = "AS100";
+	}
+	if($Admin_code == "ATHIETICS2")
+	{
+		$spo_code = "ATHIETICS";
+		$spo_sec_code = "AS200";
+	}
+}
+?>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td width="47" valign="top"><img src="../wp_images/menu_left.gif" width="47" height="40"></td>
+	<td width="300" nowrap align="left">
+		<!--메뉴시작 -->
+		<table width="100%"  border="0" cellspacing="0" cellpadding="0" align="left">
+		<tr align="left" valign="top">
+			<td align="center"><a href="../wp_game_result/index.html?mode=list&type=real" hidefocus="true"><img src="../wp_images/menu_07<?=$top_over_07?>.gif" width="74" height="40" border="0" onMouseOut="src='../wp_images/menu_07<?=$top_over_07?>.gif'" alt="경기실적관리"></a></td>
+			<td align="center" width="20"><img src="../wp_images/menu_line.gif" width="10" height="40"></td>
+			<td align="center"><a href="../wp_board/index.html?code=notice&mode=list" hidefocus="true"><img src="../wp_images/menu_08<?=$top_over_08?>.gif" width="50" height="40" border="0" onMouseOut="src='../wp_images/menu_08<?=$top_over_08?>.gif'" alt="부가관리"></a></td>
+			<td align="center" width="20"><img src="../wp_images/menu_line.gif" width="10" height="40"></td>
+			<td align="center"><a href="../wp_board/index.html?code=data&mode=list" hidefocus="true"><span style="display:block; margin-top:11px; padding:0; font-size:120%; font-weight:bold; color:#fff;">자료실</span></a></td>
+			<td align="center" width="20"><img src="../wp_images/menu_line.gif" width="10" height="40"></td>
+		</tr>
+		</table>
+	</td>
+	<td>&nbsp;</td>
+</tr>
+</table>

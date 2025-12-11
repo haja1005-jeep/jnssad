@@ -1,0 +1,45 @@
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0" class="border_gray_d">
+	<tr>
+		<td valign="top" style="padding:10 10 0 10">
+			<table class="tbLeft-a">
+				<tr>
+					<th>현황파악</th>
+				</tr>
+				<tr>
+					<td height="1" bgcolor="#E8E8E8"></td>
+				</tr>
+				<tr>
+					<td id="submenu">&#149; <a href="../wp_score/index.html?mode=list">시/군별득점현황</a></td>
+				</tr>
+				<tr>
+					<td id="submenu">&#149; <a href="../wp_game_status">다관왕 현황</a></td>
+				</tr>
+				<?php if($Admin_auth == "top") { ?>
+				<tr>
+					<td height="1" bgcolor="#E8E8E8"></td>
+				</tr>
+				<tr>
+					<td id="submenu">&#149; <a href="../wp_game_status/?mode=total">종합득점 현황</a></td>
+				</tr>
+				<?php } ?>
+				<tr>
+					<td height="1" bgcolor="#E8E8E8"></td>
+				</tr>
+				<tr>
+					<td id="submenu">&#149; <a href="../wp_game_status/?mode=sigun">시&#183;군 득점 현황</a></td>
+				</tr>
+				<tr>
+					<td height="1" bgcolor="#E8E8E8"></td>
+				</tr>
+				<tr>
+					<td style="padding-top:20px">
+						<?
+						$a_code = notice;
+						require_once "../wp_board/am_board.html";
+						?>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>

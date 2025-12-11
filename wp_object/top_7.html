@@ -1,0 +1,31 @@
+<?
+$top_over_12_color = "#ffffff";
+$top_over_13_color = "#ffffff";
+
+if($top_over_12 == "o")
+{
+	$top_over_12_color = "#FFF200";
+}
+if($top_over_13 == "o")
+{
+	$top_over_13_color = "#FFF200";
+}
+?>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td width="47" valign="top"><img src="../wp_images/menu_left.gif" width="47" height="40"></td>
+	<td width="300" nowrap align="left">
+		<!--메뉴시작 -->
+		<table width="100%"  border="0" cellspacing="0" cellpadding="0" align="left">
+		<tr align="left" valign="top">
+			<td align="center" style="padding-top:12px"><a href="../wp_game_player/index.html?mode=list"><font size="2" color="<?=$top_over_12_color?>"><b>참가자조회</b></font></a></td>
+			<td align="center" width="20"><img src="../wp_images/menu_line.gif" width="10" height="40"></td>
+			<td align="center" style="padding-top:12px"><a href="../wp_board/index.html?code=team_only&mode=list"><font size="2" color="<?=$top_over_13_color?>"><b>경기단체 게시판</b></font></a></td>
+			<td align="center" width="20"><img src="../wp_images/menu_line.gif" width="10" height="40"></td>
+			<td align="center"><a href="../wp_club_ctrl/index.html?mode=modify_club" hidefocus="true"><img src="../wp_images/menu_08<?=$top_over_08?>.gif" width="50" height="40" border="0" onMouseOver="src='../wp_images/menu_08o.gif';" onMouseOut="src='../wp_images/menu_08<?=$top_over_08?>.gif'" alt="부가관리"></a></td>
+		</tr>
+		</table>
+	</td>
+	<td>&nbsp;</td>
+</tr>
+</table>

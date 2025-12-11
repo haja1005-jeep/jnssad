@@ -1,0 +1,40 @@
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td align="center" height="40">
+		<?
+		// 이전 페이지 링크 //
+		if($PageNumber->prev)
+		{
+			echo ("<a href='$PHP_SELF?$basic_get&page=$PageNumber->prev$add_get'><img src='../wp_button/back.gif' border='0' align='absmiddle'></a>&nbsp;&nbsp;");
+		}
+		else
+		{
+			echo ("<img src='../wp_button/s_back.gif' border='0' align='absmiddle'></a>&nbsp;&nbsp;");
+		}
+
+		// 현재 페이지 링크 //
+		for($link_page = $PageNumber->prev_page+1 ; $link_page <= $PageNumber->next_page ; $link_page++)
+		{
+			if($PageNumber->page == $link_page)
+			{
+				echo ("<font color='#3366ff' size='3'><b> $link_page </b></font>");
+			}
+			else
+			{
+				echo ("[<a href='$PHP_SELF?$basic_get&page=$link_page$add_get'>$link_page</a>]");
+			}
+		}
+
+		// 다음 페이지 링크 //
+		if($PageNumber->next)
+		{
+			echo ("&nbsp;&nbsp;<a href='$PHP_SELF?$basic_get&page=$PageNumber->next$add_get'><img src='../wp_button/next.gif' border='0' align='absmiddle'></a>");
+		}
+		else
+		{
+			echo ("&nbsp;&nbsp;<img src='../wp_button/s_next.gif' border='0' align='absmiddle'></a>");
+		}
+		?>
+	</td>
+</tr>
+</table>

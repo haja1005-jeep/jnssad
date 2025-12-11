@@ -1,0 +1,75 @@
+<?
+	require_once "../wp_object/head.html";
+?>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<!-- 탑메뉴 시작-->
+		<? require_once "../wp_object/top.html"?>
+		<!-- 탑메뉴 끝 -->
+	</td>
+</tr>
+<tr>
+	<td align="left">
+		<!-- Document Start -->
+		<table class="table-global">
+		<tr>
+			<td>
+				<!-- 패스 출력 시작 -->
+				<div class="tbPathBlock">
+					<img src="../wp_icon/title_icon.gif" align="absmiddle"><a href="../wp_main/index.html">&nbsp;홈</a> &gt; 선수 상벌관리
+				</div>
+				<!-- 패스 출력 끝 -->
+				<!-- 타이틀 출력 시작 -->
+				<table class="tbTitleBlock">
+				<tr>
+					<td width="30%">
+						<div id="title">
+							<img src="../wp_icon/title_icon.gif">선수 상벌관리
+						</div>
+					</td>
+				</tr>
+				</table>
+				<!-- 타이틀 출력 끝 -->
+				<?
+				//로그인 체크
+				if(!$site_auth->isLogin()){
+					Error("ADMIN_ERROR");
+					exit;
+				}
+				//권한 체크
+				if(!$site_auth->isConn($cd_player,$Admin_auth)){
+					Error("AUTH_ERROR");
+					exit;
+				}
+				if(!$mode || $mode=="list")
+					require_once "./list.html";
+				else if($mode=="input")
+					require_once "./input.html";
+				else if($mode=="modify")
+					require_once "./modify.html";
+				else if($mode=="view")
+					require_once "./view.html";
+				else if($mode=="delete")
+					require_once "./delete.html";
+				else if($mode=="print")
+					require_once "./print.html";
+				?>
+			</td>
+		</tr>
+		</table>
+		<!-- Document End -->
+	</td>
+</tr>
+</table>
+
+<br>
+<br>
+<br>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>&nbsp;</td>
+</tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,52 @@
+
+					<!-- 내용 출력 시작-->
+						<?
+						//다음 정렬순서값을 구한다.
+						$query = "SELECT * FROM wp_player_prize where uid='$uid'";
+
+						$result = mysql_query($query);
+						if (!$result) {
+						   	Error("QUERY_ERROR");
+						}
+						$obj = mysql_fetch_array($result,MYSQL_BOTH);
+						?>
+
+						<form name="sForm" action="modify.php?<?=$basic_get.$add_get?>&player=<?=$player?>" method="post" onSubmit="return validate(this)">
+						<table class="tbInput-a">
+						<tbody>
+						<tr>
+							<th>상벌구분</th>
+							<td>
+								<?
+								foreach($wp_prize_code as $keys => $values){
+									if($keys == $obj[kind])
+										$is_checked = " checked ";
+									else $is_checked = "";
+									echo "<label name='lb'><input id='lb' type='radio' name='kind' value='$keys' tabindex='5' $is_checked>$values</label>";
+								}
+								?>
+							</td>
+						</tr>
+						<tr>
+							<th>기간</th>
+							<td colspan="3">
+								<input type="text" name="f_date" class="input" size="10" maxlength="10" tabindex="2" value="<?=$obj[f_date]?>" hname="기간" required style="ime-mode:disabled" onKeyup="Auto_date(this)">
+								~
+								<input type="text" name="t_date" class="input" size="10" maxlength="10" tabindex="2" value="<?=$obj[t_date]?>" hname="기간" required style="ime-mode:disabled" onKeyup="Auto_date(this)">
+							</td>
+						</tr>
+						<tr>
+							<th>내역</th>
+							<td><textarea name="comment" class="input" cols="80" rows="7" tabindex="3"><?=$obj[comment]?></textarea></td>
+						</tr>
+						</tbody>
+						</table>
+						<table class="tbButton-a">
+						<tr>
+							<td>
+								<input type="submit" name="send" value="수정하기" class="btn_send" tabindex="8">
+								<input type="button" name="send" value="목록으로" class="btn_send" tabindex="8" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list&player=<?=$player?>'">
+							</td>
+						</tr>
+						</table>
+					<!-- 내용 출력 끝 -->

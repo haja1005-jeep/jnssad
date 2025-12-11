@@ -1,0 +1,163 @@
+<!-- 내용 출력 시작-->
+<?
+//대회 참가 선수 정보를 가져온다.
+$query = "SELECT * FROM wp_player_ctrl where wp_id='$pla_id'";
+
+$result = mysql_query($query);
+if (!$result) {
+   	Error("QUERY_ERROR");
+}
+
+if(mysql_num_rows($result) < 1){
+	ERROR("NOT_DATA");
+	exit;
+}
+$obj = mysql_fetch_object($result);
+
+//해당 시/군의 데이터만 확인가능
+/*
+if($Admin_auth != "top"){
+	if($obj->clu_code != $Admin_code){
+		Error("AUTH_ERROR");
+		exit;
+	}
+}
+*/
+
+if($obj->picture){
+	$picture = $photo_path."c_".$obj->picture_chg;
+	$picture_org = $photo_path.$obj->picture_chg;
+	$pimg = getimagesize($picture);
+	$picture_x = $pimg[0];
+	$picture_y = $pimg[1];
+	if($picture_x > 120) $picture_x = 120;
+	if($picture_y > 160) $picture_y = 160;
+}else{
+	$picture = "../wp_images/a_no_img_160.jpg";
+	$picture_x = 120;
+}
+/*
+if($obj->jumin_card){
+	$jumin_card = $photo_path."c_".$obj->jumin_card_chg;
+	$pimg = getimagesize($jumin_card);
+	$jumin_card_x = $pimg[0];
+	$jumin_card_y = $pimg[1];
+}
+*/
+if($obj->welfare_card){
+	$welfare_card = $photo_path."c_".$obj->welfare_card_chg;
+	$welfare_card_org = $photo_path.$obj->welfare_card_chg;
+	$pimg = getimagesize($welfare_card);
+	$welfare_card_x = $pimg[0];
+	$welfare_card_y = $pimg[1];
+	if($welfare_card_y > 210) $welfare_card_y = 210;
+}
+if($obj->sport_card){
+	$sport_card = $photo_path."c_".$obj->sport_card_chg;
+	$sport_card_org = $photo_path.$obj->sport_card_chg;
+	$pimg = getimagesize($sport_card);
+	$sport_card_x = $pimg[0]+50;
+	$sport_card_y = $pimg[1]/2;
+}
+
+$birth = split("-", $obj->birthday);
+$birthday_y = $birth[0];
+$birthday_m = $birth[1];
+$birthday_d = $birth[2];
+
+//등급변경사항
+$history = nl2br($obj->history);
+
+?>
+<table class="table-global">
+<tr>
+	<td>
+		<table class="tbList-b">
+		<tbody>
+		<tr>
+			<th width="15%">선&nbsp;&nbsp;&nbsp;수&nbsp;&nbsp;&nbsp;명</th>
+			<td width="35%"><b><?=$obj->name?> <font color="#0000ff">[<?=$wp_kubun_code[$obj->kubun]?>]</font></b><a href='#none' onclick="window.open('/wp_search/searchPyId.html?wp_id=<?php echo $obj->wp_id ?>','player','width=900,height=700,scrollbars=yes')">&nbsp;&nbsp;<img src="/wp_images/img_searchPyView.png" style="width:66px"></a></td>
+			<th width="15%">소 속 클 럽</th>
+			<td width="35%"><?=$wp_club_code[$obj->clu_code]?></td>
+		</tr>
+		<tr>
+			<th>장 애 유 형</th>
+			<td><?=$wp_trouble_code[$obj->tro_code]?> [ <?=$wp_trouble_level[$obj->trouble_level]?> ]</td>
+			<th>휠&nbsp;&nbsp;&nbsp;체&nbsp;&nbsp;&nbsp;어</th>
+			<td><?=$wp_wheel_code[$obj->wheel]?></td>
+		</tr>
+		<tr>
+			<th>주 민 번 호</th>
+			<td>
+				<?
+				if($Admin_auth == "top")
+				{
+					echo $obj->jumin1."-".$obj->jumin2;
+				}
+				else
+				{
+					echo $obj->jumin1."-*******";
+				}
+				?>
+			</td>
+			<th>생 년 월 일</th>
+			<td ><?=$birthday_y?>년<?=$birthday_m?>월<?=$birthday_d?>일(<?=$wp_sex_code[$obj->sex]?>)</td>
+		</tr>
+		<tr>
+			<th>연&nbsp;&nbsp;&nbsp;락&nbsp;&nbsp;&nbsp;처</th>
+			<td><?=$obj->tel1?>-<?=$obj->tel2?>-<?=$obj->tel3?></td>
+			<th>핸&nbsp;&nbsp;&nbsp;드&nbsp;&nbsp;&nbsp;폰</th>
+			<td><?=$obj->hp1?>-<?=$obj->hp2?>-<?=$obj->hp3?></td>
+		</tr>
+		<tr>
+			<th>주&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;소</th>
+			<td colspan="3">
+				(<?=$obj->zip1?>-<?=$obj->zip2?>)<br>
+				<?=$obj->address1?> <?=$obj->address2?><br>
+			</td>
+		</tr>
+		<tr>
+			<th>첨 부 파 일</th>
+			<td colspan="3" style="padding:0px">
+				<table border="0" cellpadding="0" cellspacing="0" style="border: 0 solid">
+				<tr>
+					<th width="33%">사&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;진</th>
+					<th width="33%">복 지 카 드</th>
+					<th width="33%">등 급 카 드</th>
+				</tr>
+				<tr>
+					<td align="center"><a href="#none" onclick="window.open('../wp_object/zoom.html?img_path=<?=$picture_org?>','p1','width=<?=$picture_x?>,height=<?=$picture_y?>,menubars=no,scrollbars=no')"><img src="<?=$picture?>" width="<?=$picture_x?>"></a></td>
+					<td align="center">
+						<?if($welfare_card){?>
+							<a href="#none" onclick="window.open('../wp_object/zoom.html?img_path=<?=$welfare_card_org?>','p2','width=<?=$welfare_card_x?>,height=<?=$welfare_card_y?>,menubars=no,scrollbars=yes,resizable=yes')"><img src="<?=$welfare_card?>" width="<?=$welfare_card_x?>" height="<?=$welfare_card_y?>"></a>&nbsp;&nbsp;
+						<?}?>
+					</td>
+					<td align="center">&nbsp;
+						<?if($sport_card){?>
+							<a href="#none" onclick="window.open('../wp_object/zoom.html?img_path=<?=$sport_card_org?>','p3','width=<?=$sport_card_x?>,height=<?=$sport_card_y?>,menubars=no,scrollbars=yes,resizable=yes')"><img src="<?=$sport_card?>" width="200" height="200"></a>
+						<?}?>
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</tbody>
+	</td>
+</tr>
+<tr>
+	<td>
+		</table>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="button" name="send" value="수정하기" class="btnBox3" tabindex="17" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=modify&uid=<?=$obj->uid?>'">
+				<input type="button" name="send" value="목록으로" class="btn_send" tabindex="17" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'">
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+</table>
+	<!-- 내용 출력 끝 -->
+

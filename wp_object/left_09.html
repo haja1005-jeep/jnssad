@@ -1,0 +1,87 @@
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0" class="border_gray_d">
+<tr>
+	<td valign="top" style="padding:10 10 0 10">
+		<table class="tbLeft-a">
+		<tr>
+			<th>메달집계</th>
+		</tr>
+		<tr>
+					<?php if($Admin_auth == "top") { ?>
+		<td id="submenu">&#149;<a href="../wp_medal/index.html?mode=medal">메달집계하기</a></td> 
+		<?php } ?>
+
+               	<!-- <td id="submenu">&#149;<a href="../wp_medal/index.html?code=real&mode=list">메달집계하기</a></td>-->
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<!--tr>
+			<th>종합순위</th>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_medal/index.html?mode=total">통합메달</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_medal/index.html?code=real&mode=list">정식종목</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_medal/index.html?code=life&mode=list">시범종목</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_medal/index.html?code=exp&mode=list">체험체육</a></td>
+		</tr>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr-->
+				<?php if($Admin_auth == "top") { ?>
+		<tr>
+			<th>점수집계</th>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_score_table/index.html?mode=input">배점표입력</a></td>
+		</tr>
+		<!--
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_score_table/index.html?mode=input_medal">메달별 배점표입력</a></td><!-- 2016.12 추가 
+		</tr>-->
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_score/index.html?mode=score">점수집계하기</a></td>
+		</tr>
+		<?php } ?>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_score/index.html?mode=list">시/군별득점현황</a></td>
+		</tr>
+				<?php if($Admin_auth == "top") { ?>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_score/index.html?mode=medal">메달집계</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_score/index.html?mode=spo_rank">종목별순위</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_score/index.html?mode=total_data">성적현황</a></td>
+		</tr>
+		<tr>
+			<td id="submenu">&#149;<a href="#none" onclick="window.open('../wp_score/real_time.html', 'win_real', 'width=360, height=350, left=0, top=0, fullscreen=yes, statusbar=no, scrollbars=yes, resizable=yes')">성적현황_실시간</a></td>
+		</tr>
+
+		<tr>
+			<td id="submenu">&#149;<a href="../wp_score/index.html?mode=real_data">리얼타임 성적적용</a></td>
+		</tr>
+						<?php } ?>
+		<tr>
+			<td height="1" bgcolor="#E8E8E8"></td>
+		</tr>
+		<tr>
+			<td style="padding-top:20px">
+				<?
+				$a_code = notice;
+				require_once "../wp_board/am_board.html";
+				?>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+
