@@ -1,0 +1,126 @@
+						<?
+
+						//LIMIT절 생성
+						if(!$page) $page=1;
+						$offset = ($page - 1) * $max_record;
+						$limit = $max_record;
+
+						//ORDER BY절 생성
+						if(!$orderby) $orderby = " isuse asc, city asc, code asc";
+						else $orderby = $orderby." ".$desc;
+
+						//WHERE절 생성 //
+						$where = " WHERE 1=1 ";
+						//삭제데이터까지 출력
+						if(!$s_isuse) $where .= " AND isuse = '0' ";
+						//시군가있으면
+						if($city) $where .= " AND city = '$city' ";
+
+						if(eregi("[^[:space:]]+",$key))
+							$Q_key = " AND  $keyfield LIKE '%$key%' ";
+						$where .= $Q_key;
+
+						// 레코드 쿼리 //
+						$query = "SELECT *
+								   FROM wp_club_ctrl
+								 $where ORDER BY $orderby LIMIT $offset, $limit";
+
+						$result = mysql_query($query);
+						if(!$result)
+						{
+							Error("QUERY_ERROR");
+							exit;
+						}
+						?>
+						<form name="schForm" action="index.html?mode=list" method="post">
+						<table class="tbSearch-c">
+						<tr>
+							<th>시/군</th>
+							<td>
+								<select name="city">
+									<option value=''>전체</option>
+									<?
+									foreach($wp_city_code as $keys => $values){
+										if($keys == $city)
+											$is_selected = " selected ";
+										else $is_selected = "";
+										echo "<option value='$keys' $is_selected>$values</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>사용여부</th>
+							<td>
+								<label name="lb"><input id="lb" type="checkbox" name="s_isuse" value="1" <? if($s_isuse=="1"){ echo " checked";}?>>미사용데이터출력</label>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2" align="right">
+								<input type="submit" name="sch" value=" 검 색 ">
+							</td>
+						</tr>
+						</table>
+						<table class="tbList-a">
+						<tbody>
+						<tr>
+							<th width="3%"><input type="checkbox" name="chk" value="chk_id" onClick="selectAll(this.form,this.value)"></th>
+							<th width="5%">번호</th>
+							<th width="10%">시/군</th>
+							<th width="10%">단체코드</th>
+							<th>단체명</th>
+							<th width="10%">아이디</th>
+							<th width="10%">권한</th>
+						</tr>
+						<?
+						// 총 레코드 수 //
+						$total_record = $Mysql->getTotalRecord("wp_club_ctrl", $where);
+
+						// 페이지 목록 //
+						$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+						// 일련 번호 //
+						$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+						// 레코드 결과 //
+						while($obj = mysql_fetch_object($result))
+						{
+							if($obj->isuse == "1"){
+								$bgcolor = "bgcolor='#e7944a' ";
+							}else $bgcolor = "";
+
+						?>
+						<tr <?=$bgcolor?>>
+							<td align="center"><input type="checkbox" name="chk_id[]" value="<?=$obj->code?>"></td>
+							<td align="center"><?=$article_num?></td>
+							<td align="center"><?=$wp_city_code[$obj->city]?></td>
+							<td align="center"><?=$obj->code?></td>
+							<td><?=$obj->name?></td>
+							<td align="center"><?=$obj->wp_id?></td>
+							<td align="center"><?=$wp_auth_code[$obj->auth]?></td>
+						</tr>
+						<?
+							$article_num--;
+						}//for
+						?>
+						</tbody>
+						</table>
+						<table width="100%" border="0" cellspacing="0" cellpadding="0">
+						<tr>
+							<td align="center">
+							<? require_once "../wp_object/page_move.html";?>
+							</td>
+						</tr>
+						</table>
+						<table class="tbButton-a">
+						<tr>
+							<td>
+								<input type="button" name="input" value="출력하기" class="btn_send" onClick="Check_Print_2('<?=$basic_get.$add_get?>')">
+								<!--
+								<input type="button" name="input" value="출력하기" class="btn_send" onclick="print_excel(this.form, chk.value)">
+								-->
+							</td>
+						</tr>
+						</table>
+						</form>

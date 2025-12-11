@@ -1,0 +1,15 @@
+<form name="signForm" method="post" action="d_delete.php?<?=$basic_get.$add_get?>&uid=<?=$uid?>&thread=<?=$thread?>&fid=<?=$fid?>" onSubmit="return validate(this)">
+		<table class="board-a">
+		<tr>
+			<td background="../wp_images/a_box_01_bg.gif" align="center" height="77">
+				<img src="../wp_icon/tip_lock.gif" align="absmiddle"> <font color="#666666"><b>비 밀 번 호 :</b></font>
+				<input type="password" name="passwd" size="15" maxlength="12" class="input" value="<?=$member_pwd?>" hname="비밀번호" required >
+				<input type="image" src="../wp_button/delete.gif" align="absmiddle">
+				<a href="<?=$PHP_SELF?>?<?=$basic_get.$add_get?>&mode=list"><img src="../wp_button/list.gif" border="0" align="absmiddle"></a>
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+		</tr>
+		</table>
+</form>

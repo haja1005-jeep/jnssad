@@ -1,0 +1,83 @@
+
+					<!-- 내용 출력 시작-->
+						<?
+						//다음 정렬순서값을 구한다.
+						$query = "SELECT * FROM wp_club_apply where uid='$uid'";
+
+						$result = mysql_query($query);
+						if (!$result) {
+						   	Error("QUERY_ERROR");
+						}
+						$obj = mysql_fetch_array($result,MYSQL_BOTH);
+						?>
+
+						<form name="sForm" action="modify_apply.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+                        <input type='hidden' name='jnsad' value=<?=$jnsad?>>
+						<table class="tbInput-a">
+						<tbody>
+						<tr>
+							<th>시/군</th>
+							<td><?=$wp_city_code[$obj[city]]?></td>
+						</tr>
+						<tr>
+							<th>아이디</th>
+							<td><?=$obj[wp_id]?></td>
+						</tr>
+						<tr>
+							<th>단체코드</th>
+							<td colspan="3"><?=$obj[code]?></td>
+						</tr>
+						<tr>
+							<th>단체명</th>
+							<td colspan="3"><input type="text" name="name" class="input" size="20" maxlength="15" value="<?=$obj[name]?>" tabindex="5"></td>
+						</tr>
+						<tr>
+							<th>권한</th>
+							<td colspan="3"><?=$wp_manager_code[$obj[auth]]?></td>
+						</tr>
+						<tr>
+							<th>레벨</th>
+							<td colspan="3"><?=$wp_manager_level[$obj[level]]?></td>
+						</tr>
+						<tr>
+							<th>성명</th>
+							<td colspan="3"><?=$obj[r_name]?></td>
+						</tr>
+						<tr>
+							<th>연락처</th>
+							<td colspan="3"><?=$obj[hp1]?>-<?=$obj[hp2]?>-<?=$obj[hp3]?></td>
+						</tr>
+						<tr>
+							<th>이메일</th>
+							<td colspan="3"><?=$obj[email]?></td>
+						</tr>
+						<tr>
+							<th>설명</th>
+							<td colspan="3"><textarea name="comment" class="input" cols="80" rows="7" tabindex="7"> <?=$obj[comment]?></textarea></td>
+						</tr>
+						<tr>
+							<th>승인여부</th>
+							<td colspan="3">
+								<?
+									foreach($wp_status_code as $keys => $values){
+										if($keys == $obj[status])
+											$is_checked = " checked ";
+										else $is_checked = "";
+										echo "<label name='lb'><input id='lb' type='radio' name='status' value='$keys' tabindex='16' $is_checked>$values</label>";
+									}
+								?>
+							</td>
+						</tr>
+						</tbody>
+						</table>
+						<table class="tbButton-a">
+						<tr>
+							<td>
+							
+								<input type="image" src="../wp_button/b_edit.gif" title="수정">
+								<a href="./index.html?<?=$basic_get.$add_get?>&mode=apply_list&city=<?=$city?>&jnsad=<?=$jnsad?>"><img src="../wp_button/b_list.gif" title="목록"></a>
+							</td>
+						</tr>
+						</table>
+						</form>
+					<!-- 내용 출력 끝 -->

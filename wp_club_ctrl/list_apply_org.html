@@ -1,0 +1,171 @@
+<?
+
+//LIMIT절 생성
+if(!$page) $page=1;
+$offset = ($page - 1) * $max_record;
+$limit = $max_record;
+
+//ORDER BY절 생성
+if(!$orderby) $orderby = " isuse asc, level DESC, name asc, city asc, code asc";
+else $orderby = $orderby." ".$desc;
+
+//WHERE절 생성 //
+$where = " WHERE 1=1";
+
+//시군가있으면
+if($city) $where .= " AND city = '$city' ";
+
+if(eregi("[^[:space:]]+",$key))
+	$Q_key = " AND  $keyfield LIKE '%$key%' ";
+$where .= $Q_key;
+
+// 레코드 쿼리 //
+$query = "SELECT *
+		   FROM wp_club_apply
+		 $where ORDER BY $orderby LIMIT $offset, $limit";
+
+$result = mysql_query($query);
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+?>
+<form name="schForm" action="index.html?mode=apply_list" method="post">
+<!-- 선수 검색 시작 -->
+<a name="list">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>도움말</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th>검색조건</th>
+					<td>
+						<select name="city">
+							<option value=''>전체</option>
+							<?
+							foreach($wp_city_code as $keys => $values){
+								if($keys == $city)
+									$is_selected = " selected ";
+								else $is_selected = "";
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+							?>
+						</select>
+						<input type="submit" name="sch" value="검색하기" tabindex="8" class="btnBox3" onclick="this.form.submit()">
+					</td>
+				</tr>
+
+				</table>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</form>
+<tr>
+	<td>
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="5%">번호</th>
+			<th width="10%">시/군</th>
+			<th width="10%">단체코드</th>
+			<th width="8%">단체명</th>
+			<th width="10%">아이디</th>
+			<th width="10%">성명</th>
+			<th width="8%">연락처</th>
+			<th width="10%">이메일</th>
+			<th width="8%">권한</th>
+			<th width="8%">신청일</th>
+			<th width="8%">승인일</th>
+			<th width="10%">승인여부</th>
+			<th width="5%">수정</th>
+		</tr>
+		<?
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord("wp_club_apply", $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		for($i=0;$i<mysql_num_rows($result);$i++)
+		{
+			$obj = mysql_fetch_array($result, MYSQL_BOTH);
+			if($obj[isuse] == "1"){
+				$bgcolor = "bgcolor='#e7944a' ";
+			}else $bgcolor = "";
+
+		//신청일
+		if($obj[signdate]) { 
+		   $id_signdate = date('Y-m-d',$obj[signdate]);
+        }
+
+		if($obj[signdate2]) { 
+		   $st_signdate = date('Y-m-d',$obj[signdate2]);
+        }
+		?>
+		<tr <?=$bgcolor?>>
+			<td align="center"><?=$article_num?></td>
+			<td align="center"><?=$wp_city_code[$obj[city]]?></td>
+			<td align="center"><?=$obj[code]?></td>
+			<td><?=$obj[name]?></td>
+			<td><?=$obj[wp_id]?></td>
+			<td align="center"><?=$obj[r_name]?></td>
+			<td align="center"><?=$obj[hp1]?>-<?=$obj[hp2]?>-<?=$obj[hp3]?></td>
+			<td align="center"><?=$obj[email]?></td>
+			<td align="center"><?=$wp_auth_code[$obj[auth]]?></td>
+			<td align="center"><?=$id_signdate?></td>
+			<td align="center"><?=$st_signdate?></td>
+			<td align="center"><?=$wp_status_code[$obj[status]]?></td>
+			<td align="center">
+				<a href="./index.html?<?=$basic_get.$add_get?>&mode=apply_modify&uid=<?=$obj[uid]?>&city=<?=$city?>"><img src="../wp_button/s_modify.gif"></a>&nbsp;
+				<a href="./delete_apply.php?<?=$basic_get.$add_get?>&mode=list&uid=<?=$obj[uid]?>&city=<?=$city?>" onClick="return confirm('정말 삭제하시겠습니까?')"><img src="../wp_button/s_delete.gif"></a>
+			</td>
+		</tr>
+		<?
+			$article_num--;
+			$id_signdate = "";
+			$st_signdate = "";
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td align="center">
+			<? require_once "../wp_object/page_move.html";?>
+			</td>
+		</tr>
+		</table>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='index.html?<?=$basic_get.$add_get?>&gam_uid=<?=$gam_uid?>'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>

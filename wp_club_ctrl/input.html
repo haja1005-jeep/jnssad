@@ -1,0 +1,74 @@
+
+					<!-- 내용 출력 시작-->
+						<form name="sForm" action="input.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+						<table class="tbInput-a">
+						<tbody>
+						<tr>
+							<th>시/군</th>
+							<td>
+								<select name="city" tabindex="1">
+									<?
+									foreach($wp_city_code as $keys => $values){
+										if($keys == $city)
+											$is_selected = " selected ";
+										else $is_selected = "";
+										echo "<option value='$keys' $is_selected>$values</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>아이디</th>
+							<td><input type="text" name="wp_id" class="input" size="20" maxlength="30" tabindex="2" hname="아이디" required range="5:30" style="ime-mode:disabled" onkeypress="Input_Eng_Num()">*영문과숫자로만 입력가능 </td>
+						</tr>
+						<tr>
+							<th>패스워드</th>
+							<td><input type="password" name="wp_passwd" class="input" size="20" maxlength="15" tabindex="3" hname="패스워드" required></td>
+						</tr>
+						<tr>
+							<th>단체코드</th>
+							<td colspan="3"><input type="text" name="code" class="input" size="30" maxlength="20" tabindex="4" hname="단체코드" required style="ime-mode:disabled" onkeypress="Input_Eng_Num()"></td>
+						</tr>
+						<tr>
+							<th>단체명</th>
+							<td colspan="3"><input type="text" name="name" class="input" size="20" maxlength="15" tabindex="5"></td>
+						</tr>
+						<tr>
+							<th>권한</th>
+							<td colspan="3">
+								<?
+								foreach($wp_manager_code as $keys => $values){
+									if($keys == "normal")
+										$is_checked = " checked ";
+									else $is_checked = "";
+									echo ("<label name='lb'><input id='lb' type='radio' name='auth' value='$keys' tabindex='6' $is_checked>$values</label>");
+								}?>
+							</td>
+						</tr>
+						<tr>
+							<th>레벨</th>
+							<td colspan="3">
+								<select name="level">
+								<?
+								foreach($wp_manager_level as $keys => $values){
+									echo ("<option value='$keys' selected>$values</option>");
+								}?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>설명</th>
+							<td colspan="3"><textarea name="comment" class="input" cols="80" rows="7" tabindex="7"></textarea></td>
+						</tr>
+						</tbody>
+						</table>
+						<table class="tbButton-a">
+						<tr>
+							<td>
+								<input type="image" src="../wp_button/b_input.gif" title="등록">
+								<a href="./index.html?<?=$basic_get.$add_get?>&mode=list&city=<?=$city?>"><img src="../wp_button/b_list.gif" title="목록"></a>
+							</td>
+						</tr>
+						</table>
+					<!-- 내용 출력 끝 -->

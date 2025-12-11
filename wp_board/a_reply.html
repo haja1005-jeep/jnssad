@@ -1,0 +1,131 @@
+<?
+// 레코드 쿼리 //
+$query = "SELECT * FROM wp_board WHERE uid='$uid'";
+$result = mysql_query($query);
+$obj = mysql_fetch_object($result);
+
+// 레코드 결과 //
+$my_signdate = date("Y년 m월 d일 H:i",$obj->signdate);
+
+// 문자열 원상복귀 //
+$my_subject = stripslashes($obj->subject);
+$my_comment = stripslashes($obj->comment);
+
+$my_comment = Html_Change($my_comment);
+
+// 원글과 답변글 구분 //
+if($auth_class->isEditor($code)){
+	$my_comment = ":" . $my_comment;
+	$my_comment = eregi_replace("<br>", "<br>:", $my_comment);
+	$my_comment = "<br>".$obj->name . "님의 글입니다.<br>" . $my_comment;
+	$my_comment .= "<br>====================================================<br>";
+}else{
+	$my_comment = ":" . $my_comment;
+	$my_comment = eregi_replace("\n", "\n:", $my_comment);
+	$my_comment = "\n\n".$obj->name . "님의 글입니다.\n\n" . $my_comment;
+	$my_comment .= "\n====================================================\n\n";
+}
+
+// 답변 제목 //
+$reply_subject = "[RE]".$obj->subject;
+
+// HTML 적용 //
+$my_comment = Html_Change($my_comment);
+
+
+?>
+<form name="signForm" method="post" enctype="multipart/form-data" action="a_reply.php?<?=$basic_get.$add_get?>&fid=<?=$obj->fid?>&thread=<?=$obj->thread?>" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<table class="tbInput-a">
+		<tr>
+			<th width="12%">작 성 자</th>
+			<td colspan="3">
+				<span style="display:none;"><input type="text" name="name" size="12" maxlength="8" class="input" value="<?=$member_name?>"></span>
+				<input type="text" name="writer" size="12" maxlength="8" class="input" value="<?=$member_name?>" tabindex="1" hname="작성자" required >
+				<font color="#ff6600">※ 공백없이 실명으로 입력하세요.</font>
+				<input type="hidden" name="id" value="<?=$member_id?>">
+				<input type="hidden" name="write_date" value="<?=$write_date?>">
+			</td>
+		</tr>
+		<tr>
+			<th>비밀번호</th>
+			<td colspan="3">
+				<input type="password" name="passwd" size="10" maxlength="12" class="input" value="<?=$member_pwd?>" tabindex="2" hname="비밀번호" required>
+				<font color="#ff6600">※ 영문ㆍ숫자혼합(4자~12자이내)</font>
+			</td>
+		</tr>
+		<tr>
+			<th>이 메 일</th>
+			<td colspan="3">
+				<input type="text" name="email" size="50" maxlength="50" class="input" value="<?=$member_email?>" tabindex="3" hname="이메일" opt="email">
+			</td>
+		</tr>
+		<tr>
+			<th>제&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;목</th>
+			<td colspan="3">
+				<input type="text" name="subject" size="40" maxlength="50" class="input" value="<?=$reply_subject?>" tabindex="4" hname="제목" required >
+				<input type="hidden" name="wkind" value="<?=$obj->wkind?>">
+			</td>
+		</tr>
+		<?if($auth_class->isSecret($code)){?>
+		<tr>
+			<th>비 밀 글</th>
+			<td colspan="3">
+				<label name='lb'><input id='lb' type="checkbox" name="secret" value='1' tabindex="5"> 비밀글</label> (체크시 원글의 비밀번호가 설정됩니다.!)
+			</td>
+		</tr>
+		<?}?>
+		<?
+		//첨부파일 갯수
+		$f_cnt = $auth_class->fileCount($code);
+		for($i=1;$i<=$f_cnt;$i++){
+		?>
+		<tr>
+			<th>첨부파일<?=$i?></th>
+			<td colspan="3">
+				<img src="../wp_icon/tip_03.gif"> <font color="#333399">등록 가능한 파일 확장자는 <?=$u_file_type[$auth_class->fileType($code)]?>파일입니다.</font><br>
+				<input type="file" name="files[]" size="30" class="input" tabindex="6"> [최대 업로드 용량 <?=$auth_class->fileSIzeM($code)?>MB]
+			</td>
+		</tr>
+		<?}?>
+		<?if(!$auth_class->isEditor($code)){?>
+		<tr>
+			<th>출력형식</th>
+			<td colspan="3">
+				<label name="lb"><input id="lb" type="radio" name="html" value="1" tabindex="7"> TEXT </label>
+				<label name="lb"><input id="lb" type="radio" name="html" value="2" tabindex="7"> HTML </label>
+				<label name="lb"><input id="lb" type="radio" name="html" value="3" tabindex="7" checked > HTML + 자동 줄바꿈 </label>
+			</td>
+		</tr>
+		<?}?>
+		<tr>
+			<td colspan="4" align="center">
+				<table width="100%" border="0" cellspacing="0" cellpadding="5">
+				<tr>
+				<?if($auth_class->isEditor($code)){?>
+					<td align="center"><textarea name="comment" id="comment" hname="내용" attr="editor" required style="width:100%; height:300px" tabindex="8"><?=$my_comment?></textarea></td>
+				<?}else{?>
+					<td align="center"><textarea name="comment" cols="70" rows="20" class="input" style="width:95%; height:300;" tabindex="8"><?=$my_comment?></textarea></td>
+				<?}?>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="right" height="40">
+		<input type="image" src="../wp_button/reply.gif" tabindex="9">
+		<a href="admin.html?<?=$basic_get.$add_get?>&mode=list"><img src="../wp_button/list.gif" border="0" tabindex="9"></a>
+	</td>
+	</form>
+</tr>
+</table>
+<?if($auth_class->isEditor($code)){?>
+<script>
+nhn.husky.EZCreator.createInIFrame(oEditors, "comment", "../wp_seditor/SEditorSkin.html", "createSEditorInIFrame");
+</script>
+<?}?>

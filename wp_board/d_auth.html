@@ -1,0 +1,21 @@
+<form name="signForm" method="post" action="d_auth.php?<?=$basic_get.$add_get?>&uid=<?=$uid?>" onSubmit="return validate(this);this.disabled=true">
+<table class="display-global">
+<tr>
+	<td>
+		<table class="board-a">
+		<tr>
+			<td background="../wp_images/a_box_01_bg.gif" align="center" height="77">
+				<img src="../wp_icon/tip_lock.gif" align="absmiddle"> <font color="#666666"><b>비 밀 번 호 :</b></font>
+				<input type="password" name="passwd" size="20" maxlength="12" class="input" value="<?=$member_pwd?>" hname="비밀번호" required >
+				<input type="image" src="../wp_button/confirm.gif" align="absmiddle">
+				<a href="index.html?code=<?=$code?>&mode=list&page=<?=$page?>&keyfield=<?=$keyfield?>&key=<?=$key?>"><img src="../wp_button/list.gif" border="0" align="absmiddle"></a>
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>

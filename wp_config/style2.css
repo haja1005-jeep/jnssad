@@ -1,0 +1,43 @@
+/*---------- ----------
+padding: 1px;              상하좌우=1px
+padding: 1px 2px;          상하=1px、좌우=2px
+padding: 1px 2px 3px;      상=1px、좌우=2px、하=3px
+padding: 1px 2px 3px 4px;  상=1px、우=2px、하=3px、좌=4px
+*/
+
+
+/*전체 페이지 공통 CSS설정 */
+/** 기본 링크 **/
+a:link { font-size: 9pt; font-style: normal; font-weight: lighter; color: #333333; text-decoration: none; }
+a:visited { font-size: 9pt; font-style: normal; font-weight: lighter; color: #333333; text-decoration: none; }
+a:hover { font-size: 9pt; font-style: normal; font-weight: lighter; color: #fe6522; text-decoration: none; }
+a:active { font-size: 9pt; font-style: normal; font-weight: lighter; color: #0000ff; text-decoration: none; }
+
+/** hidefocus = true 설정 **/
+a {noFocusLine:expression(this.onFocus=this.blur())} /* For IE, onFocus*/
+:focus {-moz-outline-style: none} /* For Firefox */
+
+body {
+	margin:0;
+	padding:0;
+	scrollbar-face-color: #FFFFFF;
+ 	scrollbar-highlight-color: #9C92FF;
+ 	scrollbar-3dlight-color: #FFFFFF;
+ 	scrollbar-shadow-color: #9C92FF;
+ 	scrollbar-darkshadow-color: #FFFFFF;
+ 	scrollbar-track-color: #FFFFFF;
+ 	scrollbar-arrow-color: #9C92FF
+}
+
+/** 이미지 설정 **/
+img {
+	border:0px;
+	vertical-align:top;
+}
+.align_left_top_x { background-repeat: repeat-x; background-position: left top; }
+
+.leftBody { width:180px; height:100%; margin-left:5px; border: 4 solid rgb(230, 230, 230);}
+.leftBody ul.menu { clear:both; margin:0 10px; }
+.leftBody ul.menu li { background:url('../wp_icon/arrow_12.gif') 0 10 no-repeat; height:28px; line-height:28px; border-bottom:solid 1px #e8e8e8; }
+
+/*전체 페이지 공통 CSS설정 끝 */

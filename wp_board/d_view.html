@@ -1,0 +1,254 @@
+<?
+// 레코드 쿼리 //
+$query = "SELECT * FROM wp_board WHERE uid='$uid' LIMIT 1";
+$result = mysql_query($query);
+$obj = mysql_fetch_object($result);
+
+// 레코드 결과 //
+$my_signdate = date("Y년 m월 d일 H:i",$obj->signdate);
+
+// 문자열 원상복귀 //
+$my_subject = stripslashes($obj->subject);
+$my_comment = stripslashes($obj->comment);
+
+if($auth_class->isEditor($code)){ //에디터 사용여부체크
+	// HTML 적용 //
+	$my_comment = Html_Change($my_comment);
+}else{
+	// HTML 적용 //
+	$my_comment = Html_Change($my_comment);
+
+	// 출력 여부 //
+	if($my_html == 1)
+	{
+		// HTML 미적용 //
+		$v_comment = htmlspecialchars($my_comment);
+
+		// 문자열 개행처리 //
+		$v_comment = nl2br($v_comment);
+	}
+	if($my_html == "2")
+	{
+		// HTML 적용 //
+		$v_comment = $my_comment;
+	}
+	if($my_html == "3")
+	{
+		// 문자열 개행처리 //
+		$v_comment = nl2br($my_comment);
+	}
+}
+
+// 검색단어 처리 //
+if(!strcmp($keyfield,"subject") && $key)
+{
+	$my_subject = eregi_replace("($key)", "<font color='#FF0000'>\\1</font>", $my_subject);
+}
+if(!strcmp($keyfield,"comment") && $key)
+{
+	$my_comment = eregi_replace("($key)","<font color='#FF0000'>\\1</font>",$my_comment);
+}
+
+
+$count = strlen($my_comment);
+while($i<$count){
+/*
+	$pos = strpos($my_comment,"FONT-SIZE:",$offset);
+	if($pos !== false){
+		$font_size = substr($my_comment,$pos,16);
+		$s_x = split(" ", $font_size);
+		$s_a = substr($s_x[1],0,2);
+		$f_s = $s_a - 5;
+		$chg_font_size = "FONT-SIZE: ".$f_s."px;";
+		//echo $font_size."-".$chg_font_size."<br>";
+		str_replace($font_size,$chg_font_size,$my_comment);
+	}
+*/
+	$pos = strpos($my_comment,"width",$offset);
+	if($pos !== false){
+		$font_size = substr($my_comment,$pos,10);
+		$s_x = split("=", $font_size);
+		if($s_x[1] != "100%" && $s_x[1] > 650){
+			$chg_font_size = "width=100% ";
+//			echo $font_size."-".$chg_font_size."<br>";
+			$my_comment = str_replace($font_size,$chg_font_size,$my_comment);
+		}
+	}
+	$i++;
+	$offset = $pos+1;
+}
+// 조회수 증가 //
+mysql_query("UPDATE wp_board SET ref=ref+1 WHERE uid='$uid'");
+?>
+		<table class="board-a">
+		<tr>
+			<th width="12%">작 성 자</th>
+			<td width="38%"><b><?=$obj->name?></b></td>
+			<th width="12%">등 록 일</th>
+			<td width="38%"><?=$my_signdate?></td>
+		</tr>
+		<tr>
+			<th>제&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;목</th>
+			<td colspan="3"><font color="#330066"><b><?=$my_subject?></td>
+		</tr>
+		<?
+		$file_q = "SELECT * FROM wp_file WHERE t_name = '$code' AND t_uid = '$uid' order by uid desc ";
+		$f_res = mysql_query($file_q);
+		// 첨부 파일 //
+		while($f_obj = mysql_fetch_object($f_res))
+		{
+		?>
+		<tr>
+			<th>첨부파일</th>
+			<td><a href="../wp_object/download.html?code=<?=$code?>&uid=<?=$f_obj->uid?>" hidefocus="true" ><img src="../wp_icon/tip_down.gif" border="0" alt="<?=$f_obj->real_file?>"></a> <font color="#996600">(<?=$f_obj->real_file?>)</font></td>
+			<th>다 운 수</th>
+			<td><?=$obj->down?> 회</td>
+		</tr>
+		<?
+		}
+		?>
+		<tr>
+			<td colspan="4">
+				<?
+				// 첨부 파일 //
+				if(mysql_num_rows($f_res) > 0)
+					mysql_data_seek($f_res,0);
+				while($f_obj = mysql_fetch_object($f_res)){
+					if($f_obj->real_file){
+						// 확장자 분리 //
+						$img_view = explode(".",$f_obj->change_file);
+						if(in_array(strtolower($img_view[1]),$img_file_type)){ // 이미지 파일이면..
+							// 파일 경로 //
+							$img_path = "$file_path$f_obj->change_file";
+
+							// 파일 크기 //
+							$img_size = getimagesize($img_path);
+							if($img_size[0] > $document_width){
+								$img = "<img src='$img_path' width='$document_width'>";
+							}else{
+								$img = "<img src='$img_path' width='$img_size[0]' height='$img_size[1]'>";
+							}
+							echo "$img <br>";
+						}//if
+					}//if
+				}//for
+				?>
+			</td>
+		<tr>
+			<td colspan="4"><?=$my_comment?></td>
+		</tr>
+		</tr>
+		<?
+		// 관리자 출력 //
+		if($member_auth >= "9")
+		{
+			echo ("
+				<tr>
+					<td colspan='4'>
+						<table width='100%' border='0' cellspacing='0' cellpadding='3' class='border_gray_d'>
+						<tr>
+							<td class='text_c'>
+								&#149; 회원 ID : <a href='../member/list.html?keyfield=id&key=$obj->id'><font color='#000000'><u>$obj->id</u></font></a>
+								&#149; 접속 IP : <a href='../statics/connect.html?keyfield=ip&key=$obj->ip'>$obj->ip</a> &#149; E-Mail : $obj->email
+							</td>
+						</tr>
+						</table>
+					</td>
+				</tr>
+			");
+		}
+		?>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>&nbsp;</td>
+</tr>
+<tr>
+	<td align="left">
+		<!--
+		<table class="board-a">
+		<tr>
+			<th width="12%">이 전 글</th>
+			<td>
+				<?
+				// 레코드 쿼리 //
+				$next_que = "SELECT uid,subject,secret FROM wp_board WHERE code='$code' AND thread='A' AND uid < $uid ORDER BY thread ASC, uid DESC LIMIT 1";
+				$next_val = mysql_query($next_que);
+				if(!$next_val)
+				{
+					Error("QUERY_ERROR");
+					exit;
+				}
+				$next_obj = mysql_fetch_object($next_val);
+				if($next_obj->secret == "1"){
+					//비밀글 읽기 권한 체크
+					if($auth_class->isRead_Sec($code,$member_auth)) $n_mode = "view";
+					else $n_mode="auth";
+					$my_security = "<img src='../wp_icon/key_close.gif' border='0'>";
+				} else{
+					 $n_mode=$mode;
+					 $my_security = "";
+				}
+
+				// 문자열 원상복귀 //
+				$next_subject = stripslashes($next_subject);
+				echo ("$my_security<a href='$PHP_SELF?$basic_get$add_get&mode=$n_mode&uid=$next_obj->uid'>$next_obj->subject</a>");
+				?>
+			</td>
+		</tr>
+		<tr>
+			<th width="12%">다 음 글</th>
+			<td bgcolor="#ffffff">
+				<?
+				// 레코드 쿼리 //
+				$pre_que = "SELECT uid,subject,secret FROM wp_board WHERE code='$code' AND thread='A'AND uid > $uid ORDER BY thread DESC, uid ASC LIMIT 1";
+				$pre_val = mysql_query($pre_que);
+				if(!$pre_val)
+				{
+					Error("QUERY_ERROR");
+					exit;
+				}
+				$pre_obj = mysql_fetch_object($pre_val);
+				if($pre_obj->secret == "1"){
+					//비밀글 읽기 권한 체크
+					if($auth_class->isRead_Sec($code,$member_auth)) $b_mode = "view";
+					else $b_mode="auth";
+					$my_security = "<img src='../wp_icon/key_close.gif' border='0'>";
+				} else{
+					 $b_mode=$mode;
+					 $my_security = "";
+				}
+
+				// 문자열 원상복귀 //
+				$pre_subject = stripslashes($pre_subject);
+				echo ("$my_security<a href='$PHP_SELF?$basic_get$add_get&mode=$b_mode&uid=$pre_obj->uid'>$pre_obj->subject</a>");
+				?>
+			</td>
+		</tr>
+		</table>
+		-->
+		<table class="tbButton-b">
+		<tr>
+			<td>
+				<? // 수정권한.
+				if($auth_class->isModify($code,$member_auth)){?>
+				<a href="<?=$PHP_SELF?>?<?=$basic_get.$add_get?>&mode=modify&uid=<?=$uid?>"><img src="../wp_button/modify.gif" border="0"></a>
+				<?}?>
+
+				<? // 삭제권한
+				if($auth_class->isDelete($code,$member_auth)){?>
+				<a href="<?=$PHP_SELF?>?<?=$basic_get.$add_get?>&mode=delete&uid=<?=$uid?>&thread=<?=$obj->thread?>&fid=<?=$obj->fid?>"><img src="../wp_button/delete.gif" border="0"></a>
+				<?}?>
+				<?
+				// 답변 //
+				if($auth_class->isReply($code,$member_auth)){
+					echo "<a href='$PHP_SELF?$basic_get$add_get&mode=reply&uid=$uid'><img src='../wp_button/reply.gif' border='0' alt='답변'></a>";
+				}
+				?>
+			</td>
+			<td align="right">
+				<a href="<?=$PHP_SELF?>?<?=$basic_get.$add_get?>&mode=list"><img src="../wp_button/list.gif" border="0"></a>
+			</td>
+		</tr>
+		</table>

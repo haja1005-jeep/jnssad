@@ -1,0 +1,58 @@
+<?
+// Session 시작 //
+require_once "../wp_library/head_admin.php";
+
+//머릿글
+require_once "../wp_object/p_board.html";
+
+//========= 사이트 별로 권한 설정 변경
+$member_auth = $Admin_Lv;
+
+//관리자 이름 셋팅 - 사이트 별로 셋팅 게시판 글쓰기등 자동으로 성명 및 ID메일 주소 셋팅..
+if($member_auth >= "8"){
+	$member_id = $Site_Admin ;
+	$member_name = "서울고시";
+	$member_email = "seoulgosi@hanmail.net";
+	$member_pwd = "kjgosi";
+
+}
+//================================
+
+// 게시판 출력 //
+if($mode == "list")
+{
+	include "a_list.html";
+}
+
+// 게시판 내용 //
+else if($mode == "view")
+{
+	include "a_view.html";
+}
+
+// 게시판 입력 //
+else if($mode == "input")
+{
+	// 인증 번호 //
+	$today_date = date("Y:m:d");
+	$write_date = Encrypt($today_date);
+
+	include "a_input.html";
+}
+
+// 게시판 수정 //
+else if($mode == "modify")
+{
+	include "a_modify.html";
+}
+
+// 게시판 답변 //
+else if($mode == "reply")
+{
+	// 인증 번호 //
+	$today_date = date("Y:m:d");
+	$write_date = Encrypt($today_date);
+
+	include "a_reply.html";
+}
+?>

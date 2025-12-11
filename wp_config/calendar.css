@@ -1,0 +1,11 @@
+#DPContainer { position: absolute; }
+#DPTable { border: 1px solid #666666; }
+#DPTable TD, #DPTable TH { font-size: 9pt;}
+#DPTable SELECT { font-size: 9pt; background-color: #efefef; }
+#DPSelector { background-color: #ffffff; color: #ffffff; }
+#DPSelector TD { padding-top: 2px; padding-bottom: 2px; }
+#DPToday, .DPDate, .DPDate2 { cursor: hand; }
+.DPDate, .DPDate2 { text-align: center; }
+.DPDate2 { background-color: #EEEEEE; color: #666666; }
+#DPCalendar TH { color: #0A246A; }
+INPUT.DateInput { cursor: hand; }

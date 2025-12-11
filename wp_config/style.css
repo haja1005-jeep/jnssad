@@ -1,0 +1,113 @@
+/* import files */
+@import URL(fonts.css);
+@import URL(tables.css);
+
+/*---------- ----------
+padding: 1px;              상하좌우=1px
+padding: 1px 2px;          상하=1px、좌우=2px
+padding: 1px 2px 3px;      상=1px、좌우=2px、하=3px
+padding: 1px 2px 3px 4px;  상=1px、우=2px、하=3px、좌=4px
+*/
+
+body,p,h1,h2,h3,h4,h5,h6,ul,ol,li,dl,dt,dd,table,th,td,form,fieldset,legend,input,textarea,button,select{margin:0;padding:0}
+/*전체 페이지 공통 CSS설정 */
+/** 기본 링크 **/
+a:link { font-size: 9pt; font-style: normal; font-weight: lighter; color: #333333; text-decoration: none; }
+a:visited { font-size: 9pt; font-style: normal; font-weight: lighter; color: #333333; text-decoration: none; }
+a:hover { font-size: 9pt; font-style: normal; font-weight: lighter; color: #fe6522; text-decoration: none; }
+a:active { font-size: 9pt; font-style: normal; font-weight: lighter; color: #0000ff; text-decoration: none; }
+
+/** hidefocus = true 설정 **/
+a {noFocusLine:expression(this.onFocus=this.blur())} /* For IE, onFocus*/
+:focus {-moz-outline-style: none} /* For Firefox */
+
+body {
+	margin:0;
+	padding:0;
+	scrollbar-face-color: #FFFFFF;
+ 	scrollbar-highlight-color: #9C92FF;
+ 	scrollbar-3dlight-color: #FFFFFF;
+ 	scrollbar-shadow-color: #9C92FF;
+ 	scrollbar-darkshadow-color: #FFFFFF;
+ 	scrollbar-track-color: #FFFFFF;
+ 	scrollbar-arrow-color: #9C92FF
+}
+form { margin: 0; padding: 0; }
+/** 이미지 설정 **/
+img {
+	border:0px;
+	vertical-align:top;
+}
+/*글씨 크기설정*/
+td { font-size: 9pt; line-height: 150%; color:#333333; }
+/** 입력 박스 **/
+.input { border-left-color: #B7B7B7; border-bottom-color: #B7B7B7; border-top-color: #B7B7B7; border-right-color: #B7B7B7; padding-top: 1px; padding-right: 1px; padding-bottom: 1px; padding-left: 1px; border-style: solid; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; }
+.input_a { border-right: #D7D7D7 1px solid; border-top: #636363 1px solid; font-size: 9pt; border-left: #636363 1px solid; border-bottom: #D7D7D7 1px solid; font-family: "돋음", "Arial"; color: #606060; background-color: #F9F9F9; }
+.input_b { border-right: #FBFFE4 1px solid; border-top: #FBFFE4 1px solid; font-size: 9pt; border-left: #FBFFE4 1px solid; border-bottom: #3366cc 1px solid; font-family: "돋음", "Arial"; color: #3366cc; background-color: #FBFFE4; text-align: right; font-weight: bolder; font-size: 10pt; }
+.input_c { border-right: #FBFFE4 1px solid; border-top: #FBFFE4 1px solid; font-size: 9pt; border-left: #FBFFE4 1px solid; border-bottom: #008800 1px solid; font-family: "돋음", "Arial"; color: #008800; background-color: #FBFFE4; text-align: right; bolder; font-size: 10pt; }
+.input_d { border-right: #FBFFE4 1px solid; border-top: #FBFFE4 1px solid; font-size: 9pt; border-left: #FBFFE4 1px solid; border-bottom: #cc0000 1px solid; font-family: "돋음", "Arial"; color: #cc0000; background-color: #FBFFE4; text-align: right; font-weight: bolder; font-size: 10pt; }
+.input_e { border-right: #FBFFE4 1px solid; border-top: #FBFFE4 1px solid; font-size: 12pt; border-left: #FBFFE4 1px solid; border-bottom: #FBFFE4 1px solid; font-family: "돋음", "Arial"; color: #FF0036; background-color: #FBFFE4; text-align: right; bolder; font-size: 12pt; }
+.input_f { border-right: #FBFFE4 1px solid; border-top: #FBFFE4 1px solid; font-size: 9pt; border-left: #FBFFE4 1px solid; border-bottom: #FE3500 1px solid; font-family: "돋음", "Arial"; color: #FE3500; background-color: #FBFFE4; text-align: right; font-weight: bolder; font-size: 10pt; }
+.input_g { margin-right:5px; height:21px; color:#888; font-size:11px;letter-spacing:-1px; line-height:1.6em; border-left-color: #B7B7B7; border-bottom-color: #B7B7B7; border-top-color: #B7B7B7; border-right-color: #B7B7B7; padding-top: 1px; padding-right: 1px; padding-bottom: 1px; padding-left: 1px; border-style: solid; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px;}
+
+/** 이미지 정렬 **/
+.align_center_top { background-repeat: no-repeat; background-position: center top; }
+.align_center_center { background-repeat: no-repeat; background-position: center center; }
+.align_right_bottom { background-repeat: no-repeat; background-position:right bottom; }
+.align_right_top_x { background-repeat: repeat-x; background-position: right top; }
+.align_left_top { background-repeat: no-repeat; 	background-position: left top; }
+.align_left_top_x { background-repeat: repeat-x; background-position: left top; }
+.align_left_top_y { background-repeat: repeat-y; background-position: left top; }
+.align_right_bottom_x { background-repeat: repeat-x; background-position: right bottom; }
+.align_right_bottom_y { background-repeat: repeat-y; background-position: right bottom; }
+
+
+/** 테두리 RGB 색상 **/
+.border_black { border: 1 solid rgb(0, 0, 0); }
+.border_black_b { border: 2 solid rgb(0, 0, 0); }
+.border_gray_a { border: 1 solid rgb(150, 150, 150); }
+.border_gray_b { border: 1 solid rgb(180, 180, 180); }
+.border_gray_c { border: 4 solid rgb(255, 255, 255); }
+.border_gray_d { min-width:150px;border: 4 solid rgb(230, 230, 230); }
+.border_gray_e { border: 1 solid rgb(230, 230, 230); }
+.border_gray_f { border: 2 solid rgb(241, 241, 241); }
+.border_green_a { border: 1 solid rgb(153, 204, 0); }
+.border_brown_a { border: 1 solid rgb(210, 176, 142); }
+.border_blue_a { border: 1 solid rgb(3, 213, 252); }
+.border_blue_b { border: 2 solid rgb(107, 207, 246); }
+.border_blue_c { border: 3 solid rgb(218, 215, 246; }
+.border_white_a { border: 1 solid rgb(255, 255, 255); }
+.border_yellow_a { border: 10 solid rgb(243, 243, 230); }
+
+
+/*버튼 CSS*/
+.btn_send { background:#ffffff; border-left-color: #B7B7B7; border-bottom-color: #B7B7B7; border-top-color: #B7B7B7; border-right-color: #B7B7B7; padding-top: 1px; padding-right: 1px; padding-bottom: 1px; padding-left: 1px; border-style: solid; border-top-width: 1px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 1px; }
+.btnBox { padding-top: 3px; border-width:1px; border-color:#aaaaaa; font-size:9pt; font-family:"돋움체"; background-color:#ffffff; }
+.btnBox2 { padding-top: 3px; border-width:1px; border-color:#aaaaaa; font-size:9pt; font-family:"돋움체"; background-color:#CACACA; }
+.btnBox3 { padding-top: 3px; border-width:1px; border-color:#ffffff; font-size:9pt; font-family:"돋움체"; background-color:#F47D1F; color:#ffffff; font-weight:bold; }
+.btWwhite_s a { display:block; background:url('../wp_button/btn_white_s.gif') left 0; float:left; font:11px dotum verdana; cursor:pointer; color:#777; padding-left:8px; text-decoration:none; height:21px; margin-right:4px; overflow:hidden; }
+.btWwhite_s a:hover { background:url('../wp_button/btn_white_s.gif') left -21px; }
+.btWwhite_s a span { display:block; float:left; background:url('../wp_button/btn_white_s.gif') right 0; line-height:200%; padding-right:7px; height:21px; overflow:hidden; }
+.btWwhite_s a:hover span { background:url('../wp_button/btn_white_s.gif') right -21px; color:#000; }
+
+/** 버튼 설정 **/
+.btWwhite_s a { display:block; background:url('../wp_button/btn_white_s.gif') left 0; float:left; font:11px dotum verdana; cursor:pointer; color:#777; padding-left:8px; text-decoration:none; height:21px; margin-right:4px; overflow:hidden; }
+.btWwhite_s a:hover { background:url('../wp_button/btn_white_s.gif') left -21px; }
+.btWwhite_s a span { display:block; float:left; background:url('../wp_button/btn_white_s.gif') right 0; line-height:200%; padding-right:7px; height:21px; overflow:hidden; }
+.btWwhite_s a:hover span { background:url('../wp_button/btn_white_s.gif') right -21px; color:#000; }
+
+
+.btWwhite2 a { display:block; background:url('../wp_button/btn_white_s.gif') left 0; float:left; font:11px dotum verdana; cursor:pointer; color:#777; padding-left:8px; text-decoration:none; height:21px; margin-right:4px; overflow:hidden; }
+.btWwhite2 a:hover { background:url('../wp_button/btn_white_s.gif') left -21px; }
+.btWwhite2 a span { display:block; float:left; background:url('../wp_button/btn_white_s.gif') right 0; line-height:200%; padding-right:7px; height:21px; overflow:hidden; }
+.btWwhite2 a:hover span { background:url('../wp_button/btn_white_s.gif') right -21px; color:#000; }
+
+
+
+/*전체 페이지 공통 CSS설정 끝 */
+.help_wrap {padding: 0;outline-style:dotted;}
+.help_wrap .help_body { padding:0; list-style-type:decimal;}
+
+/* 사용자 설정 CSS */
+.game_list {font-size:9pt; font-family:"돋움체";margin:0px 0px;line-height:160%;}
+.game_list h5{font-size:11pt; font-family:"돋움체";font-weight:bold;margin-bottom:2px;padding-bottom:2px;}

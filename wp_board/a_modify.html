@@ -1,0 +1,155 @@
+<?
+// 레코드 쿼리 //
+$query = "SELECT * FROM wp_board WHERE uid='$uid'";
+$result = mysql_query($query);
+$obj = mysql_fetch_object($result);
+
+// 레코드 결과 //
+$my_fid = $obj->fid;
+$my_name = $obj->name;
+$my_email = $obj->email;
+$my_subject = $obj->subject;
+$my_comment = $obj->comment;
+$my_thread = $obj->thread;
+$my_html = $obj->html;
+$my_ref = $obj->ref;
+$my_signdate = date("Y년 m월 d일 H:i",$obj->signdate);
+$my_id = $obj->id;
+$my_ip = $obj->ip;
+$my_wkind = $obj->wkind;
+$my_secret = $obj->secret;
+
+// 문자열 원상복귀 //
+$my_subject = stripslashes($my_subject);
+$my_comment = stripslashes($my_comment);
+
+$my_comment = Html_Change($my_comment);
+
+?>
+<form name="signForm" method="post" enctype="multipart/form-data" action="a_modify.php?<?=$basic_get.$add_get?>&uid=<?=$uid?>" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<table class="tbInput-a">
+		<tr>
+			<th width="12%">작 성 자</th>
+			<td colspan="3">
+				<input type="text" name="writer" size="12" maxlength="8" class="input" value="<?=$my_name?>" tabindex="1" hname="작성자" required >
+				<font color="#000000">※ 공백없이 실명으로 입력하세요.</font>
+			</td>
+		</tr>
+		<tr>
+			<th>비밀번호</th>
+			<td colspan="3">
+				<input type="password" name="passwd" size="12" maxlength="12" class="input" tabindex="2" hname="비밀번호">
+				<font color="#000000">※ 영문ㆍ숫자혼합(5자~12자이내) <font color="#cc0000"><b>*.비밀번호를 입력하시면 입력하신 비밀번호로 수정됩니다.</b></font></font>
+			</td>
+		</tr>
+		<tr>
+			<th>이 메 일</th>
+			<td colspan="3">
+				<input type="text" name="email" size="50" maxlength="50" class="input" value="<?=$my_email?>" tabindex="3" hname="이메일" opt="email">
+			</td>
+		</tr>
+		<tr>
+			<th>제&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;목</th>
+			<td colspan="3">
+				<? // 공지 체크 //
+				if($auth_class->isWkind($code,$member_auth)){?>
+					<label name="lb"><input id="lb" type="checkbox" name="wkind" value="1" tabindex="4" <? if($my_wkind == "1"){ echo "checked";}?>> 공지 </label>&nbsp;
+				<?}?>
+				<input type="text" name="subject" size="35" maxlength="50" class="input" value="<?=$my_subject?>" hname="제목" required  tabindex="5">
+			</td>
+		</tr>
+		<?if($auth_class->isSecret($code)){?>
+		<tr>
+			<th>비 밀 글</th>
+			<td colspan="3">
+				<label name='lb'><input id="lb" type="checkbox" name="secret" value='1' tabindex="6" <? if($my_secret == "1"){ echo "checked";}?>> 비밀글 </label> (비밀글 기능 사용시 체크해주세요!)
+			</td>
+		</tr>
+		<?}?>
+		<?
+		//첨부파일 갯수
+		$f_cnt = $auth_class->fileCount($code);
+		$file_q = "SELECT * FROM wp_file WHERE t_name = '$code' AND t_uid = '$uid' order by uid desc ";
+		$f_res = mysql_query($file_q);
+		$f_num = mysql_num_rows($f_res);
+		// 첨부 파일 //
+		for($i=0; $i<$f_cnt;$i++)
+		{
+			if($i+1 > $f_num){
+				$my_file_uid = "n";
+				$my_real_file = "";
+			}else{
+				$f_obj = mysql_fetch_object($f_res);
+				$my_f_uid = $f_obj->uid;
+				$my_real_file = $f_obj->real_file;
+				$my_change_file = $f_obj->change_file;
+				$my_down = $f_obj->down;
+			}
+		?>
+		<tr>
+			<th>첨부파일111111</th>
+			<td colspan="3">
+				<img src="../wp_icon/tip_03.gif"> <font color="#333399">등록 가능한 파일 확장자는 <?=$u_file_type[$auth_class->fileType($code)]?>파일입니다.</font><br>
+				<input type="file" name="files[]" size="30" class="input" tabindex="7"> [최대 업로드 용량 <?=$auth_class->fileSIzeM($code)?>MB]
+				<input type="hidden" name="f_uid[]" value="<?=$my_file_uid?>">
+				<?
+				// 첨부 파일 //
+				if($my_real_file)
+				{
+					echo "<br><font color='#996600'>[파일명 : $my_real_file <b>|</b> 파일삭제 <input type='checkbox' name='file_change[]' value='$my_file_uid,$my_change_file'>]";
+					echo "<input type='hidden' name='d_files[]' value='$my_change_file'>";
+				}
+				?>
+			</td>
+		</tr>
+		<?
+		} //for
+		?>
+		<?if(!$auth_class->isEditor($code)){?>
+		<tr>
+			<th>출력형식</th>
+			<td colspan="3">
+				<label name="lb"><input id="lb" type='radio' name='html' value='1' tabindex="8" <? if($my_html == "1"){ echo " checked";}?>> TEXT </label>
+				<label name="lb"><input id="lb" type='radio' name='html' value='2' tabindex="8" <? if($my_html == "2"){ echo " checked";}?>> HTML </label>
+				<label name="lb"><input id="lb" type='radio' name='html' value='3' tabindex="8" <? if($my_html == "3"){ echo " checked";}?>> HTML + 자동 줄바꿈 </label>
+			</td>
+		</tr>
+		<?}?>
+		<tr>
+			<td colspan="4" align="center">
+				<table width="100%" border="0" cellspacing="0" cellpadding="5">
+				<tr>
+				<?if($auth_class->isEditor($code)){?>
+					<td align="center"><textarea name="comment" id="comment" hname="내용" attr="editor" required style="width:100%; height:300px" tabindex="9"><?=$my_comment?></textarea></td>
+				<?}else{?>
+					<td align="center"><textarea name="comment" cols="70" rows="20" class="input" style="width:95%; height:300;" tabindex="10"><?=$my_comment?></textarea></td>
+				<?}?>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="center" height="40">
+		<table class="tbButton-a">
+		<tr>
+			<td align="right">
+				<input type="image" src="../wp_button/modify.gif" tabindex="11">
+				<a href="<?=$PHP_SELF?>?code=<?=$code?>&mode=list&type=<?=$type?>&page=<?=$page?>&keyfield=<?=$keyfield?>&key=<?=$key?>&main_menu=<?=$main_menu?>&sub_menu=<?=$sub_menu?>"><img src="../wp_button/list.gif" border="0"></a>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>
+<?if($auth_class->isEditor($code)){?>
+<script>
+nhn.husky.EZCreator.createInIFrame(oEditors, "comment", "../wp_seditor/SEditorSkin.html", "createSEditorInIFrame");
+</script>
+<?}?>

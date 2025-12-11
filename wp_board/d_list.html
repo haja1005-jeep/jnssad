@@ -1,0 +1,236 @@
+		<table class="board-a">
+		<tr height="30">
+			<th width="5%">번 호</th>
+			<th>제 목</th>
+			<th width="13%">작성자</th>
+			<th width="9%">조회수</th>
+			<th width="9%">등록일</th>
+		</tr>
+		<?
+		// 레코드 쿼리 (작성자 fid) //
+		$fid_que = "SELECT uid, code, id, fid FROM wp_board WHERE code = '$code'";
+		$fid_res = mysql_query($fid_que);
+		while($fid_obj = mysql_fetch_object($fid_res))
+		{
+			$fid_arr[$fid_obj->uid][] = $fid_obj->fid;
+		}
+
+		//LIMIT절 생성
+		if(!$page) $page=1;
+		$offset = ($page - 1) * $max_record;
+		$limit = $max_record;
+		//ORDER BY절 생성
+		if(!$orderby) $orderby = " wkind DESC, fid DESC, thread ASC";
+		else $orderby = $orderby." ".$desc;
+
+		$where = " WHERE code='$code'";
+
+        //공개 게시판 해당 시군만 보이게 2018.02.22.
+        if($Admin_auth == "top" || $Admin_auth == "s_group"){
+			
+		} else if($code == 'club_only') {
+            $where .= " AND name = '$member_name' ";
+		}
+
+
+		// 레코드 쿼리 //
+		if(eregi("[^[:space:]]+",$key)){
+			$where .= " AND $keyfield LIKE '%$key%' ";
+		}
+
+		//질문과 답변은 해당 부서만 볼 수 있도록
+		if($code == "qna"){
+			//시/군구 이면 자기 데이터 출력
+			if($Admin_auth != "top") {
+				//$where .= " AND id in('jnsad','$Site_Admin')";
+			}
+		}
+
+		//
+		$query = "SELECT * FROM wp_board $where ORDER BY $orderby LIMIT $offset, $limit";
+		$result= mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord("wp_board", $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result))
+		{
+			//첨부파일갯수
+			unset($query2);
+			unset($result2);
+			unset($mode);
+			$query2 = "SELECT count(*) cnt FROM wp_file WHERE t_name = '$code' AND t_uid = $obj->uid order by uid desc ";
+			$result2= mysql_query($query2);
+			$my_file_cnt = mysql_result($result2,0);
+
+			// 문자열 원상복귀 //
+			$my_subject = stripslashes($obj->subject);
+
+			// 제목 //
+			$u_subject = $my_subject;
+
+			// 문자열 자르기 //
+			$my_subject = Cut_Han("$my_subject","50");
+
+			$my_signdate = $obj->signdate;
+
+			//공지글일 경우
+			if($obj->wkind)
+			{
+				$u_wkind = "<img src='../wp_icon/notice.gif' align='absmiddle'>";
+				$bg_color = " onMouseOut=\"this.style.backgroundColor='#E8E8E8'\" bgcolor='#E8E8E8'";
+				$my_subject = "<b>".$my_subject."</b>";
+			} else {
+				$u_wkind = "";
+				$bg_color = " onMouseOut=\"this.style.backgroundColor='#ffffff'\" bgcolor=#ffffff";
+			}
+
+
+			// 검색단어 처리 //
+			if(!strcmp($keyfield,"subject") && $key)
+			{
+				$my_subject = eregi_replace("($key)", "<font color='#FF0000'>\\1</font>", $my_subject);
+			}
+
+			echo ("<tr height='28' onMouseOver=\"this.style.backgroundColor='$tr_color04'\" $bg_color>");
+
+			// 번호 //
+		   	echo ("<td align='center'>$article_num</td>");
+
+			// 첨부 체크 //
+			if($my_file_cnt > 0)
+			{
+				$icon_img = "<img src='../wp_icon/icon_image.gif' align='absmiddle'>";
+			}
+
+			// 제목 //
+			echo ("<td>");
+
+			// 문자열 들여쓰기 //
+			$spacer = strlen($obj->thread)-1;
+
+			// 들여쓰기 한계치 //
+			if($spacer > $reply_indent)
+			{
+				$spacer = $reply_indent;
+			}
+			for($j = 0; $j < $spacer; $j++)
+			{
+				echo("&nbsp;");
+			}
+
+			// 공개 여부 //
+			if($obj->secret == "1"){
+				$my_security = "<img src='../wp_icon/key_close.gif' border='0'>";
+				$mode = "auth";
+				//비밀글 읽기 권한 체크
+				if($auth_class->isRead_Sec($code,$member_auth)) $mode = "view";
+			}else{
+				$my_security = "";
+				$mode = "view";
+			}
+
+			if($spacer >= "1")
+			{
+				echo "&nbsp;&nbsp;&nbsp;<font color='#000000'><b>┗";
+			}
+
+			//읽기권한 체크
+			if(!$auth_class->isRead($code,$member_auth))
+			{
+				if(in_array($obj->fid,$fid_arr[$obj->uid]))
+				{
+					$mode = "view";
+					echo ("&nbsp;$u_wkind <a href='$PHP_SELF?$basic_get$add_get&uid=$obj->uid&mode=$mode' title='$u_subject'>$my_subject</a> $my_security $icon_img");
+				}
+				else
+				{
+					$my_a_name = explode("(",$Admin_name);
+					if($obj->id == $Site_Admin)
+					{
+						$mode = "view";
+						echo ("&nbsp;$u_wkind <a href='$PHP_SELF?$basic_get$add_get&uid=$obj->uid&mode=$mode' title='$u_subject'>$my_subject</a> $my_security $icon_img");
+					}
+					else
+					{
+						if($code == "team_only" && $Admin_auth == "s_group" && $obj->wkind)
+						{
+							$mode = "view";
+							echo ("&nbsp;$u_wkind <a href='$PHP_SELF?$basic_get$add_get&uid=$obj->uid&mode=$mode' title='$u_subject'>$my_subject</a> $my_security $icon_img");
+						}
+						else if($code == "club_only" && $Admin_auth == "normal" && $obj->wkind)
+						{
+							$mode = "view";
+							echo ("&nbsp;$u_wkind <a href='$PHP_SELF?$basic_get$add_get&uid=$obj->uid&mode=$mode' title='$u_subject'>$my_subject</a> $my_security $icon_img");
+						}
+						else
+						{
+							echo ("&nbsp;$u_wkind <a href='#none' onclick=\"alert('회원만 읽기가능합니다. 로그인해 주세요!')\" title='$u_subject'>$my_subject</a> $my_security $icon_img");
+						}
+					}
+				}
+
+			}
+			else
+			{
+				echo ("&nbsp;$u_wkind <a href='$PHP_SELF?$basic_get$add_get&uid=$obj->uid&mode=$mode' title='$u_subject'>$my_subject</a> $my_security $icon_img");
+			}
+
+			// NEW 표시 //
+			$date_diff = time() - $my_signdate;
+			if($date_diff < $time_limit)
+			{
+				echo ("&nbsp;<img src='../wp_icon/tip_new.gif' align='absmiddle'>");
+			}
+			echo ("</td>");
+			unset($icon_img);
+			unset($u_wkind);
+
+			// 성명 //
+			//if($my_name == "관리자") $my_name = "<img src='../images/name_ico.gif'>";
+			echo ("<td align='center'>$obj->name</td>");
+
+			// 조회수 //
+			echo ("<td align='center'>$obj->ref</td>");
+
+			// 등록일 //
+			$my_signdate = date("y.m.d",$obj->signdate);
+			echo ("<td align='center'>$my_signdate</td>");
+
+			$article_num--;
+		}
+		?>
+		</table>
+		<?require_once "../wp_object/page_move.html"?>
+		<table class="tbButton-b">
+		<tr>
+			<form method="post" action="<?=$PHP_SELF?>?code=<?=$code?>&type=<?=$type?>&mode=list">
+			<td>
+				<select name="keyfield">
+					<option value="subject">제 목</option>
+					<option value="comment">내 용</option>
+				</select>
+				<input type="text" size="15" maxlength="30" name="key" class="input">
+				<input type="image" src="../wp_button/search.gif" align="absmiddle">
+			</td>
+			</form>
+			<td align="right">
+				<a href="<?=$PHP_SELF?>?code=<?=$code?>&type=<?=$type?>&mode=list"><img src="../wp_button/list.gif" border="0" align="absmiddle"></a>
+				<?	if($auth_class->isWrite($code,$member_auth)){?>
+				<a href="<?=$PHP_SELF?>?<?=$basic_get.$add_get?>&mode=input"><img src="../wp_button/write.gif" border="0" align="absmiddle"></a>
+				<?}?>
+			</td>
+		</tr>
+		</table>

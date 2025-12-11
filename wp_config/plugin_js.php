@@ -1,0 +1,1 @@
+document.write(document.getElementById('<?=$txt_id?>').value);

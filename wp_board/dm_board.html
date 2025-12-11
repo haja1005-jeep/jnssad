@@ -1,0 +1,109 @@
+<table width="100%" border="0" cellspacing="3" cellpadding="0" bgcolor="#D7F0EE">
+<tr>
+	<td>
+		<table width="100%" border="0" cellspacing="1" cellpadding="3" bgcolor="#AFE0DE">
+		<?
+		// 레코드 쿼리 //
+		$dm_que = "SELECT * FROM wp_board WHERE code='$code' ORDER BY wkind DESC, sort ASC, fid DESC, thread ASC LIMIT $list_ea";
+		$dm_res = mysql_query($dm_que);
+		if(!$dm_res)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($dm_res))
+		{
+			// 문자열 원상복귀 //
+			$my_subject = stripslashes($obj->subject);
+
+			// 공지 체크 //
+			if($obj->wkind == 1)
+			{
+				$u_wkind = "<img src='../wp_icon/tip_notice.gif' align='absmiddle'>";
+
+				// 문자열 자르기 //
+				$text = Cut_Han("$my_subject","100");
+			}
+			else
+			{
+				// 문자열 자르기 //
+				$text = Cut_Han("$my_subject","150");
+			}
+
+			echo ("<tr height='24' bgcolor='#ffffff'>");
+
+			// 제목 //
+			echo "<td>";
+
+			// 문자열 들여쓰기 //
+			$spacer = strlen($obj->thread)-1;
+
+			// 들여쓰기 한계치 //
+			if($spacer > $reply_indent)
+			{
+				$spacer = $reply_indent;
+			}
+			for($j = 0; $j < $spacer; $j++)
+			{
+				echo ("&nbsp;");
+			}
+			if($spacer >= "1")
+			{
+				$tip_icon = "&nbsp;&nbsp;<font color='#000000'><b>┗[Re]</b></font>";
+			}
+			else
+			{
+				$tip_icon = "<font color='#F26522'>&#149;</font>";
+			}
+
+			// 공개 여부 //
+			if($obj->secret == "1")
+			{
+				$dm_security = "<img src='../wp_icon/key_close.gif' border='0'>";
+				$dm_mode = "auth";
+
+				// 권한 체크 //
+				if($BoardSet->isRead_Sec($code,$mb_obj->auth))
+				{
+					$dm_mode = "view";
+				}
+			}
+			else
+			{
+				$dm_security = "";
+				$dm_mode = "view";
+			}
+
+			// 제목 //
+			echo ("$tip_icon $u_wkind <a href='#' onclick=\"javascript:window.open('../wp_board/pop_index.html?code=$code&mode=$dm_mode&uid=$obj->uid','notice','width=800,height=600,scrollbars=yes')\" title='$my_subject'>$text</a>");
+			unset($tip_icon);
+			unset($u_wkind);
+
+			// NEW 표시 //
+			$date_diff = time() - $obj->signdate;
+			if($date_diff < $time_limit)
+			{
+				echo ("&nbsp;<img src='../wp_icon/tip_new.gif'>");
+			}
+			echo ("</td>");
+
+			// 등록일 //
+			echo "<td align='center' width='15%' class='text_i'>".date("Y-m-d",$obj->signdate)."</td>";
+
+			// 구분선 //
+			echo ("</tr>");
+		}
+		?>
+		</table>
+	</td>
+</tr>
+</table>
+<table class="tbButton-b">
+<tr>
+	<td align="right">
+		<a href="#none" onclick="javascript:window.open('../wp_board/pop_index.html?code=<?=$code?>&mode=input&type=pop','notice','width=850,height=600,scrollbars=yes')"><img src="../wp_button/write.gif" border="0" align="absmiddle"></a>
+	</td>
+</tr>
+</table>

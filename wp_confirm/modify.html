@@ -1,0 +1,62 @@
+<!-- 내용 출력 시작-->
+<?
+$query = "SELECT * FROM wp_confirm WHERE clu_code = '$Admin_code'";
+
+$result = mysql_query($query);
+if (!$result) {
+   	Error("QUERY_ERROR");
+}
+$obj = mysql_fetch_object($result);
+
+?>
+
+<form name="sForm" action="modify.php?<?=$basic_get.$add_get?>&uid=<?=$obj->uid?>" enctype="multipart/form-data" method="post" onSubmit="return validate(this)">
+<input type="hidden" name="clu_code" value="<?=$Admin_code?>">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>확인자 이름을 지정하여야 [개별참가신청서]의 [확인자]란에 이름이 자동으로 지정되어 출력됩니다.</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbInput-a">
+		<tbody>
+		<tr>
+			<th width="15%">확인자 이름</th>
+			<td><input type="text" name="name" class="input" size="20" maxlength="5" tabindex="5" value="<?=$obj->name?>" hname="확인자명" required ></td>
+		</tr>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td style="text-align:center">
+				<input type="submit" name="send" value="수정하기" class="btnBox3" tabindex="37">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td height="10"></td>
+</tr>
+<tr>
+	<td height="1" bgcolor="#CACACA"></td>
+</tr>
+<tr>
+	<td align="center" style="padding-top:10px">
+		<img src="../wp_images/player_img.gif">
+	</td>
+</tr>
+</table>
+</form>
+<!-- 내용 출력 끝 -->

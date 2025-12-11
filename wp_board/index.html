@@ -1,0 +1,130 @@
+<?
+	require_once "../wp_object/head.html";
+	$top_over_01 = ""; //종목관리
+	$top_over_02 = ""; //장애등급관리
+	$top_over_03 = ""; //대회일정관리
+	$top_over_04 = ""; //신상등록
+	$top_over_05 = ""; //대회참가
+	$top_over_06 = ""; //대진표관리
+	$top_over_07 = ""; //경기실적관리
+	$top_over_08 = ""; //시/군클럽관리
+	$top_over_09 = ""; //집계관리
+	$top_over_10 = "o"; //부가관리
+	if($code == "team_only")
+	{
+		unset($top_over_10);
+		$top_over_13 = "o";
+	}
+	if($code == "club_only")
+	{
+		unset($top_over_10);
+		$top_over_14 = "o";
+	}
+?>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<!-- 탑메뉴 시작-->
+		<? require_once "../wp_object/top.html"?>
+		<!-- 탑메뉴 끝 -->
+	</td>
+</tr>
+<tr>
+	<td align="left" style="padding-bottom:30px">
+		<!-- Document Start -->
+		<table width="100%" height="700" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td width="150" height="100% valign="top" style="padding:20 0 0 5">
+				<!-- 왼쪽메뉴 시작-->
+				<? require_once "../wp_object/left_10.html"?>
+				<!-- 왼쪽메뉴 끝 -->
+			</td>
+			<td width="4" height="100%" style="border-right:1 solid #fsfsfs;">&nbsp;</td>
+			<td valign="top" align="center">
+				<table width="95%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td class="tbTitleBlock">
+						<?
+						if($code == "notice"){
+							$title_txt = "공지사항";
+						}else if($code=="qna"){
+							$title_txt = "질문과 답변";
+						}else if($code=="club_only"){
+							$title_txt = "시군담당 전용";
+						}else if($code=="team_only"){
+							$title_txt = "경기단체 전용";
+						}else {
+							$title_txt = "전산기록원 자료실";
+						}
+						?>
+						<img src="../wp_icon/title_icon.gif" align="absmiddle">&nbsp;&nbsp;<?=$title_txt?>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<?
+						$member_id = $Site_Admin;
+						$member_name = $Admin_name;
+						$member_pwd = $Site_Admin."1234";
+
+						// 게시판 출력 //
+						if($mode == "list")
+						{
+							include "d_list.html";
+						}
+
+						// 게시판 내용 //
+						else if($mode == "view")
+						{
+							include "d_view.html";
+						}
+						// 권한 로그인 //
+						else if($mode == "auth")
+						{
+							include "d_auth.html";
+						}
+
+						// 게시판 입력 //
+						else if($mode == "input")
+						{
+							// 인증 번호 //
+							$today_date = date("Y:m:d");
+							$write_date = Encrypt($today_date);
+
+							include "d_input.html";
+						}
+
+						// 게시판 수정 //
+						else if($mode == "modify")
+						{
+							include "d_modify.html";
+						}
+
+						// 게시판 삭제 //
+						else if($mode == "delete")
+						{
+							include "d_delete.html";
+						}
+
+						// 게시판 답변 //
+						else if($mode == "reply")
+						{
+							// 인증 번호 //
+							$today_date = date("Y:m:d");
+							$write_date = Encrypt($today_date);
+
+							include "d_reply.html";
+						}
+						?>
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		<!-- Document End -->
+	</td>
+</tr>
+</table>
+</body>
+</html>

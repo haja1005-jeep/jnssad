@@ -1,0 +1,48 @@
+<table width="100%" border="0" cellspacing="0" cellpadding="4" class="border_gray_b">
+<tr>
+	<td style="border-bottom:2 solid #000000; font-weight:bold;background-color:#cacaca" height="20" align="center">공지사항</td>
+</tr>
+<?
+// 레코드 쿼리 //
+$query = "SELECT uid,subject,signdate,id,wkind FROM wp_board WHERE code='$a_code' AND thread='A' ORDER BY wkind DESC, uid DESC LIMIT 5";
+$result = mysql_query($query);
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+
+// 레코드 결과 //
+while($obj = mysql_fetch_object($result)){
+
+	// 문자열 원상복귀 //
+	$my_subject = stripslashes($obj->subject);
+
+	echo ("<tr>");
+	//공지사항
+	if($obj->wkind == "1"){
+		//$u_wkind = "<img src='../wp_icon/notice.gif' align='absmiddle'>";
+		// 문자열 자르기 //
+		$text = Cut_Han("$my_subject","29");
+	}else{
+		// 문자열 자르기 //
+		$text = Cut_Han("$my_subject","33");
+	}
+	// NEW 표시 //
+	$date_diff = time() - $obj->signdate;
+	if($date_diff < $time_limit)
+	{
+		$new_img = "&nbsp;<img src='../wp_icon/tip_new.gif' align='absmiddle'>";
+		// 문자열 자르기 //
+		$text = Cut_Han("$text","29");
+	}
+	// 제목 //
+	echo ("<td style='border-bottom:1px solid #ccc;'><img src='../wp_icon/dot_02.gif' width='12' height='12' align='absmiddle'> $u_wkind <a href='#none' onclick=\"javascript:window.open('../wp_board/pop_view.html?code=notice&mode=view&uid=$obj->uid','notice','width=600,height=600,scrollbars=yes')\" title='$my_subject'>$text </a>$new_img</td>");
+	unset($u_wkind);
+	unset($new_img);
+
+	// 구분선 //
+	echo ("</tr>");
+}
+?>
+</table>

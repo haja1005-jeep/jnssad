@@ -1,0 +1,115 @@
+<?
+require_once "../wp_object/head_pop.html";
+?>
+<!-- 내용 출력 시작-->
+<form name="sForm" action="p_input.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+<table class="tbInput-a">
+<tbody>
+<tr>
+	<td style="color:#FF0000;" colspan="2" align="center">
+		※ 전라남도장애인체육회에 보고된 시군담당 공무원 및 경기단체만 아이디를 신청하십시오. <br />
+		그외의 사용자 아이디 신청에 대한 승인은 이루어지지 않습니다.
+	</td>
+</tr>
+<tr>
+	<th>권한</th>
+	<td colspan="3">
+		<?
+		/*
+		foreach($wp_manager_code as $keys => $values)
+		{
+			unset($is_checked);
+			if($keys == "sponsor" || $keys == "top") continue;
+
+			if($keys == "normal")
+			{
+				$is_checked = " checked ";
+			}
+			echo ("<label name='lb'><input id='lb' type='radio' name='auth' value='$keys' $is_checked>$values</label>");
+		}
+		*/
+		echo ("<label name='lb'><input id='lb' type='radio' name='auth' value='normal' onclick=\"city_input.style.display='block'; s_group_input.style.display='none'\" checked='checked'>시/군 담당자</label>");
+
+
+		echo "
+			<label name='lb'><input id='lb' type='radio' name='auth' value='s_group' onclick=\"city_input.style.display='none'; s_group_input.style.display='block'\">경기단체</label>
+		";
+		?>
+	</td>
+</tr>
+
+<tr id="city_input" style="display:show;">
+	<th>시/군</th>
+	<td>
+		<select name="city" tabindex="1">
+			<?
+			foreach($wp_city_code as $keys => $values){
+				if($keys == "S00") continue;
+				if($keys == $city)
+					$is_selected = " selected ";
+				else $is_selected = "";
+				echo "<option value='$keys' $is_selected>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<tr id="s_group_input" style="display:none;">
+	<th>종목</th>
+	<td>
+		<select name="s_group" tabindex="1" onchange="wp_id.value='team'+ this.value; s_id.value='team'+ this.value;">
+			<option>--종목선택--</option>
+			<?
+			foreach($wp_game_code as $keys => $values){
+				if($keys == "S00") continue;
+				if($keys == $city)
+					$is_selected = " selected ";
+				else $is_selected = "";
+				echo "<option value='$keys' $is_selected>$values</option>";
+			}
+			?>
+		</select>
+		<input type="hidden" name="s_city" value="jnsad">
+	</td>
+</tr>
+<tr>
+	<th>아이디</th>
+	<td>
+		<input type="text" id="wp_id" name="wp_id" class="input" size="20" maxlength="30" tabindex="2" hname="아이디" required range="5:30" style="ime-mode:disabled" onkeypress="Input_Eng_Num()"><!--* 경기단체 아이디는 자동으로 부여됩니다.-->
+		<input type="hidden" id="s_id" name="s_id" value="">
+	</td>
+</tr>
+<tr>
+	<th>패스워드</th>
+	<td><input type="password" name="wp_passwd" class="input" size="20" maxlength="15" tabindex="3" hname="패스워드" required>* 최소5자 입력하십시오.</td>
+</tr>
+<tr>
+	<th>담당자 이름</th>
+	<td><input type="text" name="r_name" class="input" size="20" maxlength="30" tabindex="4" hname="담당자 이름" required>*공백없이 실명으로 입력하십시오.</td>
+</tr>
+<tr>
+	<th>담당자 이메일</th>
+	<td><input type="text" name="r_email" class="input" size="30" maxlength="50" tabindex="5" hname="담당자 이메일" required></td>
+</tr>
+<tr>
+	<th>담당자 휴대전화</th>
+	<td>
+		<input type="text" name="r_hp1" class="input" size="4" maxlength="4" tabindex="6" hname="담당자 휴대전화" required>
+		-
+		<input type="text" name="r_hp2" class="input" size="4" maxlength="4" tabindex="7" hname="담당자 휴대전화" required>
+		-
+		<input type="text" name="r_hp3" class="input" size="4" maxlength="4" tabindex="8" hname="담당자 휴대전화" required>
+	</td>
+</tr>
+<tr>
+	<td style="color:#FF0000;" colspan="2" align="center">
+		※ 승인 요청을 하신 후 전라남도장애인체육회 (<strong>☏ 061-288-1365</strong>)로 연락 주십시오.
+	</td>
+</tr>
+<tr>
+	<td align="center" colspan="2"><input type="button" name="send" value="승인 요청" class="btnBox3" tabindex="9" onclick="Frm_Submit();"></td>
+</tr>
+</tbody>
+</table>
+</form>
+<!-- 내용 출력 끝 -->

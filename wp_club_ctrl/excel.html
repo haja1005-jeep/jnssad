@@ -1,0 +1,66 @@
+<?
+//header("Content-type: application/vnd.ms-excel");
+//header("Content-Disposition: attachment; filename=club_list.xls");
+//header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+
+$where = " AND code in (";
+for($i=0; $i< count($chk_id); $i++){
+	if($i != count($chk_id)-1)
+		$where .= " '$chk_id[$i]',";
+	else $where .= " '$chk_id[$i]'";
+}
+$where .= " )";
+?>
+<script language="javascript">
+function printWindow()
+{
+	factory.printing.Print(false, window)
+}
+</script>
+<body onload="printWindow();" scroll="auto">
+<object id=factory style="display:none"
+classid="clsid:1663ed61-23eb-11d2-b92f-008048fdd814"
+codebase="http://player.jnsad.or.kr/wp_library/smsx.cab#Version=6,1,429,14">
+</object>
+<table width="100%" border="1" cellspacing="0" cellpadding="0">
+	<tr>
+		<th width="200" align="center">소속</th>
+		<th width="200" align="center">이름</th>
+		<th width="200" align="center">아이디</th>
+		<th width="200" align="center">권한</th>
+	</tr>
+	<?
+	// 레코드 쿼리 //
+	$query = "SELECT * FROM wp_club_ctrl WHERE 1=1 $where ORDER BY city ASC, code ASC, wp_id ASC, auth ASC";
+	$result = mysql_query($query);
+	while($obj = mysql_fetch_object($result)){
+	?>
+	<tr>
+		<td align="center"><?=$wp_city_code[$obj->city]?></td>
+		<td align="center"><?=$obj->name?></td>
+		<td align="center"><?=$obj->wp_id?></td>
+		<td align="center"><?=$wp_auth_code[$obj->auth]?></td>
+	</tr>
+	<?} //while ?>
+</table>
+

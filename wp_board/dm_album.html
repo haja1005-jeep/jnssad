@@ -1,0 +1,53 @@
+<?
+// 레코드 쿼리 //
+$alb_que = "SELECT * FROM wp_board WHERE code='$code' AND flag='1' ORDER BY uid DESC LIMIT 10";
+$alb_res = mysql_query($alb_que);
+if(!$alb_res)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+
+// 총 레코드 수 //
+$alb_total = mysql_num_rows($alb_res);
+
+// TD 갯수 //
+$alb_num = 0;
+
+// 레코드 결과 //
+while($alb_obj = mysql_fetch_object($alb_res))
+{
+	// 문자열 원상복귀 //
+	$alb_subject = stripslashes($alb_obj->subject);
+
+	// 문자열 자르기 //
+	$alb_text = Cut_Han("$alb_subject","16");
+
+	// 레코드 쿼리 //
+	$f_que = "SELECT * FROM wp_file WHERE t_name='$code' AND t_uid='$alb_obj->uid' ORDER BY sort ASC LIMIT 1";
+	$f_res= mysql_query($f_que);
+	$f_val = mysql_fetch_object($f_res);
+
+	// 파일 체크 //
+	if($f_val->real_file)
+	{
+		// 파일 경로 //
+		$m_photo = $file_path."s_".$f_val->change_file;
+	}
+	else
+	{
+		// 파일 경로 //
+		$m_photo = "../wp_images/a_no_img_100.jpg";
+	}
+
+	// 파일 출력 //
+	echo "
+		leftrightslide[$alb_num] = '\
+			<span style=\'width:110px;text-align:center;\'><a href=\'../wp_board/index.html?code=$code&mode=view&uid=$alb_obj->uid\'><img src=\'$m_photo\' width=\'100\' height=\'80\' border=\'0\' class=\'border_gray_d\'></a><br>$alb_text</span>\
+		';
+	";
+
+	// TD 증가 //
+	$alb_num++;
+}
+?>

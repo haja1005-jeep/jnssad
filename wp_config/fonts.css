@@ -1,0 +1,13 @@
+.bodyBlock h3{
+	text-align:left;
+	padding:5px 0px 5px 10px;
+	margin:10 5 0 20px;
+	font-size:12px;
+	color:#003782;
+	line-height:1.0;
+	font-weight:bold;
+	white-space:nowrap;
+	height:23px;
+	voice-family:"\"}\"";voice-family:inherit;
+	background:#cdd7e7;
+}
