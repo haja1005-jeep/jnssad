@@ -1,0 +1,70 @@
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>해당 대회에 대한 장애등급데이터를 생성한다.</li>
+				<li>이전대회에는 생성할 기존 대회를 선택한다..</li>
+				<li>대상대회에는 생성할 대상의 대회를 선택한다.</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<form name="sForm" action="newdata.php" method="post" onsubmit="return validate(this)">
+	<td>
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th width="15%">이전대회</th>
+					<td align="left" colspan="3">
+						<?
+						$que = "SELECT * FROM wp_game_ctrl WHERE isuse = '1'  ORDER BY uid desc";
+						$res = mysql_query($que);
+						echo "<select name='org_game' hname='이전대회' required><option value=''>-이전대회선택-</option>";
+						while($obj = mysql_fetch_object($res))
+						{
+							echo "<option value='$obj->uid'>&nbsp;&nbsp;┗ $obj->name</option>";
+						}
+						echo "</select>";
+						?>
+					</td>
+				</tr>
+				<tr>
+					<th width="15%">대상대회</th>
+					<td>
+						<?
+						$que = "SELECT * FROM wp_game_ctrl WHERE isuse = '0' ORDER BY uid desc";
+						$res = mysql_query($que);
+						echo "<select name='tar_game' hname='대상대회' required><option value=''>-대상대회선택-</option>";
+						while($obj = mysql_fetch_object($res))
+						{
+							echo "<option value='$obj->uid'>&nbsp;&nbsp;┗ $obj->name</option>";
+						}
+						echo "</select>";
+						?>
+						<input type="submit" name="sch" value="장애등급 생성하기" tabindex="8" class="btnBox3" onclick="this.form.submit()">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+	</td>
+	</form>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="button" name="send" value="목록으로" class="btn_send" tabindex="6" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'"
+			</td>
+		</tr>
+		</table>
+	</td>
+<tr>
+<!-- 내용 출력 끝 -->

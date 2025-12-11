@@ -1,0 +1,108 @@
+<!-- 내용 출력 시작-->
+<?
+//다음 정렬순서값을 구한다.
+$query = "SELECT * FROM wp_sports_event where uid='$uid'";
+
+$result = mysql_query($query);
+if (!$result) {
+   	Error("QUERY_ERROR");
+}
+$obj = mysql_fetch_array($result,MYSQL_BOTH);
+?>
+
+<form name="sForm" action="modify.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset>
+			<ul>
+				<li> 1. 설명</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbInput-a">
+		<tbody>
+		<tr>
+			<th>종목코드</th>
+			<td>
+				<input type="text" name="code" size="20" maxlength="20" class="input" style="ime-mode:disabled" value="<?=$obj[code]?>">
+			</td>
+		</tr>
+		<tr>
+			<th>종목구분</th>
+			<td colspan="3">
+				<?
+					foreach($wp_gam_type_code as $keys => $values){
+						if($keys == $obj[gam_type])
+							$is_checked = " checked ";
+						else $is_checked = "";
+						echo "<label name='lb'><input id='lb' type='radio' name='gam_type' hname='종목구분'  value='$keys' tabindex='16' $is_checked>$values</label>";
+					}
+				?>
+			</td>
+		</tr>
+		<tr>
+			<th>경기구분</th>
+			<td colspan="3">
+				<?
+					foreach($wp_gam_kind_code as $keys => $values){
+						if($keys == $obj[gam_kind])
+							$is_checked = " checked ";
+						else $is_checked = "";
+						echo "<label name='lb'><input id='lb' type='radio' name='gam_kind' hname='경기구분' value='$keys' tabindex='16' $is_checked>$values</label>";
+					}
+				?>
+			</td>
+		</tr>
+		<tr>
+			<th>종 목 명</th>
+			<td><input type="text" name="name" class="input" hname="종목명" required size="20" maxlength="20" value="<?=$obj[name]?>" tabindex="2"></td>
+		</tr>
+		
+		<tr>
+			<th>경기방법</th>
+			<td><textarea name="method" class="input" cols="80" rows="10" tabindex="3"><?=$obj[method]?></textarea></td>
+		</tr>
+		<tr>
+			<th>기타사항</th>
+			<td><textarea name="detail" class="input" cols="80" rows="10" tabindex="4"><?=$obj[detail]?></textarea></td>
+		</tr>
+		<tr>
+			<th>정렬순서</th>
+			<td colspan="3"><input type="text" class="input" name="orderby" size="3" maxlength="3"  value="<?=$obj[orderby]?>" tabindex="5" style="text-align:right"style="ime-mode:disabled" onKeypress="Num_Check()"></td>
+		</tr>
+		<tr>
+			<th>사용유무</th>
+			<td colspan="3">
+				<?
+					foreach($wp_isuse_code as $keys => $values){
+						if($keys == $obj[isuse])
+							$is_checked = " checked ";
+						else $is_checked = "";
+						echo "<label name='lb'><input id='lb' type='radio' name='isuse' value='$keys' tabindex='16' $is_checked>$values</label>";
+					}
+				?>
+			</td>
+		</tr>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="submit" name="send" value="수정하기" class="btnBox3" tabindex="6">
+				<input type="button" name="send" value="목록으로" class="btn_send" tabindex="6" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>
+<!-- 내용 출력 끝 -->

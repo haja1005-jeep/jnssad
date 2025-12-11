@@ -1,0 +1,59 @@
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>경기 종목을 가져올 대회를 이전 대회 종목에서 선택</li>
+				<li>경기 종목을 적용 시킬 대회를 현재 대회 종목에서 선택</li>
+				<li>종목 생성하기 버튼 클릭</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<form name="sForm" action="newdata.php" method="post" onsubmit="return validate(this)">
+	<td>
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th width="15%">이전대회</th>
+					<td align="left" colspan="3">
+						<?
+						$que = "SELECT * FROM wp_game_ctrl WHERE isuse = '1'  ORDER BY uid desc";
+						$res = mysql_query($que);
+						echo "<select name='org_game' hname='이전대회' required><option value=''>-이전대회선택-</option>";
+						while($obj = mysql_fetch_object($res))
+						{
+							echo "<option value='$obj->uid'>&nbsp;&nbsp;┗ $obj->name</option>";
+						}
+						echo "</select>";
+						?>
+					</td>
+				</tr>
+				<tr>
+					<th width="15%">대상대회</th>
+					<td>
+						<?
+						$que = "SELECT * FROM wp_game_ctrl WHERE isuse = '0' ORDER BY uid desc";
+						$res = mysql_query($que);
+						echo "<select name='tar_game' hname='대상대회' required><option value=''>-대상대회선택-</option>";
+						while($obj = mysql_fetch_object($res))
+						{
+							echo "<option value='$obj->uid'>&nbsp;&nbsp;┗ $obj->name</option>";
+						}
+						echo "</select>";
+						?>
+						<input type="submit" name="sch" value="종목 생성하기" tabindex="8" class="btnBox3" onclick="this.form.submit()">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+	</td>
+	</form>
+</tr>
+</table>

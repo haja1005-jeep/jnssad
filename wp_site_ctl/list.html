@@ -1,0 +1,204 @@
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td bgcolor="<?=$tr_color01?>" height="3" colspan="13"></td>
+		</tr>
+		<tr bgcolor="<?=$tr_color02?>" align="center" height="30">
+			<td width="50"><font color="<?=$tr_color05?>"><b>번 호</b></font></td>
+			<td><font color="<?=$tr_color05?>"><b>테이블</b></font></td>
+			<td><font color="<?=$tr_color05?>"><b>테이블명</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>읽기(비)</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>읽기</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>쓰기</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>답변</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>삭제</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>수정</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>파일</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>비밀</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>에디터</b></font></td>
+			<td width="70"><font color="<?=$tr_color05?>"><b>공지</b></font></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color03?>" height="1" colspan="13"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color04?>" height="4" colspan="13"></td>
+		</tr>
+		<?
+		// 레코드 쿼리 //
+
+		if(eregi("[^[:space:]]+",$key)){
+			$Q_Key_WHERE = " AND $keyfield LIKE '%$key%' ";
+		}
+		$query = "SELECT uid,t_name, t_name_txt, read_level, write_level,reply_level,delete_level, file,
+						secret,editor,wkind,modify_level,read_level_s
+				FROM wp_board_ctl WHERE 1=1 $Q_Key_WHERE
+				ORDER BY t_name ASC,  uid ASC";
+
+		$result= mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		// 총 레코드 수 //
+		$total_record = mysql_num_rows($result);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		for($i = $PageNumber->start_page ; $i <= $PageNumber->end_page ; $i++)
+		{
+			mysql_data_seek($result,$i);
+			$my_uid = mysql_result($result,$i,0);
+			$my_t_name = mysql_result($result,$i,1);
+			$my_t_name_txt = mysql_result($result,$i,2);
+			$my_read_level = mysql_result($result,$i,3);
+			$my_write_level = mysql_result($result,$i,4);
+			$my_reply_level = mysql_result($result,$i,5);
+			$my_delete_level = mysql_result($result,$i,6);
+			$my_file = mysql_result($result,$i,7);
+			$my_secret = mysql_result($result,$i,8);
+			$my_editor = mysql_result($result,$i,9);
+			$my_wkind = mysql_result($result,$i,10);
+			$my_modify_level = mysql_result($result,$i,11);
+			$my_read_level_s = mysql_result($result,$i,12);
+
+			//읽기
+			$i_tmp = split(":",$my_read_level);
+			$read_txt ="";
+			foreach($i_tmp as $a_key=>$value){
+				if(array_key_exists($value, $table_level)){
+					$read_txt .= $table_level[$value]."<br>";
+				}
+			}
+			$i_tmp = split(":",$my_write_level);
+			$write_txt ="";
+			foreach($i_tmp as $a_key=>$value){
+				if(array_key_exists($value, $table_level)){
+					$write_txt .= $table_level[$value]."<br>";
+				}
+			}
+			$i_tmp = split(":",$my_reply_level);
+			$reply_txt ="";
+			foreach($i_tmp as $a_key=>$value){
+				if(array_key_exists($value, $table_level)){
+					$reply_txt .= $table_level[$value]."<br>";
+				}
+			}
+			$i_tmp = split(":",$my_delete_level);
+			$delete_txt ="";
+			foreach($i_tmp as $a_key=>$value){
+				if(array_key_exists($value, $table_level)){
+					$delete_txt .= $table_level[$value]."<br>";
+				}
+ 			}
+			$i_tmp = split(":",$my_modify_level);
+			$modify_txt ="";
+			foreach($i_tmp as $a_key=>$value){
+				if(array_key_exists($value, $table_level)){
+					$modify_txt .= $table_level[$value]."<br>";
+				}
+ 			}
+			$i_tmp = split(":",$my_wkind);
+			$wkind_txt ="";
+			foreach($i_tmp as $a_key=>$value){
+				if(array_key_exists($value, $table_level)){
+					$wkind_txt .= $table_level[$value]."<br>";
+				}
+ 			}
+ 			//읽기-비밀글에 대하여
+			$i_tmp = split(":",$my_read_level_s);
+			$read_s_txt ="";
+			foreach($i_tmp as $a_key=>$value){
+				if(array_key_exists($value, $table_level)){
+					$read_s_txt .= $table_level[$value]."<br>";
+				}
+			}
+
+ 			// 검색단어 처리 //
+			if(!strcmp($keyfield,"t_name") && $key)
+			{
+				$my_t_name = eregi_replace("($key)", "<font color='#FF0000'>\\1</font>", $my_t_name);
+			}
+			if(!strcmp($keyfield,"t_name_txt") && $key)
+			{
+				$t_name_txt = eregi_replace("($key)", "<font color='#FF0000'>\\1</font>", $t_name_txt);
+			}
+
+			echo ("<tr height='28' onMouseOver=\"this.style.backgroundColor='$tr_color04'\" onMouseOut=\"this.style.backgroundColor='#ffffff'\" bgcolor=#ffffff>");
+
+			// 번호 //
+		   	echo ("<td align='center'>$article_num</td>");
+		   	// 테이블 //
+		   	echo ("<td align='center'>$my_t_name</td>");
+		   	// 테이블명 //
+		   	echo ("<td align='center'><a href='./index.html?code=$code&mode=modify&type=$type&uid=$my_uid&page=$page&key=$key&keyfield=$keyfield'>$my_t_name_txt</a></td>");
+		   	// 읽기 (비밀글)//
+		   	echo ("<td align='center'>$read_s_txt</td>");
+		   	// 읽기 //
+		   	echo ("<td align='center'>$read_txt</td>");
+		   	// 쓰기 //
+		   	echo ("<td align='center'>$write_txt</td>");
+		   	// 답변 //
+		   	echo ("<td align='center'>$reply_txt</td>");
+		   	// 삭제 //
+		   	echo ("<td align='center'>$delete_txt</td>");
+		   	// 수정//
+		   	echo ("<td align='center'>$modify_txt</td>");
+		   	// 파일 //
+		   	echo ("<td align='center'>$my_file</td>");
+		   	// 비밀글 //
+		   	echo ("<td align='center'>$my_secret</td>");
+		   	// 에디터 //
+		   	echo ("<td align='center'>$my_editor</td>");
+		   	// 공지 //
+		   	echo ("<td align='center'>$wkind_txt</td>");
+
+
+			// 구분선 //
+			echo ("</tr><tr><td background='../icon/sdot.gif' height='1' colspan='13'></td></tr>");
+
+			$article_num--;
+		}
+		?>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="center"><?require_once "../object/page_move.html"?></td>
+</tr>
+<tr>
+	<td bgcolor="<?=$tr_color01?>" height="2"></td>
+</tr>
+<tr>
+	<td align="center" height="40">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<form method="post" action="<?=$PHP_SELF?>?code=<?=$code?>&mode=list&type=<?=$type?>">
+			<td>
+				<select name="keyfield">
+					<option value="t_name">테이블</option>
+					<option value="t_name_txt">테이블명</option>
+				</select>
+				<input type="text" size="15" maxlength="30" name="key">
+				<input type="image" src="../button/search.gif" align="absmiddle">
+			</td>
+			</form>
+			<td width="25%" align="right">
+				<a href="<?=$PHP_SELF?>?code=<?=$code?>&mode=list&type=<?=$type?>"><img src="../button/list.gif" border="0"></a>
+				<a href="<?=$PHP_SELF?>?code=<?=$code?>&mode=input&type=<?=$type?>"><img src="../button/write.gif" border="0"></a>
+			</td>
+		</tr>
+		</table>
+	</td>
+	</form>
+</tr>
+</table>

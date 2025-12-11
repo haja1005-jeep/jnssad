@@ -1,0 +1,37 @@
+#pyWrap {width:800px;margin:0 auto;font-size:11px;}
+#pyWrap .pyCaption {width:100%;float:left;margin:10px 0;font-size:20px;font-weight:bold;color:#139c8c}
+#pyWrap .pyOption {width:100%;float:left}
+#pyWrap .pyOption table {width: 100%;float: left;border-top: 2px solid #abc7b8;border-bottom: 1px solid #e9e9e9;border-collapse:collapse}
+#pyWrap .pyOption table tr th {text-align: center;padding: 10px 0 10px;border: 1px solid #e9e9e9;font-size:12px}
+#pyWrap .pyOption table tr td {text-align: center;padding: 10px 0 10px;border: 1px solid #e9e9e9}
+#pyWrap .pyOption .pyOption_01 {background-color: #f1f3f0;font-weight: bold;color: #484848}
+#pyWrap .pyOption a.btn_b03, .btn_b03 {height: 30px;line-height: 30px;padding: 0 10px;font-weight: bold;display: inline-block;background: #fff;border: 1px solid #b9bdd3;border-radius:5px;color: #646982;text-decoration: none;vertical-align: middle}
+#pyWrap .pyOption a.btn_b03:hover, .btn_b03:hover {background: #ebedf6}
+#pyWrap .pyOption .frm_input {border: 1px solid #ccc;background: #fff;color: #000;vertical-align: middle;border-radius: 3px;padding: 5px;-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075)}
+#pyWrap .skip {display:none}
+
+#pyWrap .pyMember {width:100%;float:left;margin:20px 0 10px}
+#pyWrap .pyMember table {width:100%;border-collapse:collapse;border-top:2px solid #abc7b8;font-size:12px;color:#484848}
+#pyWrap .pyMember table tr th {line-height:40px;text-align:center;border:1px solid #e9e9e9;background:#f1f3f0}
+#pyWrap .pyMember table tr td {line-height:30px;text-align:center;border:1px solid #e9e9e9}
+
+#pyWrap .pyMemberInfo {width:100%;float:left;margin:20px 0 10px}
+#pyWrap .pyMemberInfo table {width:100%;border-collapse:collapse;border-top:2px solid #abc7b8;font-size:12px;color:#484848}
+#pyWrap .pyMemberInfo table tr th {width:30%;line-height:30px;text-align:center;border:1px solid #e9e9e9;background:#f1f3f0}
+#pyWrap .pyMemberInfo table tr td {width:70%;line-height:30px;text-align:center;border:1px solid #e9e9e9}
+
+#pyWrap .pyScore {width:100%;float:left;margin:20px 0 10px}
+#pyWrap .pyScore table {width:100%;border-collapse:collapse;border-top:2px solid #abc7b8;font-size:12px;color:#484848}
+#pyWrap .pyScore table tr th {line-height:40px;text-align:center;border:1px solid #e9e9e9;background:#f1f3f0}
+#pyWrap .pyScore table tr td {line-height:30px;text-align:center;border:1px solid #e9e9e9}
+
+#pyWrap .pySearchList {width:100%;float:left;margin:20px 0 10px}
+#pyWrap .pySearchList table {width:100%;border-collapse:collapse;border-top:2px solid #abc7b8;font-size:12px;color:#484848}
+#pyWrap .pySearchList table tr th {line-height:40px;text-align:center;border:1px solid #e9e9e9;background:#f1f3f0}
+#pyWrap .pySearchList table tr th:nth-child(1) {width:5%}
+#pyWrap .pySearchList table tr th:nth-child(2) {width:10%}
+#pyWrap .pySearchList table tr th:nth-child(3) {width:10%}
+#pyWrap .pySearchList table tr th:nth-child(4) {width:10%}
+#pyWrap .pySearchList table tr th:nth-child(5) {width:55%}
+#pyWrap .pySearchList table tr th:nth-child(6) {width:10%}
+#pyWrap .pySearchList table tr td {line-height:30px;text-align:center;border:1px solid #e9e9e9}

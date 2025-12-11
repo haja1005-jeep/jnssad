@@ -1,0 +1,86 @@
+<?
+	require_once "../wp_object/head.html";
+?>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<!-- 탑메뉴 시작-->
+		<? require_once "../wp_object/top.html"?>
+		<!-- 탑메뉴 끝 -->
+	</td>
+</tr>
+<tr>
+	<td align="left">
+		<!-- Document Start -->
+		<table class="table-global">
+		<tr>
+			<td>
+				<?
+				//로그인 체크
+				if(!$site_auth->isLogin())
+				{
+					Error("ADMIN_ERROR");
+					exit;
+				}
+
+				//권한 체크
+				if(!$site_auth->isConn($cd_trouble,$Admin_auth))
+				{
+					Error("AUTH_ERROR");
+					exit;
+				}
+
+				// 리스트 출력 //
+				if(!$mode || $mode=="list")
+				{
+					require_once "./list.html";
+				}
+
+				// 입력 //
+				if($mode=="input")
+				{
+					require_once "./input.html";
+				}
+
+				// 수정 //
+				if($mode=="modify")
+				{
+					require_once "./modify.html";
+				}
+
+				// 보기 //
+				if($mode=="view")
+				{
+					require_once "./view.html";
+				}
+
+				// 삭제 //
+				if($mode=="delete")
+				{
+					require_once "./delete.html";
+				}
+
+				// 프린트 출력 //
+				if($mode=="print")
+				{
+					require_once "./print.html";
+				}
+				?>
+			</td>
+		</tr>
+		</table>
+		<!-- Document End -->
+	</td>
+</tr>
+</table>
+
+<br>
+<br>
+<br>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>&nbsp;</td>
+</tr>
+</table>
+</body>
+</html>

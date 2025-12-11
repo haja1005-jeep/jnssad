@@ -1,0 +1,65 @@
+
+					<!-- 내용 출력 시작-->
+						<?
+						//다음 정렬순서값을 구한다.
+						$query = "SELECT * FROM wp_team_agree where wp_id='$Site_Admin'";
+
+						$result = mysql_query($query);
+						if (!$result) {
+						   	Error("QUERY_ERROR");
+						}
+						$obj = mysql_fetch_object($result);
+						?>
+						<form name="sForm" action="input.php?<?=$basic_get.$add_get?>&agree_id=<?=$Site_Admin?>" method="post" onSubmit="return validate(this)">
+						<table class="tbInput-a">
+						<tbody>
+						<tr>
+							<td colspan="2">
+								<strong>
+								※ 대회 참가 정보를 확인하신 후 이상이 없으실 경우 최종승인을 '예'로 선택하십시오.<br />
+								※ 최종승인을 하실 경우 승인 여부를 수정 할 수 없습니다.
+								</strong>
+							</td>
+						</tr>
+						<tr>
+							<th>최종승인</th>
+							<td>
+								<?
+								foreach($wp_yorn_code as $key_f => $val_f)
+								{
+									unset($is_choice);
+									if($obj->agree == $key_f) $is_choice = " checked";
+									if($obj->agree == "1") $is_fixed = " disabled";
+									echo "<input type='radio' name='agree' value='$key_f' hname='최종승인 여부' required $is_choice $is_fixed> $val_f";
+								}
+								?>
+							</td>
+						</tr>
+						<tr>
+							<th>메&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;모</th>
+							<td colspan="3"><textarea name="comment" class="input" cols="80" rows="7" tabindex="7"><?=$obj->comment?></textarea></td>
+						</tr>
+						</tbody>
+						</table>
+						<table class="tbButton-a">
+						<tr>
+							<td>
+								<?
+								if($obj->agree == "1")
+								{
+								?>
+								<b>※ 이미 최종승인하셨으므로 수정 할 수 없습니다.</b>
+								<?
+								}
+								else
+								{
+								?>
+								<input type="image" src="../wp_button/b_edit.gif" title="수정">
+								<?
+								}
+								?>
+							</td>
+						</tr>
+						</table>
+						</form>
+					<!-- 내용 출력 끝 -->

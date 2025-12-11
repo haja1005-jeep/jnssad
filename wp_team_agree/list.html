@@ -1,0 +1,98 @@
+<?
+
+//LIMIT절 생성
+if(!$page) $page=1;
+$offset = ($page - 1) * $max_record;
+$limit = $max_record;
+
+//ORDER BY절 생성
+if(!$orderby) $orderby = " uid DESC";
+else $orderby = $orderby." ".$desc;
+
+//WHERE절 생성 //
+$where = " WHERE 1=1 ";
+
+// 레코드 쿼리 //
+$query = "SELECT *
+		   FROM wp_team_agree
+		 $where ORDER BY $orderby LIMIT $offset, $limit";
+$result = mysql_query($query);
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+?>
+<!-- 선수 검색 시작 -->
+<a name="list">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>도움말</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="5%">번호</th>
+			<th width="10%">경기단체</th>
+			<th>메모</th>
+			<th width="8%">승인여부</th>
+		</tr>
+		<?
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord("wp_team_agree", $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		for($i=0;$i<mysql_num_rows($result);$i++)
+		{
+			$obj = mysql_fetch_array($result, MYSQL_BOTH);
+			$my_s_arr = explode("team",$obj[wp_id]);
+			$my_s_code = $my_s_arr[1];
+		?>
+		<tr >
+			<td align="center"><?=$article_num?></td>
+			<td align="center"><?=$wp_sports_code[$my_s_code]?></td>
+			<td><?=$obj[comment]?></td>
+			<td align="center"><?=$wp_yorn_code[$obj[agree]]?></td>
+		</tr>
+		<?
+			$article_num--;
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td align="center">
+			<? require_once "../wp_object/page_move.html";?>
+			</td>
+		</tr>
+		</table>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='index.html?<?=$basic_get.$add_get?>&gam_uid=<?=$gam_uid?>'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>

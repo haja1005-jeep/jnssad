@@ -1,0 +1,204 @@
+<?
+// 레코드 쿼리 //
+$query = "SELECT uid,t_name, t_name_txt, read_level, write_level,reply_level,delete_level, file,secret,editor,wkind
+				FROM wp_board_ctl WHERE uid='$uid' LIMIT 1";
+$values = $Mysql->ArrayQuery($query);
+
+// 레코드 결과 //
+$my_uid = $values[0];
+$my_t_name = $values[1];
+$my_t_name_txt = $values[2];
+$my_read_level = $values[3];
+$my_write_level = $values[4];
+$my_reply_level = $values[5];
+$my_delete_level = $values[6];
+$my_file = $values[7];
+$my_secret = $values[8];
+$my_editor = $values[9];
+$my_wkind = $values[10];
+
+?>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="5">
+		<tr>
+			<td bgcolor="<?=$tr_color01?>" height="2" colspan="4"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>작 성 자</b></font></td>
+			<td width="38%"><b><?=$my_name?></b></td>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>등 록 일</b></font></td>
+			<td width="38%"><?=$my_signdate?></td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="4"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>제&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;목</b></font></td>
+			<td><font color="#330066"><b><?=$my_subject?></b></font></td>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>이 메 일</b></font></td>
+			<td width="38%"><?=$my_email?></td>
+		</tr>
+		
+		<tr>
+			<td bgcolor="<?=$tr_color03?>" height="1" colspan="4"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color04?>" height="4" colspan="4"></td>
+		</tr>
+		<tr>
+			<td colspan="4">
+				<table width="100%" border="0" cellspacing="0" cellpadding="5" class="table_fixed">
+				<?
+				// 파일 체크 //
+				if($my_real_file)
+				{
+					// 확장자 분리 //
+					$img_view = explode(".",$my_change_file);
+
+					// 파일 보기 //
+					if($img_view[1] == "jpg" || $img_view[1] == "gif" || $img_view[1] == "JPG" || $img_view[1] == "GIF")
+					{
+						// 파일 경로 //
+						$img_path = "$file_path$my_change_file";
+
+						// 파일 크기 //
+						$img_size = getimagesize($img_path);
+						if($img_size[0] > $document_width)
+						{
+							$img = "<img src='$img_path' width='$document_width'>";
+						}
+						else
+						{
+							$img = "<img src='$img_path' width='$img_size[0]' height='$img_size[1]'>";
+						}
+						echo ("<tr><td align='center'>$img</td></tr>");
+					}
+				}
+				?>
+				<tr>
+					<td><?=$v_comment?></td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		<?
+		// 관리자 출력 //
+		if(session_is_registered("Site_Admin") && session_is_registered("Admin_Id"))
+		{
+			if($Admin_Id == md5($Site_Admin."kodaewoong"))
+			{
+				echo ("
+					<tr>
+						<td colspan='4'>
+							<table width='100%' border='0' cellspacing='0' cellpadding='3' class='border_gray_d'>
+							<tr>
+								<td class='text_c'>
+									&#149; 회원 ID : <a href='../member/list.html?keyfield=id&key=$my_id'><font color='#000000'><u>$my_id</u></font></a>
+									&#149; 접속 IP : <a href='../statics/connect.html?keyfield=ip&key=$my_ip'>$my_ip</a> &#149; E-Mail : $my_email
+								</td>
+							</tr>
+							</table>
+						</td>
+					</tr>
+				");
+			}
+		}
+		?>
+		<tr>
+			<td bgcolor="<?=$tr_color01?>" height="2" colspan="4"></td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>&nbsp;</td>
+</tr>
+<tr>
+	<td align="center">
+		<table width="100%" border="0" cellspacing="0" cellpadding="5">
+		<tr>
+			<td colspan="2" height="2" bgcolor="<?=$tr_color01?>"></td>
+		</tr>
+		<tr>
+			<td align="center" width="12%" bgcolor="<?=$tr_color02?>"><font color="<?=$tr_color05?>"><b>다 음 글</b></font></td>
+			<td bgcolor="#ffffff">
+				<?
+				// 레코드 쿼리 //
+				$pre_que = "SELECT uid,subject FROM wp_board WHERE code='$code' AND thread='A' AND uid > $uid ORDER BY thread DESC, uid ASC LIMIT 1";
+				$pre_val = mysql_query($pre_que);
+				if(!$pre_val)
+				{
+					Error("QUERY_ERROR");
+					exit;
+				}
+				$pre_row = mysql_fetch_array($pre_val);
+
+				// 레코드 결과 //
+				$pre_uid = $pre_row[0];
+				$pre_subject = $pre_row[1];
+
+				// 문자열 원상복귀 //
+				$pre_subject = stripslashes($pre_subject);
+				echo ("<a href='$PHP_SELF?code=$code&mode=view&type=$type&uid=$pre_uid&page=$page&keyfield=$keyfield&key=$key'>$pre_subject</a>");
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" height="1" bgcolor="<?=$tr_color03?>"></td>
+		</tr>
+		<tr>
+			<td align="center" width="12%" bgcolor="<?=$tr_color02?>"><font color="<?=$tr_color05?>"><b>이 전 글</b></font></td>
+			<td>
+				<?
+				// 레코드 쿼리 //
+				$next_que = "SELECT uid,subject FROM wp_board WHERE code='$code' AND thread='A' AND uid < $uid ORDER BY thread ASC, uid DESC LIMIT 1";
+				$next_val = mysql_query($next_que);
+				if(!$next_val)
+				{
+					Error("QUERY_ERROR");
+					exit;
+				}
+				$next_row = mysql_fetch_array($next_val);
+
+				// 레코드 결과 //
+				$next_uid = $next_row[0];
+				$next_subject = $next_row[1];
+
+				// 문자열 원상복귀 //
+				$next_subject = stripslashes($next_subject);
+				echo ("<a href='$PHP_SELF?code=$code&mode=view&type=$type&uid=$next_uid&page=$page&keyfield=$keyfield&key=$key'>$next_subject</a>");
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" height="2" bgcolor="<?=$tr_color01?>"></td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="center" height="40">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td>
+				<a href="<?=$PHP_SELF?>?code=<?=$code?>&mode=modify&type=<?=$type?>&uid=<?=$uid?>&page=<?=$page?>&keyfield=<?=$keyfield?>&key=<?=$key?>&main_menu=<?=$main_menu?>&sub_menu=<?=$sub_menu?>"><img src="../button/modify.gif" border="0"></a>
+				<?	if($auth_class->isDelete($code,$member_auth)){?>
+				<a href="<?=$PHP_SELF?>?code=<?=$code?>&mode=delete&type=<?=$type?>&uid=<?=$uid?>&page=<?=$page?>&keyfield=<?=$keyfield?>&key=<?=$key?>&thread=<?=$my_thread?>&fid=<?=$my_fid?>&main_menu=<?=$main_menu?>&sub_menu=<?=$sub_menu?>"><img src="../button/delete.gif" border="0"></a>
+				<?}?>
+				<?
+				// 답변 //
+				if($auth_class->isReply($code,$member_auth)){
+					echo "<a href='$PHP_SELF?code=$code&mode=reply&type=$type&uid=$uid&page=$page&keyfield=$keyfield&key=$key&main_menu=$main_menu&sub_menu=$sub_menu'><img src='../button/reply.gif' border='0' alt='답변'></a>";
+				}
+				?>
+			</td>
+			<td width="25%" align="right">
+				<a href="<?=$PHP_SELF?>?code=<?=$code?>&mode=list&type=<?=$type?>&page=<?=$page?>&keyfield=<?=$keyfield?>&key=<?=$key?>&main_menu=<?=$main_menu?>&sub_menu=<?=$sub_menu?>"><img src="../button/list.gif" border="0"></a>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>

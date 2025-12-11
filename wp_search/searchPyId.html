@@ -1,0 +1,132 @@
+<?
+	require_once "../wp_object/head_pop.html";
+
+$wp_id = trim($_GET['wp_id']);
+
+$query = "
+		SELECT 
+			*, 
+			(SELECT name FROM wp_club_ctrl WHERE code = wpc.clu_code LIMIT 1) clu_name
+		FROM wp_player_ctrl wpc WHERE wp_id = '$wp_id'";	
+$result = mysql_query($query);
+
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+	
+// 레코드 결과 //
+for($i=0;$i<mysql_num_rows($result);$i++)
+{
+
+	$list = mysql_fetch_array($result);
+	$player = $list;	
+}
+
+?>
+<link rel="stylesheet" href="/wp_search/wp_search.css">
+
+<div id="pyWrap">
+	<div class="pyCaption">
+		<span> 선수 경기실적 </span>
+	</div>
+
+	<div class="pyMemberInfo">
+		<table>
+		<thead></thead>
+		<tbody>	
+			<tr>
+				<th>선수이름</th>
+				<td><?php echo $player['name'] ?></td>				
+			</tr>
+			<tr>
+				<th>생년월일</th>
+				<td><?php echo $player['birthday'] ?></td>				
+			</tr>			
+			<tr>
+				<th>장애유형</th>
+				<td><?=$wp_trouble_code[$player['tro_code']]?> [<?=$wp_trouble_level[$player['trouble_level']]?>], 휠체어 <?=$wp_wheel_code[$player['wheel']]?></td>				
+			</tr>			
+			<tr>
+				<th>성별</th>	
+				<td><?=$wp_sex_code[$player['sex']]?></td>	
+			</tr>		
+		</tbody>
+		</table>
+	</div>
+	
+	<?php
+	$query = "SELECT *, 
+				(SELECT name FROM wp_club_ctrl WHERE code = wpc.clu_code LIMIT 1) clu_name,
+				(SELECT name FROM wp_game_ctrl WHERE uid = wpc.gam_uid) AS gam_name 
+		FROM  `wp_game_record` wpc
+		WHERE  `id` LIKE  '$wp_id' order by uid DESC";
+	$result2 = mysql_query($query);
+	for($k=0;$k<mysql_num_rows($result2);$k++)
+	{
+		$list2 = mysql_fetch_array($result2);
+		$list_game[] = $list2;
+		
+		if($list2['rank_tot'] >= 1)
+		{
+			$player['rank_count'][$list2['rank_tot']]++;
+		}
+	}
+	?>
+	<div class="pyScore">
+		<table>
+		<thead></thead>
+		<tbody>	
+			<tr>
+				<th colspan="3">총 성적</th>
+			</tr>
+			<tr>
+				<td><strong>금메달 :</strong> <?php echo number_format($player['rank_count'][1]) ?>개</td>
+				<td><strong>은메달 :</strong> <?php echo number_format($player['rank_count'][2]) ?>개</td>
+				<td><strong>동메달 :</strong> <?php echo number_format($player['rank_count'][3]) ?>개</td>				
+			</tr>
+			</tr>		
+		</tbody>
+		</table>
+	</div>	
+	
+	<div class="pySearchList">
+		<table>
+		<thead></thead>
+		<tbody>
+		<tr>
+			<th>번호</th>
+			<th>시/군</th>
+			<th>경기회차</th>
+			<th>종목</th>
+			<th>세부사항</th>
+			<th>성적</th>				
+		</tr>
+		<?php
+		foreach($list_game as $key2 => $list2)
+		{
+			
+			$my_spo_sec_code = getSpo_sec_code($list2['spo_code'], $list2['spo_sec_code']);
+			
+			$my_spo_txt = "";
+			if($list2['spo_code']){
+				$my_spo_txt = $my_spo_sec_code." / ".$wp_sports_detail_code[$list2['spo_code_detail']]." / ".$wp_trouble_code[$list2['tro_code']]." / ".$list2['tro_level_code'];
+			}
+		?>
+		<tr>
+			<td><?php echo $key2+1 ?></td>
+			<td><?php echo $list2['clu_name'] ?></td>
+			<td><?php echo substr($list2['gam_name'], 0, 6) ?></td>
+			<td><?php echo $wp_sports_code[$list2['spo_code']] ?></td>
+			<td><?php echo $my_spo_txt ?></td>
+			<td><?php if($list2['rank_tot']==1) { ?>금메달<?php } elseif($list2['rank_tot']==2) { ?>은메달<?php } elseif($list2['rank_tot']==3) { ?>동메달<?php } ?></td>
+		</tr>
+		<?php
+		}
+		?>
+		</tbody>
+		</table>
+	</div>
+</div>
+

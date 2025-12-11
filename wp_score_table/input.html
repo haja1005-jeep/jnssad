@@ -1,0 +1,866 @@
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>
+				</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<!-- 기초데이터 생성 -->
+		<form name="sForm" action="newdata.php" method="post" onsubmit="return validate(this)">
+			<table class="tbSearch-c">
+			<tr>
+				<td>
+					<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+					<tr>
+						<th width="15%">이전대회</th>
+						<td align="left" colspan="3">
+							<?
+							$que = "SELECT * FROM wp_game_ctrl WHERE isuse = '1'  ORDER BY uid desc";
+							$res = mysql_query($que);
+							echo "<select name='org_game' hname='이전대회' required><option value=''>-이전대회선택-</option>";
+							while($obj = mysql_fetch_object($res))
+							{
+								echo "<option value='$obj->uid'>&nbsp;&nbsp;┗ $obj->name</option>";
+							}
+							echo "</select>";
+							?>
+						</td>
+					</tr>
+					<tr>
+						<th width="15%">대상대회</th>
+						<td>
+							<?
+							$que = "SELECT * FROM wp_game_ctrl WHERE isuse = '0' ORDER BY uid desc";
+							$res = mysql_query($que);
+							echo "<select name='tar_game' hname='대상대회' required><option value=''>-대상대회선택-</option>";
+							while($obj = mysql_fetch_object($res))
+							{
+								echo "<option value='$obj->uid'>&nbsp;&nbsp;┗ $obj->name</option>";
+							}
+							echo "</select>";
+							?>
+							<input type="submit" name="sch" value="배점표생성하기" tabindex="8" class="btnBox3" onclick="this.form.submit()">
+						</td>
+					</tr>
+					</table>
+				</td>
+			</tr>
+			</table>
+		</form>
+		<!-- 기초데이터 생성 -->
+	</td>
+</tr>
+<tr>
+	<td style="padding-top:20px;">
+		<form name="sForm" action="input.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+		<input type="hidden" name="s_gam_uid" value="<?=$s_gam_uid?>">
+			<table width="100%" cellpadding="0" cellspacing="0" border="0">
+			<tr>
+				<td><span style="font-weight:bold;font-size:15px"><?=$wp_games[$s_gam_uid]?> 종목별 기준점수 배점표 입력</span></td>
+			</tr>
+			<tr>
+				<td>
+					<?
+	
+						$que = "SELECT * FROM wp_score_table WHERE gam_uid = '$s_gam_uid' ";
+						$res = mysql_query($que);
+						$score_table = array();
+						while($obj = mysql_fetch_object($res))
+						{
+							$keys = $obj->spo_code."_".$obj->player_cnt;
+							$_tmp = array();
+							$_tmp[spo_code] = $obj->spo_code;
+							$_tmp[player_cnt] = $obj->player_cnt;
+							$_tmp[note] = $obj->note;
+							$_tmp[1] = $obj->score_1;
+							$_tmp[2] = $obj->score_2;
+							$_tmp[3] = $obj->score_3;
+							$_tmp[4] = $obj->score_4;
+							$_tmp[5] = $obj->score_5;
+							$_tmp[6] = $obj->score_6;
+							$_tmp[7] = $obj->score_7;
+							$_tmp[8] = $obj->score_8;
+							$score_table[$keys] = $_tmp;
+
+				
+						}
+					?>
+					<table width="100%" cellpadding="2" cellspacing="0" border="1">
+					<tr>
+						<th width="30%" colspan="3" rowspan="2">정식종목</th>
+						<th colspan="8">등위</th>
+						<th width="10%" rowspan="2">비고</th>
+					</tr>
+					<tr>
+						<th>1</th>
+						<th>2</th>
+						<th>3</th>
+						<th>4</th>
+						<th>5</th>
+						<th>6</th>
+						<th>7</th>
+						<th>8</th>
+					</tr>
+					<tr>
+						<td align="center">1</td>
+						<td align="center">골볼<input type="hidden" name="GOALBALL[spo_code]" value="GOALBALL"></td>
+						<td align="center">단체전
+							<input type="hidden" name="GOALBALL[game_kind]" value="단체전">
+							<input type="hidden" name="GOALBALL[player_cnt]" value="3">
+						</td>
+						<td align="center"><input type="text" name="GOALBALL[1]" size="3" maxlength="5" value="<?=$score_table[GOALBALL_3][1]?>"></td>
+						<td align="center"><input type="text" name="GOALBALL[2]" size="3" maxlength="5" value="<?=$score_table[GOALBALL_3][2]?>"></td>
+						<td align="center"><input type="text" name="GOALBALL[3]" size="3" maxlength="5" value="<?=$score_table[GOALBALL_3][3]?>"></td>
+						<td align="center"><input type="text" name="GOALBALL[4]" size="3" maxlength="5" value="<?=$score_table[GOALBALL_3][4]?>"></td>
+						<td align="center"><input type="text" name="GOALBALL[5]" size="3" maxlength="5" value="<?=$score_table[GOALBALL_3][5]?>"></td>
+						<td align="center"><input type="text" name="GOALBALL[6]" size="3" maxlength="5" value="<?=$score_table[GOALBALL_3][6]?>"></td>
+						<td align="center"><input type="text" name="GOALBALL[7]" size="3" maxlength="5" value="<?=$score_table[GOALBALL_3][7]?>"></td>
+						<td align="center"><input type="text" name="GOALBALL[8]" size="3" maxlength="5" value="<?=$score_table[GOALBALL_3][8]?>"></td>
+						<td align="center"><input type="text" name="GOALBALL[note]" size="10" maxlength="10" value="<?=$score_table[GOALBALL_3][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center" rowspan="3">2</td>
+						<td align="center" rowspan="3">당구<input type="hidden" name="BILLIARDS[spo_code]" value="BILLIARDS"></td>
+						<td align="center">개인전
+							<input type="hidden" name="BILLIARDS[game_kind]" value="개인전">
+							<input type="hidden" name="BILLIARDS[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="BILLIARDS[1]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_1][1]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS[2]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_1][2]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS[3]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_1][3]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS[4]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_1][4]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS[5]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_1][5]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS[6]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_1][6]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS[7]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_1][7]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS[8]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_1][8]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS[note]" size="10" maxlength="10" value="<?=$score_table[BILLIARDS_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">복식
+							<input type="hidden" name="BILLIARDS_2[spo_code]" value="BILLIARDS">
+							<input type="hidden" name="BILLIARDS_2[game_kind]" value="복식">
+							<input type="hidden" name="BILLIARDS_2[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="BILLIARDS_2[1]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_2][1]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_2[2]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_2][2]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_2[3]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_2][3]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_2[4]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_2][4]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_2[5]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_2][5]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_2[6]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_2][6]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_2[7]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_2][7]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_2[8]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_2][8]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_2[note]" size="10" maxlength="10" value="<?=$score_table[BILLIARDS_2][note]?>"></td>
+					</tr>					
+					<tr>
+						<td align="center">1단식2복식
+							<input type="hidden" name="BILLIARDS_5[spo_code]" value="BILLIARDS">
+							<input type="hidden" name="BILLIARDS_5[game_kind]" value="1단식2복식">
+							<input type="hidden" name="BILLIARDS_5[player_cnt]" value="5">
+						</td>
+						<td align="center"><input type="text" name="BILLIARDS_5[1]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_5][1]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_5[2]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_5][2]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_5[3]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_5][3]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_5[4]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_5][4]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_5[5]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_5][5]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_5[6]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_5][6]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_5[7]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_5][7]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_5[8]" size="3" maxlength="5" value="<?=$score_table[BILLIARDS_5][8]?>"></td>
+						<td align="center"><input type="text" name="BILLIARDS_5[note]" size="10" maxlength="10" value="<?=$score_table[BILLIARDS_5][note]?>"></td>
+					</tr>
+
+					<tr>
+						<td align="center" rowspan="4">3</td>
+						<td align="center" rowspan="4">론볼<input type="hidden" name="LAWNBOWL[spo_code]" value="LAWNBOWL"></td>
+						<td align="center">개인전
+							<input type="hidden" name="LAWNBOWL[game_kind]" value="개인전">
+							<input type="hidden" name="LAWNBOWL[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="LAWNBOWL[1]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_1][1]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL[2]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_1][2]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL[3]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_1][3]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL[4]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_1][4]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL[5]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_1][5]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL[6]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_1][6]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL[7]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_1][7]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL[8]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_1][8]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL[note]" size="10" maxlength="10" value="<?=$score_table[LAWNBOWL_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">복식
+							<input type="hidden" name="LAWNBOWL_2[spo_code]" value="LAWNBOWL">
+							<input type="hidden" name="LAWNBOWL_2[game_kind]" value="복식">
+							<input type="hidden" name="LAWNBOWL_2[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="LAWNBOWL_2[1]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_2][1]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_2[2]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_2][2]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_2[3]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_2][3]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_2[4]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_2][4]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_2[5]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_2][5]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_2[6]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_2][6]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_2[7]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_2][7]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_2[8]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_2][8]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_2[note]" size="10" maxlength="10" value="<?=$score_table[LAWNBOWL_2][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">3인조
+							<input type="hidden" name="LAWNBOWL_3[spo_code]" value="LAWNBOWL">
+							<input type="hidden" name="LAWNBOWL_3[game_kind]" value="3인조">
+							<input type="hidden" name="LAWNBOWL_3[player_cnt]" value="3">
+						</td>
+						<td align="center"><input type="text" name="LAWNBOWL_3[1]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_3][1]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_3[2]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_3][2]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_3[3]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_3][3]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_3[4]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_3][4]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_3[5]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_3][5]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_3[6]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_3][6]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_3[7]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_3][7]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_3[8]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_3][8]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_3[note]" size="10" maxlength="10" value="<?=$score_table[LAWNBOWL_3][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">4인조
+							<input type="hidden" name="LAWNBOWL_4[spo_code]" value="LAWNBOWL">
+							<input type="hidden" name="LAWNBOWL_4[game_kind]" value="4인조">
+							<input type="hidden" name="LAWNBOWL_4[player_cnt]" value="4">
+						</td>
+						<td align="center"><input type="text" name="LAWNBOWL_4[1]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_4][1]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_4[2]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_4][2]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_4[3]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_4][3]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_4[4]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_4][4]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_4[5]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_4][5]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_4[6]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_4][6]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_4[7]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_4][7]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_4[8]" size="3" maxlength="5" value="<?=$score_table[LAWNBOWL_4][8]?>"></td>
+						<td align="center"><input type="text" name="LAWNBOWL_4[note]" size="10" maxlength="10" value="<?=$score_table[LAWNBOWL_4][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">4</td>
+						<td align="center">좌식배구<input type="hidden" name="VOLLEYBALL[spo_code]" value="VOLLEYBALL"></td>
+						<td align="center">단체전
+							<input type="hidden" name="VOLLEYBALL[game_kind]" value="단체전">
+							<input type="hidden" name="VOLLEYBALL[player_cnt]" value="6">
+						</td>
+						<td align="center"><input type="text" name="VOLLEYBALL[1]" size="3" maxlength="5" value="<?=$score_table[VOLLEYBALL_6][1]?>"></td>
+						<td align="center"><input type="text" name="VOLLEYBALL[2]" size="3" maxlength="5" value="<?=$score_table[VOLLEYBALL_6][2]?>"></td>
+						<td align="center"><input type="text" name="VOLLEYBALL[3]" size="3" maxlength="5" value="<?=$score_table[VOLLEYBALL_6][3]?>"></td>
+						<td align="center"><input type="text" name="VOLLEYBALL[4]" size="3" maxlength="5" value="<?=$score_table[VOLLEYBALL_6][4]?>"></td>
+						<td align="center"><input type="text" name="VOLLEYBALL[5]" size="3" maxlength="5" value="<?=$score_table[VOLLEYBALL_6][5]?>"></td>
+						<td align="center"><input type="text" name="VOLLEYBALL[6]" size="3" maxlength="5" value="<?=$score_table[VOLLEYBALL_6][6]?>"></td>
+						<td align="center"><input type="text" name="VOLLEYBALL[7]" size="3" maxlength="5" value="<?=$score_table[VOLLEYBALL_6][7]?>"></td>
+						<td align="center"><input type="text" name="VOLLEYBALL[8]" size="3" maxlength="5" value="<?=$score_table[VOLLEYBALL_6][8]?>"></td>
+						<td align="center"><input type="text" name="VOLLEYBALL[note]" size="10" maxlength="10" value="<?=$score_table[VOLLEYBALL_6][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center" rowspan="2">5</td>
+						<td align="center" rowspan="2">배드민턴<input type="hidden" name="BADMINTON[spo_code]" value="BADMINTON"></td>
+						<td align="center">단식
+							<input type="hidden" name="BADMINTON[game_kind]" value="단식">
+							<input type="hidden" name="BADMINTON[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="BADMINTON[1]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_1][1]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON[2]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_1][2]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON[3]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_1][3]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON[4]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_1][4]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON[5]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_1][5]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON[6]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_1][6]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON[7]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_1][7]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON[8]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_1][8]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON[note]" size="10" maxlength="10" value="<?=$score_table[BADMINTON_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">복식
+							<input type="hidden" name="BADMINTON_2[spo_code]" value="BADMINTON">
+							<input type="hidden" name="BADMINTON_2[game_kind]" value="복식">
+							<input type="hidden" name="BADMINTON_2[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="BADMINTON_2[1]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_2][1]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON_2[2]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_2][2]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON_2[3]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_2][3]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON_2[4]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_2][4]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON_2[5]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_2][5]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON_2[6]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_2][6]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON_2[7]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_2][7]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON_2[8]" size="3" maxlength="5" value="<?=$score_table[BADMINTON_2][8]?>"></td>
+						<td align="center"><input type="text" name="BADMINTON_2[note]" size="10" maxlength="10" value="<?=$score_table[BADMINTON_2][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center" rowspan="3">6</td>
+						<td align="center" rowspan="3">보치아<input type="hidden" name="BOCCIA[spo_code]" value="BOCCIA"></td>
+						<td align="center">개인전
+							<input type="hidden" name="BOCCIA[game_kind]" value="개인전">
+							<input type="hidden" name="BOCCIA[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="BOCCIA[1]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_1][1]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA[2]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_1][2]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA[3]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_1][3]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA[4]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_1][4]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA[5]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_1][5]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA[6]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_1][6]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA[7]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_1][7]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA[8]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_1][8]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA[note]" size="10" maxlength="10" value="<?=$score_table[BOCCIA_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">2인페어
+							<input type="hidden" name="BOCCIA_2[spo_code]" value="BOCCIA">
+							<input type="hidden" name="BOCCIA_2[game_kind]" value="2인페어">
+							<input type="hidden" name="BOCCIA_2[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="BOCCIA_2[1]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_2][1]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_2[2]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_2][2]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_2[3]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_2][3]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_2[4]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_2][4]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_2[5]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_2][5]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_2[6]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_2][6]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_2[7]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_2][7]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_2[8]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_2][8]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_2[note]" size="10" maxlength="10" value="<?=$score_table[BOCCIA_2][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">단체전
+							<input type="hidden" name="BOCCIA_3[spo_code]" value="BOCCIA">
+							<input type="hidden" name="BOCCIA_3[game_kind]" value="단체전">
+							<input type="hidden" name="BOCCIA_3[player_cnt]" value="3">
+						</td>
+						<td align="center"><input type="text" name="BOCCIA_3[1]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_3][1]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_3[2]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_3][2]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_3[3]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_3][3]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_3[4]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_3][4]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_3[5]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_3][5]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_3[6]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_3][6]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_3[7]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_3][7]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_3[8]" size="3" maxlength="5" value="<?=$score_table[BOCCIA_3][8]?>"></td>
+						<td align="center"><input type="text" name="BOCCIA_3[note]" size="10" maxlength="10" value="<?=$score_table[BOCCIA_3][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center" rowspan="2">7</td>
+						<td align="center" rowspan="2">수영<input type="hidden" name="SWIMMING[spo_code]" value="SWIMMING"></td>
+						<td align="center">개인전
+							<input type="hidden" name="SWIMMING[game_kind]" value="개인전">
+							<input type="hidden" name="SWIMMING[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="SWIMMING[1]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_1][1]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING[2]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_1][2]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING[3]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_1][3]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING[4]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_1][4]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING[5]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_1][5]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING[6]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_1][6]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING[7]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_1][7]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING[8]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_1][8]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING[note]" size="10" maxlength="10" value="<?=$score_table[SWIMMING_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">릴레이
+							<input type="hidden" name="SWIMMING_2[spo_code]" value="SWIMMING">
+							<input type="hidden" name="SWIMMING_2[game_kind]" value="릴레이">
+							<input type="hidden" name="SWIMMING_2[player_cnt]" value="4">
+						</td>
+						<td align="center"><input type="text" name="SWIMMING_2[1]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_4][1]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING_2[2]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_4][2]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING_2[3]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_4][3]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING_2[4]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_4][4]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING_2[5]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_4][5]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING_2[6]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_4][6]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING_2[7]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_4][7]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING_2[8]" size="3" maxlength="5" value="<?=$score_table[SWIMMING_4][8]?>"></td>
+						<td align="center"><input type="text" name="SWIMMING_2[note]" size="10" maxlength="10" value="<?=$score_table[SWIMMING_4][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center" rowspan="3">8</td>
+						<td align="center" rowspan="3">볼링<input type="hidden" name="BOWLING[spo_code]" value="BOWLING"></td>
+						<td align="center">개인전
+							<input type="hidden" name="BOWLING[game_kind]" value="개인전">
+							<input type="hidden" name="BOWLING[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="BOWLING[1]" size="3" maxlength="5" value="<?=$score_table[BOWLING_1][1]?>"></td>
+						<td align="center"><input type="text" name="BOWLING[2]" size="3" maxlength="5" value="<?=$score_table[BOWLING_1][2]?>"></td>
+						<td align="center"><input type="text" name="BOWLING[3]" size="3" maxlength="5" value="<?=$score_table[BOWLING_1][3]?>"></td>
+						<td align="center"><input type="text" name="BOWLING[4]" size="3" maxlength="5" value="<?=$score_table[BOWLING_1][4]?>"></td>
+						<td align="center"><input type="text" name="BOWLING[5]" size="3" maxlength="5" value="<?=$score_table[BOWLING_1][5]?>"></td>
+						<td align="center"><input type="text" name="BOWLING[6]" size="3" maxlength="5" value="<?=$score_table[BOWLING_1][6]?>"></td>
+						<td align="center"><input type="text" name="BOWLING[7]" size="3" maxlength="5" value="<?=$score_table[BOWLING_1][7]?>"></td>
+						<td align="center"><input type="text" name="BOWLING[8]" size="3" maxlength="5" value="<?=$score_table[BOWLING_1][8]?>"></td>
+						<td align="center"><input type="text" name="BOWLING[note]" size="10" maxlength="10" value="<?=$score_table[BOWLING_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">2인조
+							<input type="hidden" name="BOWLING_2[spo_code]" value="BOWLING">
+							<input type="hidden" name="BOWLING_2[game_kind]" value="2인조">
+							<input type="hidden" name="BOWLING_2[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="BOWLING_2[1]" size="3" maxlength="5" value="<?=$score_table[BOWLING_2][1]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_2[2]" size="3" maxlength="5" value="<?=$score_table[BOWLING_2][2]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_2[3]" size="3" maxlength="5" value="<?=$score_table[BOWLING_2][3]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_2[4]" size="3" maxlength="5" value="<?=$score_table[BOWLING_2][4]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_2[5]" size="3" maxlength="5" value="<?=$score_table[BOWLING_2][5]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_2[6]" size="3" maxlength="5" value="<?=$score_table[BOWLING_2][6]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_2[7]" size="3" maxlength="5" value="<?=$score_table[BOWLING_2][7]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_2[8]" size="3" maxlength="5" value="<?=$score_table[BOWLING_2][8]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_2[note]" size="10" maxlength="10" value="<?=$score_table[BOWLING_2][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">4인조
+							<input type="hidden" name="BOWLING_4[spo_code]" value="BOWLING">
+							<input type="hidden" name="BOWLING_4[game_kind]" value="4인조">
+							<input type="hidden" name="BOWLING_4[player_cnt]" value="4">
+						</td>
+						<td align="center"><input type="text" name="BOWLING_4[1]" size="3" maxlength="5" value="<?=$score_table[BOWLING_4][1]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_4[2]" size="3" maxlength="5" value="<?=$score_table[BOWLING_4][2]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_4[3]" size="3" maxlength="5" value="<?=$score_table[BOWLING_4][3]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_4[4]" size="3" maxlength="5" value="<?=$score_table[BOWLING_4][4]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_4[5]" size="3" maxlength="5" value="<?=$score_table[BOWLING_4][5]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_4[6]" size="3" maxlength="5" value="<?=$score_table[BOWLING_4][6]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_4[7]" size="3" maxlength="5" value="<?=$score_table[BOWLING_4][7]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_4[8]" size="3" maxlength="5" value="<?=$score_table[BOWLING_4][8]?>"></td>
+						<td align="center"><input type="text" name="BOWLING_4[note]" size="10" maxlength="10" value="<?=$score_table[BOWLING_4][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">9</td>
+						<td align="center">역도<input type="hidden" name="POWERLIFTING[spo_code]" value="POWERLIFTING"></td>
+						<td align="center">개인전
+							<input type="hidden" name="POWERLIFTING[game_kind]" value="개인전">
+							<input type="hidden" name="POWERLIFTING[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="POWERLIFTING[1]" size="3" maxlength="5" value="<?=$score_table[POWERLIFTING_1][1]?>"></td>
+						<td align="center"><input type="text" name="POWERLIFTING[2]" size="3" maxlength="5" value="<?=$score_table[POWERLIFTING_1][2]?>"></td>
+						<td align="center"><input type="text" name="POWERLIFTING[3]" size="3" maxlength="5" value="<?=$score_table[POWERLIFTING_1][3]?>"></td>
+						<td align="center"><input type="text" name="POWERLIFTING[4]" size="3" maxlength="5" value="<?=$score_table[POWERLIFTING_1][4]?>"></td>
+						<td align="center"><input type="text" name="POWERLIFTING[5]" size="3" maxlength="5" value="<?=$score_table[POWERLIFTING_1][5]?>"></td>
+						<td align="center"><input type="text" name="POWERLIFTING[6]" size="3" maxlength="5" value="<?=$score_table[POWERLIFTING_1][6]?>"></td>
+						<td align="center"><input type="text" name="POWERLIFTING[7]" size="3" maxlength="5" value="<?=$score_table[POWERLIFTING_1][7]?>"></td>
+						<td align="center"><input type="text" name="POWERLIFTING[8]" size="3" maxlength="5" value="<?=$score_table[POWERLIFTING_1][8]?>"></td>
+						<td align="center"><input type="text" name="POWERLIFTING[note]" size="10" maxlength="10" value="<?=$score_table[POWERLIFTING_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center" rowspan="2">10</td>
+						<td align="center" rowspan="2">육상<input type="hidden" name="ATHIETICS[spo_code]" value="ATHIETICS"></td>
+						<td align="center">트랙/필드
+							<input type="hidden" name="ATHIETICS[game_kind]" value="트랙/필드">
+							<input type="hidden" name="ATHIETICS[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="ATHIETICS[1]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_1][1]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS[2]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_1][2]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS[3]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_1][3]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS[4]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_1][4]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS[5]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_1][5]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS[6]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_1][6]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS[7]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_1][7]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS[8]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_1][8]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS[note]" size="10" maxlength="10" value="<?=$score_table[ATHIETICS_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">릴레이
+							<input type="hidden" name="ATHIETICS_2[spo_code]" value="ATHIETICS">
+							<input type="hidden" name="ATHIETICS_2[game_kind]" value="릴레이">
+							<input type="hidden" name="ATHIETICS_2[player_cnt]" value="4">
+						</td>
+						<td align="center"><input type="text" name="ATHIETICS_2[1]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_4][1]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS_2[2]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_4][2]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS_2[3]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_4][3]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS_2[4]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_4][4]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS_2[5]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_4][5]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS_2[6]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_4][6]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS_2[7]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_4][7]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS_2[8]" size="3" maxlength="5" value="<?=$score_table[ATHIETICS_4][8]?>"></td>
+						<td align="center"><input type="text" name="ATHIETICS_2[note]" size="10" maxlength="10" value="<?=$score_table[ATHIETICS_4][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center" rowspan="3">11</td>
+						<td align="center" rowspan="3">실내조정<input type="hidden" name="ROWING[spo_code]" value="ROWING"></td>
+						<td align="center">개인전
+							<input type="hidden" name="ROWING[game_kind]" value="개인전">
+							<input type="hidden" name="ROWING[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="ROWING[1]" size="3" maxlength="5" value="<?=$score_table[ROWING_1][1]?>"></td>
+						<td align="center"><input type="text" name="ROWING[2]" size="3" maxlength="5" value="<?=$score_table[ROWING_1][2]?>"></td>
+						<td align="center"><input type="text" name="ROWING[3]" size="3" maxlength="5" value="<?=$score_table[ROWING_1][3]?>"></td>
+						<td align="center"><input type="text" name="ROWING[4]" size="3" maxlength="5" value="<?=$score_table[ROWING_1][4]?>"></td>
+						<td align="center"><input type="text" name="ROWING[5]" size="3" maxlength="5" value="<?=$score_table[ROWING_1][5]?>"></td>
+						<td align="center"><input type="text" name="ROWING[6]" size="3" maxlength="5" value="<?=$score_table[ROWING_1][6]?>"></td>
+						<td align="center"><input type="text" name="ROWING[7]" size="3" maxlength="5" value="<?=$score_table[ROWING_1][7]?>"></td>
+						<td align="center"><input type="text" name="ROWING[8]" size="3" maxlength="5" value="<?=$score_table[ROWING_1][8]?>"></td>
+						<td align="center"><input type="text" name="ROWING[note]" size="10" maxlength="10" value="<?=$score_table[ROWING_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">2인조
+							<input type="hidden" name="ROWING_2[spo_code]" value="ROWING">
+							<input type="hidden" name="ROWING_2[game_kind]" value="2인조">
+							<input type="hidden" name="ROWING_2[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="ROWING_2[1]" size="3" maxlength="5" value="<?=$score_table[ROWING_2][1]?>"></td>
+						<td align="center"><input type="text" name="ROWING_2[2]" size="3" maxlength="5" value="<?=$score_table[ROWING_2][2]?>"></td>
+						<td align="center"><input type="text" name="ROWING_2[3]" size="3" maxlength="5" value="<?=$score_table[ROWING_2][3]?>"></td>
+						<td align="center"><input type="text" name="ROWING_2[4]" size="3" maxlength="5" value="<?=$score_table[ROWING_2][4]?>"></td>
+						<td align="center"><input type="text" name="ROWING_2[5]" size="3" maxlength="5" value="<?=$score_table[ROWING_2][5]?>"></td>
+						<td align="center"><input type="text" name="ROWING_2[6]" size="3" maxlength="5" value="<?=$score_table[ROWING_2][6]?>"></td>
+						<td align="center"><input type="text" name="ROWING_2[7]" size="3" maxlength="5" value="<?=$score_table[ROWING_2][7]?>"></td>
+						<td align="center"><input type="text" name="ROWING_2[8]" size="3" maxlength="5" value="<?=$score_table[ROWING_2][8]?>"></td>
+						<td align="center"><input type="text" name="ROWING_2[note]" size="10" maxlength="10" value="<?=$score_table[ROWING_2][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">4인조
+							<input type="hidden" name="ROWING_3[spo_code]" value="ROWING">
+							<input type="hidden" name="ROWING_3[game_kind]" value="4인조">
+							<input type="hidden" name="ROWING_3[player_cnt]" value="4">
+						</td>
+						<td align="center"><input type="text" name="ROWING_3[1]" size="3" maxlength="5" value="<?=$score_table[ROWING_4][1]?>"></td>
+						<td align="center"><input type="text" name="ROWING_3[2]" size="3" maxlength="5" value="<?=$score_table[ROWING_4][2]?>"></td>
+						<td align="center"><input type="text" name="ROWING_3[3]" size="3" maxlength="5" value="<?=$score_table[ROWING_4][3]?>"></td>
+						<td align="center"><input type="text" name="ROWING_3[4]" size="3" maxlength="5" value="<?=$score_table[ROWING_4][4]?>"></td>
+						<td align="center"><input type="text" name="ROWING_3[5]" size="3" maxlength="5" value="<?=$score_table[ROWING_4][5]?>"></td>
+						<td align="center"><input type="text" name="ROWING_3[6]" size="3" maxlength="5" value="<?=$score_table[ROWING_4][6]?>"></td>
+						<td align="center"><input type="text" name="ROWING_3[7]" size="3" maxlength="5" value="<?=$score_table[ROWING_4][7]?>"></td>
+						<td align="center"><input type="text" name="ROWING_3[8]" size="3" maxlength="5" value="<?=$score_table[ROWING_4][8]?>"></td>
+						<td align="center"><input type="text" name="ROWING_3[note]" size="10" maxlength="10" value="<?=$score_table[ROWING_4][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center" rowspan="3">12</td>
+						<td align="center" rowspan="3">축구<input type="hidden" name="FOOTSAL[spo_code]" value="FOOTSAL"></td>
+						<td align="center">5인제
+							<input type="hidden" name="FOOTSAL[game_kind]" value="5인제">
+							<input type="hidden" name="FOOTSAL[player_cnt]" value="5">
+						</td>
+						<td align="center"><input type="text" name="FOOTSAL[1]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_5][1]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL[2]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_5][2]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL[3]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_5][3]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL[4]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_5][4]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL[5]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_5][5]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL[6]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_5][6]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL[7]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_5][7]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL[8]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_5][8]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL[note]" size="10" maxlength="10" value="<?=$score_table[FOOTSAL_5][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">7인제
+							<input type="hidden" name="FOOTSAL_2[spo_code]" value="FOOTSAL">
+							<input type="hidden" name="FOOTSAL_2[game_kind]" value="7인제">
+							<input type="hidden" name="FOOTSAL_2[player_cnt]" value="7">
+						</td>
+						<td align="center"><input type="text" name="FOOTSAL_2[1]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_7][1]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_2[2]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_7][2]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_2[3]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_7][3]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_2[4]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_7][4]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_2[5]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_7][5]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_2[6]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_7][6]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_2[7]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_7][7]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_2[8]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_7][8]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_2[note]" size="10" maxlength="10" value="<?=$score_table[FOOTSAL_7][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">11인제
+							<input type="hidden" name="FOOTSAL_3[spo_code]" value="FOOTSAL">
+							<input type="hidden" name="FOOTSAL_3[game_kind]" value="11인제">
+							<input type="hidden" name="FOOTSAL_3[player_cnt]" value="11">
+						</td>
+						<td align="center"><input type="text" name="FOOTSAL_3[1]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_11][1]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_3[2]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_11][2]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_3[3]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_11][3]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_3[4]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_11][4]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_3[5]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_11][5]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_3[6]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_11][6]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_3[7]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_11][7]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_3[8]" size="3" maxlength="5" value="<?=$score_table[FOOTSAL_11][8]?>"></td>
+						<td align="center"><input type="text" name="FOOTSAL_3[note]" size="10" maxlength="10" value="<?=$score_table[FOOTSAL_11][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center" rowspan="4">13</td>
+						<td align="center" rowspan="4">탁구<input type="hidden" name="TABLETENNIS[spo_code]" value="TABLETENNIS"></td>
+						<td align="center">단식
+							<input type="hidden" name="TABLETENNIS[game_kind]" value="단식">
+							<input type="hidden" name="TABLETENNIS[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="TABLETENNIS[1]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_1][1]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS[2]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_1][2]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS[3]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_1][3]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS[4]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_1][4]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS[5]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_1][5]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS[6]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_1][6]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS[7]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_1][7]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS[8]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_1][8]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS[note]" size="10" maxlength="10" value="<?=$score_table[TABLETENNIS_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">복식
+							<input type="hidden" name="TABLETENNIS_2[spo_code]" value="TABLETENNIS">
+							<input type="hidden" name="TABLETENNIS_2[game_kind]" value="복식">
+							<input type="hidden" name="TABLETENNIS_2[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="TABLETENNIS_2[1]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_2][1]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_2[2]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_2][2]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_2[3]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_2][3]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_2[4]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_2][4]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_2[5]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_2][5]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_2[6]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_2][6]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_2[7]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_2][7]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_2[8]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_2][8]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_2[note]" size="10" maxlength="10" value="<?=$score_table[TABLETENNIS_2][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">3인단체전
+							<input type="hidden" name="TABLETENNIS_3[spo_code]" value="TABLETENNIS">
+							<input type="hidden" name="TABLETENNIS_3[game_kind]" value="3인단체전">
+							<input type="hidden" name="TABLETENNIS_3[player_cnt]" value="3">
+						</td>
+						<td align="center"><input type="text" name="TABLETENNIS_3[1]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_3][1]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_3[2]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_3][2]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_3[3]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_3][3]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_3[4]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_3][4]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_3[5]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_3][5]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_3[6]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_3][6]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_3[7]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_3][7]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_3[8]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_3][8]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_3[note]" size="10" maxlength="10" value="<?=$score_table[TABLETENNIS_3][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">6인단체전
+							<input type="hidden" name="TABLETENNIS_4[spo_code]" value="TABLETENNIS">
+							<input type="hidden" name="TABLETENNIS_4[game_kind]" value="6인단체전">
+							<input type="hidden" name="TABLETENNIS_4[player_cnt]" value="6">
+						</td>
+						<td align="center"><input type="text" name="TABLETENNIS_4[1]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_6][1]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_4[2]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_6][2]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_4[3]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_6][3]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_4[4]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_6][4]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_4[5]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_6][5]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_4[6]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_6][6]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_4[7]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_6][7]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_4[8]" size="3" maxlength="5" value="<?=$score_table[TABLETENNIS_6][8]?>"></td>
+						<td align="center"><input type="text" name="TABLETENNIS_4[note]" size="10" maxlength="10" value="<?=$score_table[TABLETENNIS_6][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">14</td>
+						<td align="center">게이트볼<input type="hidden" name="GATEBALL[spo_code]" value="GATEBALL"></td>
+						<td align="center">5인제
+							<input type="hidden" name="GATEBALL[game_kind]" value="5인제">
+							<input type="hidden" name="GATEBALL[player_cnt]" value="5">
+						</td>
+						<td align="center"><input type="text" name="GATEBALL[1]" size="3" maxlength="5" value="<?=$score_table[GATEBALL_5][1]?>"></td>
+						<td align="center"><input type="text" name="GATEBALL[2]" size="3" maxlength="5" value="<?=$score_table[GATEBALL_5][2]?>"></td>
+						<td align="center"><input type="text" name="GATEBALL[3]" size="3" maxlength="5" value="<?=$score_table[GATEBALL_5][3]?>"></td>
+						<td align="center"><input type="text" name="GATEBALL[4]" size="3" maxlength="5" value="<?=$score_table[GATEBALL_5][4]?>"></td>
+						<td align="center"><input type="text" name="GATEBALL[5]" size="3" maxlength="5" value="<?=$score_table[GATEBALL_5][5]?>"></td>
+						<td align="center"><input type="text" name="GATEBALL[6]" size="3" maxlength="5" value="<?=$score_table[GATEBALL_5][6]?>"></td>
+						<td align="center"><input type="text" name="GATEBALL[7]" size="3" maxlength="5" value="<?=$score_table[GATEBALL_5][7]?>"></td>
+						<td align="center"><input type="text" name="GATEBALL[8]" size="3" maxlength="5" value="<?=$score_table[GATEBALL_5][8]?>"></td>
+						<td align="center"><input type="text" name="GATEBALL[note]" size="10" maxlength="10" value="<?=$score_table[GATEBALL_5][note]?>"></td>
+					</tr>
+
+	<tr>
+						<td align="center" rowspan="3">15</td>
+						<td align="center" rowspan="3">골프<input type="hidden" name="GOLF[spo_code]" value="GOLF"></td>
+						<td align="center">개인전
+							<input type="hidden" name="GOLF[game_kind]" value="개인전">
+							<input type="hidden" name="GOLF[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="GOLF[1]" size="3" maxlength="5" value="<?=$score_table[GOLF_1][1]?>"></td>
+						<td align="center"><input type="text" name="GOLF[2]" size="3" maxlength="5" value="<?=$score_table[GOLF_1][2]?>"></td>
+						<td align="center"><input type="text" name="GOLF[3]" size="3" maxlength="5" value="<?=$score_table[GOLF_1][3]?>"></td>
+						<td align="center"><input type="text" name="GOLF[4]" size="3" maxlength="5" value="<?=$score_table[GOLF_1][4]?>"></td>
+						<td align="center"><input type="text" name="GOLF[5]" size="3" maxlength="5" value="<?=$score_table[GOLF_1][5]?>"></td>
+						<td align="center"><input type="text" name="GOLF[6]" size="3" maxlength="5" value="<?=$score_table[GOLF_1][6]?>"></td>
+						<td align="center"><input type="text" name="GOLF[7]" size="3" maxlength="5" value="<?=$score_table[GOLF_1][7]?>"></td>
+						<td align="center"><input type="text" name="GOLF[8]" size="3" maxlength="5" value="<?=$score_table[GOLF_1][8]?>"></td>
+						<td align="center"><input type="text" name="GOLF[note]" size="10" maxlength="10" value="<?=$score_table[GOLF_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">2인단체
+							<input type="hidden" name="GOLF_2[spo_code]" value="GOLF">
+							<input type="hidden" name="GOLF_2[game_kind]" value="2인단체">
+							<input type="hidden" name="GOLF_2[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="GOLF_2[1]" size="3" maxlength="5" value="<?=$score_table[GOLF_2][1]?>"></td>
+						<td align="center"><input type="text" name="GOLF_2[2]" size="3" maxlength="5" value="<?=$score_table[GOLF_2][2]?>"></td>
+						<td align="center"><input type="text" name="GOLF_2[3]" size="3" maxlength="5" value="<?=$score_table[GOLF_2][3]?>"></td>
+						<td align="center"><input type="text" name="GOLF_2[4]" size="3" maxlength="5" value="<?=$score_table[GOLF_2][4]?>"></td>
+						<td align="center"><input type="text" name="GOLF_2[5]" size="3" maxlength="5" value="<?=$score_table[GOLF_2][5]?>"></td>
+						<td align="center"><input type="text" name="GOLF_2[6]" size="3" maxlength="5" value="<?=$score_table[GOLF_2][6]?>"></td>
+						<td align="center"><input type="text" name="GOLF_2[7]" size="3" maxlength="5" value="<?=$score_table[GOLF_2][7]?>"></td>
+						<td align="center"><input type="text" name="GOLF_2[8]" size="3" maxlength="5" value="<?=$score_table[GOLF_2][8]?>"></td>
+						<td align="center"><input type="text" name="GOLF_2[note]" size="10" maxlength="10" value="<?=$score_table[GOLF_2][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">4인단체
+							<input type="hidden" name="GOLF_3[spo_code]" value="GOLF">
+							<input type="hidden" name="GOLF_3[game_kind]" value="4인단체">
+							<input type="hidden" name="GOLF_3[player_cnt]" value="4">
+						</td>
+						<td align="center"><input type="text" name="GOLF_3[1]" size="3" maxlength="5" value="<?=$score_table[GOLF_4][1]?>"></td>
+						<td align="center"><input type="text" name="GOLF_3[2]" size="3" maxlength="5" value="<?=$score_table[GOLF_4][2]?>"></td>
+						<td align="center"><input type="text" name="GOLF_3[3]" size="3" maxlength="5" value="<?=$score_table[GOLF_4][3]?>"></td>
+						<td align="center"><input type="text" name="GOLF_3[4]" size="3" maxlength="5" value="<?=$score_table[GOLF_4][4]?>"></td>
+						<td align="center"><input type="text" name="GOLF_3[5]" size="3" maxlength="5" value="<?=$score_table[GOLF_4][5]?>"></td>
+						<td align="center"><input type="text" name="GOLF_3[6]" size="3" maxlength="5" value="<?=$score_table[GOLF_4][6]?>"></td>
+						<td align="center"><input type="text" name="GOLF_3[7]" size="3" maxlength="5" value="<?=$score_table[GOLF_4][7]?>"></td>
+						<td align="center"><input type="text" name="GOLF_3[8]" size="3" maxlength="5" value="<?=$score_table[GOLF_4][8]?>"></td>
+						<td align="center"><input type="text" name="GOLF_3[note]" size="10" maxlength="10" value="<?=$score_table[GOLF_4][note]?>"></td>
+					</tr>
+                    <tr>
+						<td align="center" rowspan="2">1</td>
+						<td align="center" rowspan="2">양궁<input type="hidden" name="ARCHERY[spo_code]" value="ARCHERY"></td>
+						<td align="center">개인전
+							<input type="hidden" name="ARCHERY[game_kind]" value="개인전">
+							<input type="hidden" name="ARCHERY[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="ARCHERY[1]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_1][1]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY[2]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_1][2]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY[3]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_1][3]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY[4]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_1][4]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY[5]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_1][5]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY[6]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_1][6]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY[7]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_1][7]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY[8]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_1][8]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY[note]" size="10" maxlength="10" value="<?=$score_table[ARCHERY_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">3인단체
+							<input type="hidden" name="ARCHERY_3[spo_code]" value="ARCHERY">
+							<input type="hidden" name="ARCHERY_3[game_kind]" value="3인단체">
+							<input type="hidden" name="ARCHERY_3[player_cnt]" value="3">
+						</td>
+						<td align="center"><input type="text" name="ARCHERY_3[1]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_3][1]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY_3[2]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_3][2]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY_3[3]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_3][3]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY_3[4]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_3][4]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY_3[5]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_3][5]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY_3[6]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_3][6]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY_3[7]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_3][7]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY_3[8]" size="3" maxlength="5" value="<?=$score_table[ARCHERY_3][8]?>"></td>
+						<td align="center"><input type="text" name="ARCHERY_3[note]" size="10" maxlength="10" value="<?=$score_table[ARCHERY_3][note]?>"></td>
+					</tr>					
+					<tr>
+						<td align="center" rowspan="2">2</td>
+						<td align="center" rowspan="2">바둑<input type="hidden" name="BADUK[spo_code]" value="BADUK"></td>
+						<td align="center">개인전
+							<input type="hidden" name="BADUK[game_kind]" value="개인전">
+							<input type="hidden" name="BADUK[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="BADUK[1]" size="3" maxlength="5" value="<?=$score_table[BADUK_1][1]?>"></td>
+						<td align="center"><input type="text" name="BADUK[2]" size="3" maxlength="5" value="<?=$score_table[BADUK_1][2]?>"></td>
+						<td align="center"><input type="text" name="BADUK[3]" size="3" maxlength="5" value="<?=$score_table[BADUK_1][3]?>"></td>
+						<td align="center"><input type="text" name="BADUK[4]" size="3" maxlength="5" value="<?=$score_table[BADUK_1][4]?>"></td>
+						<td align="center"><input type="text" name="BADUK[5]" size="3" maxlength="5" value="<?=$score_table[BADUK_1][5]?>"></td>
+						<td align="center"><input type="text" name="BADUK[6]" size="3" maxlength="5" value="<?=$score_table[BADUK_1][6]?>"></td>
+						<td align="center"><input type="text" name="BADUK[7]" size="3" maxlength="5" value="<?=$score_table[BADUK_1][7]?>"></td>
+						<td align="center"><input type="text" name="BADUK[8]" size="3" maxlength="5" value="<?=$score_table[BADUK_1][8]?>"></td>
+						<td align="center"><input type="text" name="BADUK[note]" size="10" maxlength="10" value="<?=$score_table[BADUK_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">3인단체
+							<input type="hidden" name="BADUK_2[spo_code]" value="BADUK">
+							<input type="hidden" name="BADUK_2[game_kind]" value="3인단체">
+							<input type="hidden" name="BADUK_2[player_cnt]" value="3">
+						</td>
+						<td align="center"><input type="text" name="BADUK_2[1]" size="3" maxlength="5" value="<?=$score_table[BADUK_3][1]?>"></td>
+						<td align="center"><input type="text" name="BADUK_2[2]" size="3" maxlength="5" value="<?=$score_table[BADUK_3][2]?>"></td>
+						<td align="center"><input type="text" name="BADUK_2[3]" size="3" maxlength="5" value="<?=$score_table[BADUK_3][3]?>"></td>
+						<td align="center"><input type="text" name="BADUK_2[4]" size="3" maxlength="5" value="<?=$score_table[BADUK_3][4]?>"></td>
+						<td align="center"><input type="text" name="BADUK_2[5]" size="3" maxlength="5" value="<?=$score_table[BADUK_3][5]?>"></td>
+						<td align="center"><input type="text" name="BADUK_2[6]" size="3" maxlength="5" value="<?=$score_table[BADUK_3][6]?>"></td>
+						<td align="center"><input type="text" name="BADUK_2[7]" size="3" maxlength="5" value="<?=$score_table[BADUK_3][7]?>"></td>
+						<td align="center"><input type="text" name="BADUK_2[8]" size="3" maxlength="5" value="<?=$score_table[BADUK_3][8]?>"></td>
+						<td align="center"><input type="text" name="BADUK_2[note]" size="10" maxlength="10" value="<?=$score_table[BADUK_3][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">3</td>
+						<td align="center">승마<input type="hidden" name="HORSERIDING[spo_code]" value="HORSERIDING"></td>
+						<td align="center">개인전
+							<input type="hidden" name="HORSERIDING[game_kind]" value="개인전">
+							<input type="hidden" name="HORSERIDING[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="HORSERIDING[1]" size="3" maxlength="5" value="<?=$score_table[HORSERIDING_1][1]?>"></td>
+						<td align="center"><input type="text" name="HORSERIDING[2]" size="3" maxlength="5" value="<?=$score_table[HORSERIDING_1][2]?>"></td>
+						<td align="center"><input type="text" name="HORSERIDING[3]" size="3" maxlength="5" value="<?=$score_table[HORSERIDING_1][3]?>"></td>
+						<td align="center"><input type="text" name="HORSERIDING[4]" size="3" maxlength="5" value="<?=$score_table[HORSERIDING_1][4]?>"></td>
+						<td align="center"><input type="text" name="HORSERIDING[5]" size="3" maxlength="5" value="<?=$score_table[HORSERIDING_1][5]?>"></td>
+						<td align="center"><input type="text" name="HORSERIDING[6]" size="3" maxlength="5" value="<?=$score_table[HORSERIDING_1][6]?>"></td>
+						<td align="center"><input type="text" name="HORSERIDING[7]" size="3" maxlength="5" value="<?=$score_table[HORSERIDING_1][7]?>"></td>
+						<td align="center"><input type="text" name="HORSERIDING[8]" size="3" maxlength="5" value="<?=$score_table[HORSERIDING_1][8]?>"></td>
+						<td align="center"><input type="text" name="HORSERIDING[note]" size="10" maxlength="10" value="<?=$score_table[HORSERIDING_1][note]?>"></td>
+					</tr>   
+<tr>
+						<td align="center" rowspan="2">4</td>
+						<td align="center" rowspan="2">테니스<input type="hidden" name="TENNIS[spo_code]" value="TENNIS"></td>
+						<td align="center">개인전
+							<input type="hidden" name="TENNIS[game_kind]" value="개인전">
+							<input type="hidden" name="TENNIS[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="TENNIS[1]" size="3" maxlength="5" value="<?=$score_table[TENNIS_1][1]?>"></td>
+						<td align="center"><input type="text" name="TENNIS[2]" size="3" maxlength="5" value="<?=$score_table[TENNIS_1][2]?>"></td>
+						<td align="center"><input type="text" name="TENNIS[3]" size="3" maxlength="5" value="<?=$score_table[TENNIS_1][3]?>"></td>
+						<td align="center"><input type="text" name="TENNIS[4]" size="3" maxlength="5" value="<?=$score_table[TENNIS_1][4]?>"></td>
+						<td align="center"><input type="text" name="TENNIS[5]" size="3" maxlength="5" value="<?=$score_table[TENNIS_1][5]?>"></td>
+						<td align="center"><input type="text" name="TENNIS[6]" size="3" maxlength="5" value="<?=$score_table[TENNIS_1][6]?>"></td>
+						<td align="center"><input type="text" name="TENNIS[7]" size="3" maxlength="5" value="<?=$score_table[TENNIS_1][7]?>"></td>
+						<td align="center"><input type="text" name="TENNIS[8]" size="3" maxlength="5" value="<?=$score_table[TENNIS_1][8]?>"></td>
+						<td align="center"><input type="text" name="TENNIS[note]" size="10" maxlength="10" value="<?=$score_table[TENNIS_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">단체전
+							<input type="hidden" name="TENNIS_2[spo_code]" value="TENNIS">
+							<input type="hidden" name="TENNIS_2[game_kind]" value="단체전">
+							<input type="hidden" name="TENNIS_2[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="TENNIS_2[1]" size="3" maxlength="5" value="<?=$score_table[TENNIS_2][1]?>"></td>
+						<td align="center"><input type="text" name="TENNIS_2[2]" size="3" maxlength="5" value="<?=$score_table[TENNIS_2][2]?>"></td>
+						<td align="center"><input type="text" name="TENNIS_2[3]" size="3" maxlength="5" value="<?=$score_table[TENNIS_2][3]?>"></td>
+						<td align="center"><input type="text" name="TENNIS_2[4]" size="3" maxlength="5" value="<?=$score_table[TENNIS_2][4]?>"></td>
+						<td align="center"><input type="text" name="TENNIS_2[5]" size="3" maxlength="5" value="<?=$score_table[TENNIS_2][5]?>"></td>
+						<td align="center"><input type="text" name="TENNIS_2[6]" size="3" maxlength="5" value="<?=$score_table[TENNIS_2][6]?>"></td>
+						<td align="center"><input type="text" name="TENNIS_2[7]" size="3" maxlength="5" value="<?=$score_table[TENNIS_2][7]?>"></td>
+						<td align="center"><input type="text" name="TENNIS_2[8]" size="3" maxlength="5" value="<?=$score_table[TENNIS_2][8]?>"></td>
+						<td align="center"><input type="text" name="TENNIS_2[note]" size="10" maxlength="10" value="<?=$score_table[TENNIS_2][note]?>"></td>
+					</tr>                                     
+				
+					<tr>
+						<td align="center">5</td>
+						<td align="center">펜싱<input type="hidden" name="FENCING[spo_code]" value="FENCING"></td>
+						<td align="center">개인전
+							<input type="hidden" name="FENCING[game_kind]" value="개인전">
+							<input type="hidden" name="FENCING[player_cnt]" value="1">
+						</td>
+						<td align="center"><input type="text" name="FENCING[1]" size="3" maxlength="5" value="<?=$score_table[FENCING_1][1]?>"></td>
+						<td align="center"><input type="text" name="FENCING[2]" size="3" maxlength="5" value="<?=$score_table[FENCING_1][2]?>"></td>
+						<td align="center"><input type="text" name="FENCING[3]" size="3" maxlength="5" value="<?=$score_table[FENCING_1][3]?>"></td>
+						<td align="center"><input type="text" name="FENCING[4]" size="3" maxlength="5" value="<?=$score_table[FENCING_1][4]?>"></td>
+						<td align="center"><input type="text" name="FENCING[5]" size="3" maxlength="5" value="<?=$score_table[FENCING_1][5]?>"></td>
+						<td align="center"><input type="text" name="FENCING[6]" size="3" maxlength="5" value="<?=$score_table[FENCING_1][6]?>"></td>
+						<td align="center"><input type="text" name="FENCING[7]" size="3" maxlength="5" value="<?=$score_table[FENCING_1][7]?>"></td>
+						<td align="center"><input type="text" name="FENCING[8]" size="3" maxlength="5" value="<?=$score_table[FENCING_1][8]?>"></td>
+						<td align="center"><input type="text" name="FENCING[note]" size="10" maxlength="10" value="<?=$score_table[FENCING_1][note]?>"></td>
+					</tr>
+					<tr>
+						<td align="center">6</td>
+						<td align="center">댄스스포츠<input type="hidden" name="DANCE[spo_code]" value="DANCE"></td>
+						<td align="center">2인제
+							<input type="hidden" name="DANCE[game_kind]" value="2인제">
+							<input type="hidden" name="DANCE[player_cnt]" value="2">
+						</td>
+						<td align="center"><input type="text" name="DANCE[1]" size="3" maxlength="5" value="<?=$score_table[DANCE_2][1]?>"></td>
+						<td align="center"><input type="text" name="DANCE[2]" size="3" maxlength="5" value="<?=$score_table[DANCE_2][2]?>"></td>
+						<td align="center"><input type="text" name="DANCE[3]" size="3" maxlength="5" value="<?=$score_table[DANCE_2][3]?>"></td>
+						<td align="center"><input type="text" name="DANCE[4]" size="3" maxlength="5" value="<?=$score_table[DANCE_2][4]?>"></td>
+						<td align="center"><input type="text" name="DANCE[5]" size="3" maxlength="5" value="<?=$score_table[DANCE_2][5]?>"></td>
+						<td align="center"><input type="text" name="DANCE[6]" size="3" maxlength="5" value="<?=$score_table[DANCE_2][6]?>"></td>
+						<td align="center"><input type="text" name="DANCE[7]" size="3" maxlength="5" value="<?=$score_table[DANCE_2][7]?>"></td>
+						<td align="center"><input type="text" name="DANCE[8]" size="3" maxlength="5" value="<?=$score_table[DANCE_2][8]?>"></td>
+						<td align="center"><input type="text" name="DANCE[note]" size="10" maxlength="10" value="<?=$score_table[DANCE_2][note]?>"></td>
+					</tr>					
+
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td><input type="submit" name="sch" value="배점표입력하기" class="btnBox3"></td>
+			</tr>
+			</table>
+		</form>
+	</td>
+</tr>
+</table>

@@ -1,0 +1,108 @@
+<?
+// Session 시작 //
+require_once "../library/head.php";
+
+// 경로 체크 //
+//Referer_Check($admin_domain);
+
+// 관리자 확인 //
+/*
+if(!session_is_registered("Site_Admin") || !session_is_registered("Admin_Id"))
+{
+	if($Admin_Id != md5($Site_Admin."kodaewoong"))
+	{
+		Error("ADMIN_ERROR");
+		exit;
+	}
+	else
+	{
+		Error("ACTION_ERROR");
+		exit;
+	}
+}
+*/
+//권한
+$table_level = array(
+0=>모두,
+2=>회원,
+5=>직원,
+9=>관리자);
+
+?>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td height="10"></td>
+</tr>
+<tr>
+	<td>
+
+		<!-- 게시판 시작 -->
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td>
+				<?
+				// 색상 설정 //
+				if($code)
+				{
+					$tr_color01 = "#6480BB";
+					$tr_color02 = "#DEF4FF";
+					$tr_color03 = "#CECFCE";
+					$tr_color04 = "#EDEDED";
+					$tr_color05 = "#6F6A6A";
+				}
+				// 게시판 출력 //
+				if($mode == "list")
+				{
+					include "list.html";
+				}
+
+				// 게시판 내용 //
+				if($mode == "view")
+				{
+					include "view.html";
+				}
+				// 권한 로그인 //
+				if($mode == "auth")
+				{
+					include "auth.html";
+				}
+
+				// 게시판 입력 //
+				if($mode == "input")
+				{
+					// 인증 번호 //
+					$today_date = date("Y:m:d");
+					$write_date = Encrypt($today_date);
+
+					include "input.html";
+				}
+
+				// 게시판 수정 //
+				if($mode == "modify")
+				{
+					include "modify.html";
+				}
+
+				// 게시판 삭제 //
+				if($mode == "delete")
+				{
+					include "delete.html";
+				}
+
+				// 게시판 답변 //
+				if($mode == "reply")
+				{
+					// 인증 번호 //
+					$today_date = date("Y:m:d");
+					$write_date = Encrypt($today_date);
+
+					include "reply.html";
+				}
+				?>
+			</td>
+		</tr>
+		</table>
+		<!-- 게시판 끝 -->
+	</td>
+</tr>
+</table>

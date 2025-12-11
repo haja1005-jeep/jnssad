@@ -1,0 +1,236 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=메달집계.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+?>
+<body>
+<p style="font-size:15px; font-weight:bold;"><?=$wp_games[$gam_uid]?> 최종결과</p>
+<table border=1>
+		<tbody>
+		<tr>
+			<th rowspan="3">시/군</th>
+			<th colspan="3">결과</th>
+			<th colspan="8">메달집계</th>
+		</tr>
+		<tr>
+			<th width="15%" rowspan="2">총순위</th>
+			<th width="15%" colspan="2">총득점</th>
+			<th width="15%" colspan="2">금</th>
+			<th width="15%" colspan="2">은</th>
+			<th width="15%" colspan="2">동</th>
+			<th width="15%" colspan="2">계</th>
+		</tr>
+		<tr>
+			<th>전년도</th>
+			<th>당해년</th>
+			<th>전년도</th>
+			<th>당해년</th>
+			<th>전년도</th>
+			<th>당해년</th>
+			<th>전년도</th>
+			<th>당해년</th>
+			<th>전년도</th>
+			<th>당해년</th>
+		</tr>
+		<?
+
+
+		// 전년도 경기 득점 검색
+		$b_rank_que = "SELECT clu_code, sum(score) score FROM wp_score WHERE gam_uid = '$before_gam_uid' GROUP BY clu_code ORDER BY sum(score) desc ";
+		$b_rank_res = mysql_query($b_rank_que);
+		$b_rank_city = array();
+		while($b_rank_obj = mysql_fetch_object($b_rank_res))
+		{
+			$b_rank_city[$b_rank_obj->clu_code] = $b_rank_obj->score;
+		}
+
+		// 시/군의 총득점 순위 검색
+		$rank_que = "SELECT clu_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY clu_code ORDER BY sum(score) desc ";
+		$rank_res = mysql_query($rank_que);
+		$rank_city = array();
+		while($rank_obj = mysql_fetch_object($rank_res))
+		{
+			$rank_city[$rank_obj->clu_code] = $rank_obj->score;
+		}
+		
+		$rank = 1;
+		$gold_sum = 0; // 금메달 합계
+		$silver_sum = 0;  //은메달합계
+		$bronze_sum = 0; // 동메달합계
+		$total_sum = 0; // 총계
+		foreach($rank_city as $keys => $vals)
+		{
+			$score_que = "SELECT clu_code,spo_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' AND clu_code = '$keys' GROUP BY clu_code, spo_code";
+			$score_res = mysql_query($score_que);
+			$city_score = array();
+			while($score_obj = mysql_fetch_object($score_res))
+			{
+				$city_score[$score_obj->spo_code] = $score_obj->score;
+			}
+
+
+			// 시/군의 매달 집계 검색
+			$g_where = "WHERE gam_uid = '$s_gam_uid' AND clu_code = '$keys' ";
+
+			// 리스트쿼리 //
+			$g_que = "SELECT sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $g_where GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+			$g_res = mysql_query($g_que);
+			$g_obj = mysql_fetch_object($g_res);
+
+			$total_medal = $g_obj->gold + $g_obj->silver + $g_obj->bronze;
+			$gold_sum += $g_obj->gold;
+			$silver_sum += $g_obj->silver;
+			$bronze_sum += $g_obj->bronze;
+			$total_sum += $total_medal;
+
+			
+			// 전년도 메달 집계 검색
+			$b_g_where = "WHERE gam_uid = '$before_gam_uid' AND clu_code = '$keys' ";
+
+			// 리스트쿼리 //
+			$b_g_que = "SELECT sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $b_g_where GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+			$b_g_res = mysql_query($b_g_que);
+			$b_g_obj = mysql_fetch_object($b_g_res);
+
+			$b_total_medal = $b_g_obj->gold + $b_g_obj->silver + $b_g_obj->bronze;
+			$b_gold_sum += $b_g_obj->gold;
+			$b_silver_sum += $b_g_obj->silver;
+			$b_bronze_sum += $b_g_obj->bronze;
+			$b_total_sum += $b_total_medal;
+
+
+
+			echo "<tr>";
+
+			// 시/군
+			echo "<td align='center'>".$wp_club_code[$keys]."</td>";
+
+			// 총순위
+			echo "<td align='center'>$rank</td>";
+
+			// 총합계
+			unset($updown);
+			if($vals > $b_rank_city[$keys]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($vals < $b_rank_city[$keys] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			else if($vals == $b_rank_city[$keys]) $updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+			echo "<td align='center'>".number_format($b_rank_city[$keys])." </td>";
+			echo "<td align='center'>$updown ".number_format($vals)." </td>";
+
+			// 금
+			unset($g_updown);
+			if($g_obj->gold > $b_g_obj->gold) $g_updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($g_obj->gold < $b_g_obj->gold ) $g_updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			else if($g_obj->gold == $b_g_obj->gold) $g_updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+			echo "<td align='center'>".number_format($b_g_obj->gold)." </td>";
+			echo "<td align='center'>$g_updown $g_obj->gold</td>";
+
+			// 은
+			unset($s_g_updown);
+			if($g_obj->silver > $b_g_obj->silver) $s_g_updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($g_obj->silver < $b_g_obj->silver ) $s_g_updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			else if($g_obj->silver == $b_g_obj->silver) $s_g_updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+			echo "<td align='center'>".number_format($b_g_obj->silver)." </td>";
+			echo "<td align='center'>$s_g_updown $g_obj->silver</td>";
+
+			// 동
+			unset($b_updown);
+			if($g_obj->bronze > $b_g_obj->bronze) $b_updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($g_obj->bronze < $b_g_obj->bronze ) $b_updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			else if($g_obj->bronze == $b_g_obj->bronze) $b_updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+			echo "<td align='center'>".number_format($b_g_obj->bronze)." </td>";
+			echo "<td align='center'>$b_updown $g_obj->bronze</td>";
+
+			// 계
+			unset($tm_g_updown);
+			if($total_medal > $b_total_medal) $tm_g_updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($total_medal < $b_total_medal) $tm_g_updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			else if($total_medal == $b_total_medal) $tm_g_updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+			echo "<td align='center'>".number_format($b_total_medal)." </td>";
+			echo "<td align='center'>$tm_g_updown $total_medal</td>";
+
+			echo "</tr>";
+
+			$rank++;
+		}
+		
+
+		// 당해년도 종합점수 
+		$tot_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY spo_code ";
+		$tot_res = mysql_query($tot_que);
+		$total_score = array();
+		$all_score = 0; // 총점수
+		while($tot_obj = mysql_fetch_object($tot_res))
+		{
+			$total_score[$tot_obj->spo_code] = $tot_obj->score;
+			$all_score += $tot_obj->score;
+		}
+		
+		//전년도 합계점수
+		$b_tot_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid = '$before_gam_uid' GROUP BY spo_code ";
+		$b_tot_res = mysql_query($b_tot_que);
+		$b_total_score = array();
+		$b_all_score = 0; // 총점수
+		while($b_tot_obj = mysql_fetch_object($b_tot_res))
+		{
+			$b_total_score[$b_tot_obj->spo_code] = $b_tot_obj->score;
+			$b_all_score += $b_tot_obj->score;
+		}
+		
+		echo "<tr><th colspan='2'>총계</th>";
+
+
+		unset($updown);
+		if($all_score > $b_all_score) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+		else if($all_score < $b_all_score ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+		else if($all_score == $b_all_score) $updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+		echo "<th>".number_format($b_all_score)." </th>";
+		echo "<th>$updown ".number_format($all_score)."</th>";
+
+		unset($updown);
+		if($all_score > $b_all_score) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+		else if($all_score < $b_all_score ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+		else if($all_score == $b_all_score) $updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+		echo "<th>".number_format($b_gold_sum)." </th>";
+		echo "<th>$updown ".number_format($gold_sum)."</th>";
+
+		unset($updown);
+		if($silver_sum > $b_silver_sum) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+		else if($silver_sum < $b_silver_sum ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+		else if($silver_sum == $b_silver_sum) $updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+		echo "<th>".number_format($b_silver_sum)." </th>";
+		echo "<th>$updown ".number_format($silver_sum)."</th>";
+
+		unset($updown);
+		if($bronze_sum > $b_bronze_sum) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+		else if($bronze_sum < $b_bronze_sum ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+		else if($bronze_sum == $b_bronze_sum) $updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+		echo "<th>".number_format($b_bronze_sum)." </th>";
+		echo "<th>$updown ".number_format($bronze_sum)."</th>";
+
+		unset($updown);
+		if($total_sum > $b_total_sum) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+		else if($total_sum < $b_total_sum ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+		else if($total_sum == $b_total_sum) $updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+		echo "<th>$updown ".number_format($b_total_sum)." </th>";
+		echo "<th>$updown ".number_format($total_sum)."</th>";
+		?>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</body>

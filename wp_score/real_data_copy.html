@@ -1,0 +1,31 @@
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>리얼타임 성적적용</legend>
+			<ul class="help_body">
+				<li> 모바일과 실시간 현황에 보이는 성적을 충분히 검토후 보여줍니다. </li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>		
+		<?
+		$del01_que = "delete from wp_score_real";
+		$del01_res = mysql_query($del01_que) or die(Error("QUERY_ERROR"));
+
+		$del02_que = "delete from wp_medal_real";
+		$del02_res = mysql_query($del02_que) or die(Error("QUERY_ERROR"));
+
+
+		$copy_que = "INSERT INTO wp_score_real (SELECT * from wp_score where gam_uid='15')";
+		$copy_res = mysql_query($copy_que) or die(Error("QUERY_ERROR"));
+
+		$copy02_que = "INSERT INTO  wp_medal_real (SELECT * from wp_medal where gam_uid='15')";
+		$copy02_res = mysql_query($copy02_que) or die(Error("QUERY_ERROR"));
+
+       //페이지이동
+        echo ("<meta http-equiv='Refresh' content='5; URL=index.html?s_gam_uid=$s_gam_uid&mode=total_data'>");
+
+		?>
+
+</table>

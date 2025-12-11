@@ -1,0 +1,252 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=종목별순위.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+?>
+<body>
+<p style="font-size:15px; font-weight:bold;"><?=$wp_games[$gam_uid]?> 종목별순위</p>
+<table border=1>
+<tbody>
+<tr>
+	<th rowspan="2">시/군</th>
+	<th colspan="2">결과</th>
+	<th>기본점수</th>
+	<th>개최지가산점</th>
+	<th colspan="26">정식종목</th>
+	<th colspan="10">시범종목</th>
+</tr>
+<tr>
+	<th width="5%">총순위</th>
+	<th width="5%">총합계</th>
+	<th width="5%">참가인원</th>
+	<th width="5%">구례군(20%)</th>
+	<th>골볼</th>
+	<th style="background:#FFC000">순위</th>
+	<th>당구</th>
+	<th style="background:#FFC000">순위</th>
+	<th>론볼</th>
+	<th style="background:#FFC000">순위</th>
+	<th>좌식배구</th>
+	<th style="background:#FFC000">순위</th>
+	<th>배드민턴</th>
+	<th style="background:#FFC000">순위</th>
+	<th>보치아</th>
+	<th style="background:#FFC000">순위</th>
+	<th>수영</th>
+	<th style="background:#FFC000">순위</th>
+	<th>볼링</th>
+	<th style="background:#FFC000">순위</th>
+	<th>역도</th>
+	<th style="background:#FFC000">순위</th>
+	<th>육상</th>
+	<th style="background:#FFC000">순위</th>
+	<th>실내조정</th>
+	<th style="background:#FFC000">순위</th>
+	<th>축구</th>
+	<th style="background:#FFC000">순위</th>
+	<th>탁구</th>
+	<th style="background:#FFC000">순위</th>
+	<th>게이트볼</th>
+	<th style="background:#FFC000">순위</th>
+	<th>바둑</th>
+	<th style="background:#FFC000">순위</th>
+	<th>파크골프</th>
+	<th style="background:#FFC000">순위</th>
+	<th>펜싱</th>
+	<th style="background:#FFC000">순위</th>
+	<th>테니스</th>
+	<th style="background:#FFC000">순위</th>
+</tr>
+<?
+// 종목별 순위
+$spo_rank = array();
+foreach($wp_sports_code as $keys => $vals)
+{
+	$_tmp_sports = array();
+	$spo_que = "SELECT clu_code,sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' and spo_code = '$keys' GROUP BY clu_code ORDER BY sum(score) DESC";
+	$spo_res = mysql_query($spo_que);
+	$_max_rank = mysql_num_rows($spo_res);
+	
+	// 순위에 들지 않은 시군은 마지막 순위로 설정한다.
+	// 예) 5시군만 순위가 있으면 나머지 시군은 모두 6위로 설정
+	foreach($wp_club_code as $ckeys => $cvals)
+	{
+		$_tmp_sports[$ckeys] = $_max_rank+1;
+	}
+	
+	$rank = 0;
+	$b_score = 0; // 이전 점수
+	$_t_rank = 0; // 공동 순위일경우 증가되는 순위
+	while($spo_obj = mysql_fetch_object($spo_res))
+	{
+		if($b_score != $spo_obj->score)
+		{
+			$rank ++;
+			$rank += $_t_rank;
+			$_t_rank = 0;
+		}
+		else
+		{
+			$_t_rank++;
+		}
+
+		$_tmp_sports[$spo_obj->clu_code] = $rank;
+		$b_score = $spo_obj->score;
+	}
+
+	$spo_rank[$keys] = $_tmp_sports;
+}
+
+// 시/군의 총득점 순위 검색
+$rank_que = "SELECT clu_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY clu_code ORDER BY sum(score) desc ";
+$rank_res = mysql_query($rank_que);
+$rank_city = array();
+while($rank_obj = mysql_fetch_object($rank_res))
+{
+	$rank_city[$rank_obj->clu_code] = $rank_obj->score;
+}
+
+$rank = 1;
+foreach($rank_city as $keys => $vals)
+{
+	$score_que = "SELECT clu_code,spo_code, sum(score) score FROM wp_score WHERE clu_code = '$keys' AND gam_uid='$s_gam_uid' GROUP BY clu_code, spo_code";
+	$score_res = mysql_query($score_que);
+	$city_score = array();
+	while($score_obj = mysql_fetch_object($score_res))
+	{
+		$city_score[$score_obj->spo_code] = $score_obj->score;
+	}
+
+	echo "<tr>";
+
+	// 시/군
+	echo "<td align='center'>".$wp_club_code[$keys]."</td>";
+
+	// 총순위
+	echo "<td align='center'>$rank</td>";
+
+	// 총합계
+	echo "<td align='center'>".number_format($vals)."</td>";
+	
+	// 참가점수
+	echo "<td align='center'>".$city_score[참가점수]."</td>";
+
+	// 가산점
+	unset($add_score);
+	if($game_city_code == $keys) number_format($add_score = $city_score[가산점]);
+	echo "<td align='center'>$add_score</td>";
+
+	// 종목별점수
+	echo "<td align='center'>".number_format($city_score[GOALBALL])."</td>";
+	echo "<td align='center'>".$spo_rank[GOALBALL][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[BILLIARDS])."</td>";
+	echo "<td align='center'>".$spo_rank[BILLIARDS][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[LAWNBOWL])."</td>";
+	echo "<td align='center'>".$spo_rank[LAWNBOWL][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[VOLLEYBALL])."</td>";
+	echo "<td align='center'>".$spo_rank[VOLLEYBALL][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[BADMINTON])."</td>";
+	echo "<td align='center'>".$spo_rank[BADMINTON][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[BOCCIA])."</td>";
+	echo "<td align='center'>".$spo_rank[BOCCIA][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[SWIMMING])."</td>";
+	echo "<td align='center'>".$spo_rank[SWIMMING][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[BOWLING])."</td>";
+	echo "<td align='center'>".$spo_rank[BOWLING][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[POWERLIFTING])."</td>";
+	echo "<td align='center'>".$spo_rank[POWERLIFTING][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[ATHIETICS])."</td>";
+	echo "<td align='center'>".$spo_rank[ATHIETICS][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[ROWING])."</td>";
+	echo "<td align='center'>".$spo_rank[ROWING][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[FOOTSAL])."</td>";
+	echo "<td align='center'>".$spo_rank[FOOTSAL][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[TABLETENNIS])."</td>";
+	echo "<td align='center'>".$spo_rank[TABLETENNIS][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[GATEBALL])."</td>";
+	echo "<td align='center'>".$spo_rank[GATEBALL][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[BADUK])."</td>";
+	echo "<td align='center'>".$spo_rank[BADUK][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[GOLF])."</td>";
+	echo "<td align='center'>".$spo_rank[GOLF][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[FENCING])."</td>";
+	echo "<td align='center'>".$spo_rank[FENCING][$keys]."</td>";
+	echo "<td align='center'>".number_format($city_score[TENNIS])."</td>";
+	echo "<td align='center'>".$spo_rank[TENNIS][$keys]."</td>";
+	echo "</tr>";
+
+	$rank++;
+}
+
+$tot_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY spo_code ";
+$tot_res = mysql_query($tot_que);
+$total_score = array();
+$all_score = 0; // 총점수
+while($tot_obj = mysql_fetch_object($tot_res))
+{
+	$total_score[$tot_obj->spo_code] = $tot_obj->score;
+	if($tot_obj->spo_code != "가산점")
+	{
+		$all_score += $tot_obj->score;
+	}
+}
+?>
+
+<tr>
+	<th colspan="2">총계</th>
+	<th><?=number_format($all_score)?></th>
+	<th><?=number_format($total_score['참가점수'])?></th>
+	<th></th>
+	<th><?=number_format($total_score[GOALBALL])?></th>
+	<th></th>
+	<th><?=number_format($total_score[BILLIARDS])?></th>
+	<th></th>
+	<th><?=number_format($total_score[LAWNBOWL])?></th>
+	<th></th>
+	<th><?=number_format($total_score[VOLLEYBALL])?></th>
+	<th></th>
+	<th><?=number_format($total_score[BADMINTON])?></th>
+	<th></th>
+	<th><?=number_format($total_score[BOCCIA])?></th>
+	<th></th>
+	<th><?=number_format($total_score[SWIMMING])?></th>
+	<th></th>
+	<th><?=number_format($total_score[BOWLING])?></th>
+	<th></th>
+	<th><?=number_format($total_score[POWERLIFTING])?></th>
+	<th></th>
+	<th><?=number_format($total_score[ATHIETICS])?></th>
+	<th></th>
+	<th><?=number_format($total_score[ROWING])?></th>
+	<th></th>
+	<th><?=number_format($total_score[FOOTSAL])?></th>
+	<th></th>
+	<th><?=number_format($total_score[TABLETENNIS])?></th>
+	<th></th>
+	<th><?=number_format($total_score[GATEBALL])?></th>
+	<th></th>
+	<th><?=number_format($total_score[BADUK])?></th>
+	<th></th>
+	<th><?=number_format($total_score[GOLF])?></th>
+	<th></th>
+	<th><?=number_format($total_score[FENCING])?></th>
+	<th></th>
+	<th><?=number_format($total_score[TENNIS])?></th>
+	<th></th>
+</tr>
+</table>
+</body>

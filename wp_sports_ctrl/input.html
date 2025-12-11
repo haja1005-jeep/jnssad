@@ -1,0 +1,89 @@
+<!-- 내용 출력 시작-->
+<?
+//다음 정렬순서값을 구한다.
+$query = "SELECT max(orderby) + 1 as orderby FROM wp_sports_event WHERE gam_uid='$gam_uid' AND isuse='0'";
+
+$result = mysql_query($query);
+if (!$result) {
+   	Error("QUERY_ERROR");
+}
+$obj = mysql_fetch_array($result);
+$n_order = is_null($obj[orderby]) ? 1 : $obj[orderby];
+
+?>
+<form name="sForm" action="input.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset>
+			<ul>
+				<li> 1. 설명</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbInput-a">
+		<tbody>
+		<tr>
+			<th>종목코드</th>
+			<td>
+				<input type="text" name="code" size="20" maxlength="20" class="input" style="ime-mode:disabled">
+			</td>
+		</tr>
+		<tr>
+			<th>종목구분</th>
+			<td colspan="3">
+				<?
+				foreach($wp_gam_type_code as $keys => $values){
+					echo "<label name='lb'><input id='lb' type='radio' name='gam_type' hname='종목구분' value='$keys' tabindex='16'>$values</label>";
+				}
+				?>
+			</td>
+		</tr>
+		<tr>
+			<th>경기구분</th>
+			<td colspan="3">
+				<?
+				foreach($wp_gam_kind_code as $keys => $values){
+					echo "<label name='lb'><input id='lb' type='radio' name='gam_kind' hname='경기구분' value='$keys' tabindex='16'>$values</label>";
+				}
+				?>
+			</td>
+		</tr>
+		<tr>
+			<th>종 목 명</th>
+			<td><input type="text" name="name" class="input" hname="종목명" required size="20" maxlength="20" tabindex="2"></td>
+		</tr>
+		<tr>
+			<th>경기방법</th>
+			<td><textarea name="method" class="input" cols="80" rows="10" tabindex="3"></textarea></td>
+		</tr>
+		<tr>
+			<th>기타사항</th>
+			<td><textarea name="detail" class="input" cols="80" rows="10" tabindex="4"></textarea></td>
+		</tr>
+		<tr>
+			<th>정렬순서</th>
+			<td colspan="3"><input type="text" class="input" name="orderby" size="3" maxlength="3"  value="<?=$n_order?>" style="text-align:right" tabindex="5" style="ime-mode:disabled" onKeypress="Num_Check()"></td>
+		</tr>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="submit" name="send" value="입력하기" class="btnBox3" tabindex="6">
+				<input type="button" name="send" value="목록으로" class="btn_send" tabindex="6" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>
+<!-- 내용 출력 끝 -->

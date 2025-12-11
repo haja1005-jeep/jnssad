@@ -1,0 +1,180 @@
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<form name="signForm" method="post" enctype="multipart/form-data" action="input.php?code=<?=$code?>&type=<?=$type?>" onSubmit="return Check_Board()">
+			<input type="hidden" name="main_menu" value="<?=$main_menu?>">
+			<input type="hidden" name="sub_menu" value="<?=$sub_menu?>">
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="5">
+		<tr>
+			<td bgcolor="<?=$tr_color01?>" height="2" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>테 이 블</b></font></td>
+			<td>
+				<input type="text" name="t_name" size="20" maxlength="20" class="input">
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>테이블명</b></font></td>
+			<td>
+				<input type="text" name="t_name_txt" size="25" maxlength="25" class="input">
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>읽기권한<br><font color="#cc0000">(*비밀글일경우의 권한)</font></b></font></td>
+			<td>
+				<?foreach($table_level as $key=>$value){?>
+				<label name="lb"><input id="lb" type="checkbox" name="read_level_s[]" value="<?=$key?>"> <?=$value?></label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>읽기권한</b></td>
+			<td>
+				<?foreach($table_level as $key=>$value){?>
+				<label name="lb"><input id="lb" type="checkbox" name="read_level[]" value="<?=$key?>"> <?=$value?></label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>쓰기권한</b></font></td>
+			<td>
+				<?foreach($table_level as $key=>$value){?>
+				<label name="lb"><input id="lb" type="checkbox" name="write_level[]" value="<?=$key?>" > <?=$value?></label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>답변권한</b></font></td>
+			<td>
+				<?foreach($table_level as $key=>$value){?>
+				<label name="lb"><input id="lb" type="checkbox" name="reply_level[]" value="<?=$key?>" > <?=$value?></label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>삭제권한</b></font></td>
+			<td>
+				<?foreach($table_level as $key=>$value){?>
+				<label name="lb"><input id="lb" type="checkbox" name="delete_level[]" value="<?=$key?>"> <?=$value?></label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>수정권한</b></font></td>
+			<td>
+				<?foreach($table_level as $key=>$value){?>
+				<label name="lb"><input id="lb" type="checkbox" name="modify_level[]" value="<?=$key?>"> <?=$value?></label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>첨부갯수</b></font></td>
+			<td>
+				<input type="text" name="file" size="2" maxlength="1" class="input">
+				 최대 9개까지 가능
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>비밀글</b></font></td>
+			<td>
+				<label name="lb"><input id="lb" type="radio" name="secret" value="yes">사용 </label>
+				<label name="lb"><input id="lb" type="radio" name="secret" value="no" >사용하지 않음 </label>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>에디터</b></font></td>
+			<td>
+				<label name="lb"><input id="lb" type="radio" name="editor" value="yes" >사용 </label>
+				<label name="lb"><input id="lb" type="radio" name="editor" value="no" >사용하지 않음 </label>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>공지권한</b></font></td>
+			<td>
+				<?foreach($table_level as $key=>$value){?>
+				<label name="lb"><input id="lb" type="checkbox" name="wkind[]" value="<?=$key?>"> <?=$value?></label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>업로드파일타입</b></font></td>
+			<td>
+				<label name="lb"><input id="lb" type="radio" name="file_type" value="normal" checked>일반타입
+				<label name="lb"><input id="lb" type="radio" name="file_type" value="img">이미지
+				<label name="lb"><input id="lb" type="radio" name="file_type" value="custom">사용자정의
+
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>사용자정의타입</b></font></td>
+			<td>
+				<input type="text" name="cust_type" size="50" maxlength="100" class="input">
+				<br>*업로드타입이 사용자정의 일경우만 사용, 구분자 [:]로 입력 예) jpg:doc:hwp
+
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>업로드사이즈</b></font></td>
+			<td>
+				<input type="text" name="file_size" size="3" maxlength="3" class="input">
+				예) MByte단위로 입력 2M일경우 [2]를 입력
+
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color01?>" height="2" colspan="2"></td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="right" height="40">
+		<input type="image" src="../button/write.gif">
+		<a href="javascript:history.back(-1);"><img src="../button/before.gif" border="0"></a>
+	</td>
+	</form>
+</tr>
+</table>

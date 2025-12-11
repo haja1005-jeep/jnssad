@@ -1,0 +1,148 @@
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li></li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<form name="schForm" action="index.html?mode=list" method="post">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th width="15%">검색조건</th>
+					<td align="left" colspan="3">
+						<input id="lb" type="checkbox" name="s_isuse" value="1" <? if($s_isuse=="1"){ echo " checked";}?>>미사용데이터포함</label>
+						<input type="submit" name="sch" value="검색하기" tabindex="8" class="btnBox3" onclick="this.form.submit()">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="5%">번호</th>
+			<th width="7%">종목구분</th>
+			<th width="7%">경기구분</th>
+			<th width="8%">종목명</th>
+			<th width="12%">코드명</th>
+			<th width="30%">경기방법</th>
+			<th>기타사항</th>
+			<th width="3%" nowrap>순서</th>
+			<th width="5%" nowrap>세부종목</th>
+			<th width="6%">관리</th>
+		</tr>
+		<?
+
+		//LIMIT절 생성
+		if(!$page) $page=1;
+		$offset = ($page - 1) * $max_record;
+		$limit = $max_record;
+
+		//ORDER BY절 생성
+		if(!$orderby) $orderby = " gam_type ASC, isuse asc, orderby asc";
+		else $orderby = $orderby." ".$desc;
+
+		//WHERE절 생성 //
+		$where = " WHERE gam_uid = '$gam_uid'";
+		//삭제데이터까지 출력
+		if(!$s_isuse) $where .= " AND isuse = '0' ";
+
+
+		if(eregi("[^[:space:]]+",$key))
+			$Q_key = " AND  $keyfield LIKE '%$key%' ";
+		$where .= $Q_key;
+		// 레코드 쿼리 //
+		$query = "SELECT *
+				   FROM wp_sports_event
+				 $where ORDER BY $orderby $desc LIMIT $offset, $limit";
+		$result = mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord("wp_sports_event", $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result))
+		{
+			if($obj->isuse == "1"){
+				$bgcolor = "bgcolor='#e7944a' ";
+			}else $bgcolor = "";
+
+			// 문자열 원상복귀 //
+			$method = stripslashes($obj->method);
+			$detail = stripslashes($obj->detail);
+			// HTML 적용 //
+			$method = Html_Change($method);
+			$detail = Html_Change($detail);
+
+			$method = Cut_Han($method, "56");
+			$detail = Cut_Han($detail, "56");
+		?>
+		<tr <?=$bgcolor?>>
+			<td align="center"><?=$article_num?></td>
+			<td align="center"><?=$wp_gam_type_code[$obj->gam_type]?></td>
+			<td align="center"><?=$wp_gam_kind_code[$obj->gam_kind]?></td>
+			<td align="center"><a href="./index.html?<?=$basic_get.$add_get?>&mode=modify&uid=<?=$obj->uid?>"><?=$obj->name?></a></td>
+			<td><a href="./index.html?<?=$basic_get.$add_get?>&mode=modify&uid=<?=$obj->uid?>"><?=$obj->code?></a></td>
+			<td align="left" title="<?=$obj->method?>"><?=$method?></td>
+			<td align="left" title="<?=$obj->detail?>"><?=$detail?></td>
+			<td align="center"><?=$obj->orderby?></td>
+			<td align="center"><a href="../wp_sports_detail/index.html?mode=input&spo_code=<?=$obj->code?>"><img src="../wp_button/s_submit.gif" alt="세부종목등록"></a>&nbsp;&nbsp;</td>
+			<td align="center">
+				<a href="./index.html?<?=$basic_get.$add_get?>&mode=modify&uid=<?=$obj->uid?>"><img src="../wp_button/s_modify.gif"></a>&nbsp;
+				<a href="./delete.php?<?=$basic_get.$add_get?>&mode=list&uid=<?=$obj->uid?>&spo_code=<?=$obj->code?>" onClick="return confirm('세부종목까지 삭제 됩니다. 정말 삭제하시겠습니까?')"><img src="../wp_button/s_delete.gif"></a>
+			</td>
+		</tr>
+		<?
+			$article_num--;
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<!--페이지 번호설정 -->
+		<? require_once "../wp_object/page_move.html";?>
+		<!--페이지 번호설정 -->
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="button" name="input" value="입력하기" class="btnBox3" onclick="location.href='./index.html?<?=$basic_get.$add_get?>&mode=input'">
+				<a href="#none" onclick="location.href='./index.html'"><img src="../wp_button/list.gif"></a>
+				<input type="button" name="send" value="세부종목으로" class="btn_send" onclick="location.href='../wp_sports_detail/index.html'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>

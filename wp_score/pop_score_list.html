@@ -1,0 +1,174 @@
+<?
+	require_once "../wp_object/head_pop.html";
+?>
+<script type="text/javascript">
+window.resizeTo(700,600);
+</script>
+<p style="margin-top:20px; text-align:center;font-weight:bold;font-size:20px;"><?=$wp_club_code[$clu_code]?> <?=$wp_sports_code[$spo_code]?> 득점현황</p>
+<p>※해당 데이터를 엑셀로 출력하실려면 다음 버튼을 클릭하세요. <input type="button" name="prt_excel" value="엑셀출력" class="btnBox3" onclick="location.href='excel_pop_score.html?sc_gam_uid=<?=$sc_gam_uid?>&clu_code=<?=$clu_code?>&spo_code=<?=$spo_code?>';" /></p>
+<table class="tbList-a">
+<table class="tbList-a">
+<tr>
+	<th width="15%">경기번호</th>
+	<th>경기</th>
+	<th width="10%">시군</th>
+	<th width="10%">선수명</th>
+	<th width="10%">순위</th>
+	<th width="10%">기록</th>
+	<th width="10%">득점</th>
+	<th width="10%">메달점수</th>
+	<th width="10%">총합</th>
+</tr>
+<?
+	$where = " WHERE gam_uid = '$sc_gam_uid'";
+	if($clu_code) $where .= " AND clu_code = '$clu_code' ";
+	if($spo_code) $where .= " AND spo_code = '$spo_code' ";
+	$que = "SELECT *, (SELECT game_name FROM wp_game_serial WHERE gam_uid = a.gam_uid AND game_code = a.game_code) game_name FROM wp_score a $where ORDER BY game_code ASC, score DESC ";
+	//echo $que;
+	$res = mysql_query($que);
+	$total_score = 0;
+	$before_gamecode = "";
+
+
+
+
+	while($obj = mysql_fetch_object($res))
+	{
+		unset($tr_bg);
+		if(!$clu_code && $before_gamecode != $obj->game_code)
+		{
+			$tr_bg = " style='border-top:2px solid red'";
+		}
+
+
+
+		// 기록점수를 검색한다. 
+		if(in_array($obj->spo_code,$wp_score_game)) //기록경기이면
+		{
+			$re_que = "SELECT * FROM wp_game_record WHERE gam_uid = '$sc_gam_uid' AND game_code = '$obj->game_code' AND id = '$obj->pla_id' AND rank_tot = '$obj->rank'";
+		}
+		else
+		{
+			if($obj->game_kind == "1") //개인전이면
+			{	
+				$re_que = "SELECT * FROM wp_game_record WHERE gam_uid = '$sc_gam_uid' AND game_code = '$obj->game_code' AND id = '$obj->pla_id' AND rank_tot = '$obj->rank'";
+			}
+			else if($obj->game_kind == "2") //단체전
+			{	
+				if(in_array($obj->spo_code,$wp_tot_game)) // 토너먼트경기이면
+				{
+					$re_que = "SELECT game_code, game_kind, rank_tot, record_tot FROM wp_game_record WHERE gam_uid = '$sc_gam_uid' AND game_code = '$obj->game_code' AND rank_tot = '$obj->rank' GROUP BY clu_code";
+				}
+				else
+				{
+					$re_que = "SELECT game_code, game_kind, rank_tot, sum(record_tot) record_tot FROM wp_game_record WHERE gam_uid = '$sc_gam_uid' AND game_code = '$obj->game_code' AND rank_tot = '$obj->rank' GROUP BY clu_code";
+				}
+			}
+			else if($obj->game_kind == "3") //시/군대항전
+			{	
+				unset($r_where);
+				if($obj->rank <= 4) $r_where  = " AND rank_tot = '$obj->rank' ";
+				if($obj->spo_code == "FOOTSAL" || $obj->spo_code == "BADUK")
+				{
+					$re_que = "SELECT  game_code, game_kind, rank_tot, record_01 as record_tot FROM wp_game_record WHERE gam_uid = '$sc_gam_uid' AND game_code = '$obj->game_code' AND clu_code = '$obj->clu_code' $r_where";
+				}
+				else
+				{
+					$re_que = "SELECT  * FROM wp_game_record WHERE gam_uid = '$sc_gam_uid' AND game_code = '$obj->game_code' AND clu_code = '$obj->clu_code' $r_where";
+				}
+
+			}
+		}
+	
+
+
+		$re_res = mysql_query($re_que);
+		$re_obj = mysql_fetch_object($re_res);
+	
+
+		// 경기 기록  //
+		if(in_array($re_obj->spo_code,$wp_tot_game) && in_array($re_obj->spo_code,$wp_real_game)) // 토너먼트경기이면
+		{
+			$my_tot_result = $re_obj->record_tot;
+		}
+		else if(in_array($re_obj->spo_code,$wp_score_game)) //기록경기이면
+		{
+			if($re_obj->spo_code == "POWERLIFTING")
+			{
+				$my_tot_result = $re_obj->record_tot."kg";
+			}
+			else if($re_obj->spo_code == "ATHIETICS" || $re_obj->spo_code == "ROWING" || $re_obj->spo_code == "SWIMMING")
+			{
+				if($re_obj->spo_sec_code == "AS200")
+				{
+					$my_tot_result = $re_obj->record_best;
+				}
+				else
+				{
+					// 초를 시:분:초로 환산 //
+					$my_time = explode(".", $re_obj->record_tot);
+					$my_minute = getTimeFromSeconds($my_time[0]);
+					$my_tot_result = $my_minute.".".$my_time[1]."초";
+					//$my_tot_result = $obj->record_tot."초";
+				}
+			}
+			else
+			{
+				$my_tot_result = $re_obj->record_tot."점";
+			}
+		}
+		else
+		{
+			$my_tot_result = $re_obj->record_tot."점";
+		}
+
+		echo "<tr $tr_bg>";
+
+		// 경기번호
+		echo "<td align='center'>$obj->game_code</td>";
+
+		// 경기
+		echo "<td align='center'>$obj->game_name</td>";
+
+		// 선수명
+		if($obj->game_kind == "3") // 시/군대항전이면
+		{
+			echo "<td align='center'>".$wp_club_code[$obj->clu_code]."</td>";
+			echo "<td></td>";
+		}
+		else
+		{
+			echo "<td align='center'>".$wp_club_code[$obj->clu_code]."</td>";
+			echo "<td align='center'>$obj->pla_name</td>";
+		}
+
+
+		// 순위
+		echo "<td align='center'>$obj->rank</td>";
+
+		// 기록
+		echo "<td align='center'>$my_tot_result</td>";
+
+		// 득점
+		echo "<td align='center'>".number_format($obj->score)."</td>";
+
+		// 메달점수
+		echo "<td align='center'>".number_format($obj->medal_score)."</td>";
+
+		// 총합
+		echo "<td align='center'>".number_format($obj->medal_score + $obj->score)."</td>";
+
+		echo "</tr>";
+
+		$total_score += $obj->score;
+
+		$before_gamecode = $obj->game_code;
+	}
+?>
+<tr style="border-top:2px solid #111111">
+	<th colspan="6">총점</th>
+	<th><?=number_format($total_score)?></th>
+</tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,42 @@
+
+					<!-- 내용 출력 시작-->
+						<?
+						//다음 정렬순서값을 구한다.
+						$query = "SELECT * FROM wp_club_ctrl where wp_id='$Site_Admin'";
+
+						$result = mysql_query($query);
+						if (!$result) {
+						   	Error("QUERY_ERROR");
+						}
+						$obj = mysql_fetch_object($result);
+						?>
+
+						<form name="sForm" action="modify_club.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+						<table class="tbInput-a">
+						<tbody>
+						<tr>
+							<th>최종승인</th>
+							<td>
+								<?
+								foreach($wp_yorn_code as $key_f => $val_f)
+								{
+									echo "<input type='radio' name='agree' value='$key_f' hname='최종승인 여부' required> $val_f";
+								}
+								?>
+							</td>
+						</tr>
+						<tr>
+							<th>메&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;모</th>
+							<td colspan="3"><textarea name="comment" class="input" cols="80" rows="7" tabindex="7"> <?=$obj->comment?></textarea></td>
+						</tr>
+						</tbody>
+						</table>
+						<table class="tbButton-a">
+						<tr>
+							<td>
+								<input type="image" src="../wp_button/b_edit.gif" title="수정">
+							</td>
+						</tr>
+						</table>
+						</form>
+					<!-- 내용 출력 끝 -->

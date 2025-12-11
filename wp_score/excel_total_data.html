@@ -1,0 +1,479 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=성적현황.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+?>
+<body>
+<p style="font-size:15px; font-weight:bold;"><?=$wp_games[$gam_uid]?> 성적현황</p>
+<table border=1>
+<tbody>
+<tr>
+			<th rowspan="3">총순위</th>
+			<th rowspan="3">시/군</th>
+			<th colspan="4" rowspan="2">메달현황</th>
+			<th rowspan="3">종합득점</th>
+			<th rowspan="3">경기득점</th>
+			<th rowspan="3">메달득점</th>
+			<th rowspan="3">전년도득점</th>
+			<th rowspan="3">증감률</th>
+			<th rowspan="3">참가점수</th>
+			<th colspan="<?=count($wp_real_game)*5?>">정식종목</th>
+			<th colspan="<?=count($wp_life_game)*5?>">시범종목</th>
+			<!-- <th colspan="<?=count($wp_exp_game)*5?>">체험종목</th>  -->
+		</tr>
+		<tr>
+			<?
+			foreach($wp_real_game as $keys => $vals)
+			{
+				echo "<th colspan='5'>$vals</th>";
+			}
+			foreach($wp_life_game as $keys => $vals)
+			{
+				echo "<th colspan='5'>$vals</th>";
+			}
+			foreach($wp_exp_game as $keys => $vals)
+			{
+				echo "<th colspan='5'>$vals</th>";
+			}
+			?>
+		</tr>
+		<tr>
+			<th>금</th>
+			<th>은</th>
+			<th>동</th>
+			<th>계</th>
+			<?
+			for($i= 1; $i <= count($wp_real_game); $i++)
+			{
+				echo "<th>금</th>";
+				echo "<th>은</th>";
+				echo "<th>동</th>";
+				echo "<th>계</th>";
+				echo "<th style='background:#FFC000'>득점</th>";
+			}
+			for($i= 1; $i <= count($wp_life_game); $i++)
+			{
+				echo "<th>금</th>";
+				echo "<th>은</th>";
+				echo "<th>동</th>";
+				echo "<th>계</th>";
+				echo "<th style='background:#FFC000'>득점</th>";
+			}
+			for($i= 1; $i <= count($wp_exp_game); $i++)
+			{
+				echo "<th>금</th>";
+				echo "<th>은</th>";
+				echo "<th>동</th>";
+				echo "<th>계</th>";
+				echo "<th style='background:#FFC000'>득점</th>";
+			}
+			?>
+		</tr>
+		<?
+
+		// 참가자 점수 검색
+		$player_score = array();
+		$total_player_score = 0;
+		$pla_que = "SELECT clu_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' AND spo_code = '참가점수' GROUP BY clu_code";
+		$pla_res = mysql_query($pla_que);
+		while($pla_obj = mysql_fetch_object($pla_res))
+		{
+			$player_score[$pla_obj->clu_code] = $pla_obj->score;
+			$total_player_score += $pla_obj->score;
+		}
+
+		// 전년도 경기 득점 검색
+		//$b_rank_que = "SELECT clu_code, sum(score) score FROM wp_score WHERE gam_uid = '$before_gam_uid' GROUP BY clu_code ORDER BY sum(score) //desc ";
+
+		$b_rank_que = "SELECT clu_code, sum(CASE WHEN medal_score THEN  score + medal_score ELSE score END) score FROM wp_score WHERE gam_uid = '$before_gam_uid' GROUP BY clu_code ORDER BY sum(score) desc ";
+
+
+		$b_rank_res = mysql_query($b_rank_que);
+		$b_rank_city = array();
+		while($b_rank_obj = mysql_fetch_object($b_rank_res))
+		{
+			$b_rank_city[$b_rank_obj->clu_code] = $b_rank_obj->score;
+		}
+
+		// 시/군의 총득점 순위 검색 - 경기성적들어 오면 
+		$rank_que = "SELECT clu_code, sum(score) score, sum(medal_score) medal_score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY clu_code ORDER BY sum(score) + sum(medal_score) desc ";
+
+		//$rank_que = "SELECT clu_code, sum(score) score, sum(medal_score) medal_score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY clu_code //ORDER BY sum(score) desc ";
+
+
+		$rank_res = mysql_query($rank_que);
+
+		$rank_city = array();
+		$medal_city = array(); //2017_05_09
+		while($rank_obj = mysql_fetch_object($rank_res))
+		{
+			$rank_city[$rank_obj->clu_code] = $rank_obj->score;
+			$medal_city[$rank_obj->clu_code] = $rank_obj->medal_score; //2017_05_09
+		
+		}
+
+
+		$rank = 1;
+		$gold_sum = 0; // 금메달 합계
+		$silver_sum = 0;  //은메달합계
+		$bronze_sum = 0; // 동메달합계
+		$total_sum = 0; // 총계
+		foreach($rank_city as $keys => $vals)
+		{
+			$score_que = "SELECT clu_code,spo_code, sum(score) score, sum(medal_score) medal_score FROM wp_score WHERE gam_uid = '$s_gam_uid' AND clu_code = '$keys' GROUP BY clu_code, spo_code";
+			$score_res = mysql_query($score_que);
+			$city_score = array();
+			while($score_obj = mysql_fetch_object($score_res))
+			{
+				$city_score[$score_obj->spo_code] = $score_obj->score;
+			}
+
+
+			// 해당년도 시/군의 매달 집계 검색
+			$g_where = "WHERE gam_uid = '$s_gam_uid' AND clu_code = '$keys' ";
+
+			// 리스트쿼리 //
+			$g_que = "SELECT sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $g_where GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+			$g_res = mysql_query($g_que);
+			$g_obj = mysql_fetch_object($g_res);
+
+			$total_medal = $g_obj->gold + $g_obj->silver + $g_obj->bronze;
+			$gold_sum += $g_obj->gold;
+			$silver_sum += $g_obj->silver;
+			$bronze_sum += $g_obj->bronze;
+			$total_sum += $total_medal;
+
+         // 메달점수 Display 2017.05.08 ***********************************************/
+
+			$medal_all_score += $medal_city[$keys];
+
+         // END메달점수 Display 2017.05.08 ***********************************************/
+
+			// 전년도 메달 집계 검색
+			$b_g_where = "WHERE gam_uid = '$before_gam_uid' AND clu_code = '$keys' ";
+
+			// 리스트쿼리 //
+			$b_g_que = "SELECT sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $b_g_where GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+			$b_g_res = mysql_query($b_g_que);
+			$b_g_obj = mysql_fetch_object($b_g_res);
+
+			$b_total_medal = $b_g_obj->gold + $b_g_obj->silver + $b_g_obj->bronze;
+			$b_gold_sum += $b_g_obj->gold;
+			$b_silver_sum += $b_g_obj->silver;
+			$b_bronze_sum += $b_g_obj->bronze;
+			$b_total_sum += $b_total_medal;
+
+
+			echo "<tr onmouseover=\"this.style.background='#e7e7e7'\" onmouseout=\"this.style.background='#ffffff'\">";
+
+			// 총순위
+			echo "<td align='center'>$rank</td>";
+
+			// 시/군
+			echo "<td align='center'>".$wp_club_code[$keys]."</td>";
+
+			// 금
+			echo "<td align='center'>$g_obj->gold</td>";
+
+			// 은
+			echo "<td align='center'>$g_obj->silver</td>";
+
+			// 동
+			echo "<td align='center'>$g_obj->bronze</td>";
+
+			// 계
+			echo "<td align='center'>$total_medal</td>";
+
+			// 총합득점
+
+			$t_vals = $vals + $medal_city[$keys];
+
+
+			unset($updown); 
+            $b_hap = number_format($t_vals - $b_rank_city[$keys]);
+			if($t_vals > $b_rank_city[$keys]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($t_vals < $b_rank_city[$keys] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			else if($vals == $b_rank_city[$keys]) $updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+
+			
+			//$t_vals = $vals + $medal_city[$keys];
+
+			echo "<td align='center'>".number_format($t_vals)." </td>"; //종합득점
+			echo "<td align='center'>".number_format($vals)." </td>"; //경기득점
+			echo "<td align='center'>".number_format($medal_city[$keys])." </td>"; //메달득점
+			echo "<td align='center' style='background:#ECE9D7'>$updown ".number_format($b_rank_city[$keys])."</td>";
+			echo "<td align='center' style='background:#ECE9D7'>$b_hap</td>";
+
+			// 참가자 점수
+			echo "<td align='center'>".number_format($player_score[$keys])." </td>";
+
+
+			// 해당 시군의 종목별 금/은/동 개수
+			$sg_que = "SELECT spo_code, sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal WHERE gam_uid='$s_gam_uid' AND clu_code='$keys' GROUP BY spo_code ORDER BY gold DESC, silver DESC, bronze DESC";
+			//echo "<br>".$sg_que;
+			$sg_res = mysql_query($sg_que);
+			$city_gold_arr = array();
+			while($sg_obj = mysql_fetch_object($sg_res))
+			{
+				$_tmp[gold] = $sg_obj->gold;
+				$_tmp[silver] = $sg_obj->silver;
+				$_tmp[bronze] = $sg_obj->bronze;
+				$_tmp[total] = $sg_obj->gold + $sg_obj->silver + $sg_obj->bronze;
+				$city_gold_arr[$sg_obj->spo_code] = $_tmp;
+			}
+
+			foreach($wp_real_game as $skeys => $svals)
+			{
+				$spo_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid='$s_gam_uid' AND clu_code = '$keys' GROUP BY spo_code";
+				$spo_res = mysql_query($spo_que);
+				$sports_score = array();
+				while($spo_obj = mysql_fetch_object($spo_res))
+				{
+					$sports_score[$spo_obj->spo_code] = $spo_obj->score;
+				}
+
+				$city_gold = $city_gold_arr[$skeys];
+
+				// 금
+				echo "<td align='center'>$city_gold[gold]</td>";
+
+				// 은
+				echo "<td align='center'>$city_gold[silver]</td>";
+
+				// 동
+				echo "<td align='center'>$city_gold[bronze]</td>";
+
+				// 계
+				echo "<td align='center'>$city_gold[total]</td>";
+
+				// 득점
+				echo "<td align='center' style='background:#FFC000'>".number_format($sports_score[$skeys])." </td>";
+			}
+
+			foreach($wp_life_game as $skeys => $svals)
+			{
+				$spo_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid='$s_gam_uid' AND clu_code = '$keys' GROUP BY spo_code";
+				$spo_res = mysql_query($spo_que);
+				$sports_score = array();
+				while($spo_obj = mysql_fetch_object($spo_res))
+				{
+					$sports_score[$spo_obj->spo_code] = $spo_obj->score;
+				}
+
+				$city_gold = $city_gold_arr[$skeys];
+
+				// 금
+				echo "<td align='center'>$city_gold[gold]</td>";
+
+				// 은
+				echo "<td align='center'>$city_gold[silver]</td>";
+
+				// 동
+				echo "<td align='center'>$city_gold[bronze]</td>";
+
+				// 계
+				echo "<td align='center'>$city_gold[total]</td>";
+
+				// 득점
+				echo "<td align='center' style='background:#FFC000'>".number_format($sports_score[$skeys])." </td>";
+			}
+
+			foreach($wp_exp_game as $skeys => $svals)
+			{
+				$spo_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid='$s_gam_uid' AND clu_code = '$keys' GROUP BY spo_code";
+				$spo_res = mysql_query($spo_que);
+				$sports_score = array();
+				while($spo_obj = mysql_fetch_object($spo_res))
+				{
+					$sports_score[$spo_obj->spo_code] = $spo_obj->score;
+				}
+
+				$city_gold = $city_gold_arr[$skeys];
+
+				// 금
+				echo "<td align='center'>$city_gold[gold]</td>";
+
+				// 은
+				echo "<td align='center'>$city_gold[silver]</td>";
+
+				// 동
+				echo "<td align='center'>$city_gold[bronze]</td>";
+
+				// 계
+				echo "<td align='center'>$city_gold[total]</td>";
+
+				// 득점
+				echo "<td align='center' style='background:#FFC000'>".number_format($sports_score[$skeys])." </td>";
+			}
+
+			echo "</tr>";
+
+			$rank++;
+		}
+
+
+		// 당해년도 종합점수
+		$tot_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY spo_code ";
+		$tot_res = mysql_query($tot_que);
+		$total_score = array();
+		$all_score = 0; // 총점수
+		while($tot_obj = mysql_fetch_object($tot_res))
+		{
+			$total_score[$tot_obj->spo_code] = $tot_obj->score;
+			$all_score += $tot_obj->score;
+		}
+
+		//전년도 합계점수
+		$b_tot_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid = '$before_gam_uid' GROUP BY spo_code ";
+		$b_tot_res = mysql_query($b_tot_que);
+		$b_total_score = array();
+		$b_all_score = 0; // 총점수
+		while($b_tot_obj = mysql_fetch_object($b_tot_res))
+		{
+			$b_total_score[$b_tot_obj->spo_code] = $b_tot_obj->score;
+			$b_all_score += $b_tot_obj->score;
+		}
+
+/** 하단 총계 ***************************************************************************************** */
+		echo "<tr><th colspan='2'>총계</th>";
+
+        //22개 시군 전체메달수
+		echo "<th>".number_format($gold_sum)." </th>";
+		echo "<th>".number_format($silver_sum)." </th>";
+		echo "<th>".number_format($bronze_sum)." </th>";
+		echo "<th>".number_format($total_sum)." </th>";
+
+
+		// 종합득점
+		unset($updown);
+	
+		if($all_score > $b_all_score) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+		else if($all_score < $b_all_score ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+		else if($all_score == $b_all_score) $updown = "<span style='font-size:15px; font-weight:bold'>=</span>";
+
+		$all_total_score = $all_score + $medal_all_score;
+
+		echo "<th>".number_format($all_total_score)." </th>"; //총득점 총계 
+		echo "<th>$updown ".number_format($all_score)." </th>"; //경기득점 총계
+		echo "<th>".number_format($medal_all_score)." </th>"; //메달점수 추가 2017.05.08
+		echo "<th>".number_format($b_all_score)." </th>";
+		echo "<th></th>";
+		// 참가자 총점수
+		echo "<th>".number_format($total_player_score)." </th>";
+
+
+		// 종목별 금/은/동 총개수
+		$sg_que = "SELECT spo_code, sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal WHERE gam_uid='$s_gam_uid' GROUP BY spo_code ORDER BY gold DESC, silver DESC, bronze DESC";
+		$sg_res = mysql_query($sg_que);
+		$t_city_gold_arr = array();
+		while($sg_obj = mysql_fetch_object($sg_res))
+		{
+			$_tmp[gold] = $sg_obj->gold;
+			$_tmp[silver] = $sg_obj->silver;
+			$_tmp[bronze] = $sg_obj->bronze;
+			$_tmp[total] = $sg_obj->gold + $sg_obj->silver + $sg_obj->bronze;
+			$t_city_gold_arr[$sg_obj->spo_code] = $_tmp;
+		}
+
+		foreach($wp_real_game as $skeys => $svals)
+		{
+			$spo_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid='$s_gam_uid' AND spo_code = '$skeys'";
+			$spo_res = mysql_query($spo_que);
+			$sports_score = array();
+			while($spo_obj = mysql_fetch_object($spo_res))
+			{
+				$sports_score[$spo_obj->spo_code] = $spo_obj->score;
+			}
+
+			$city_gold = $t_city_gold_arr[$skeys];
+
+			// 금
+			echo "<td align='center'>$city_gold[gold]</td>";
+
+			// 은
+			echo "<td align='center'>$city_gold[silver]</td>";
+
+			// 동
+			echo "<td align='center'>$city_gold[bronze]</td>";
+
+			// 계
+			echo "<td align='center'>$city_gold[total]</td>";
+
+			// 득점
+			echo "<td align='center' style='background:#FFC000'>".number_format($sports_score[$skeys])." </td>";
+		}
+
+		foreach($wp_life_game as $skeys => $svals)
+		{
+			$spo_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid='$s_gam_uid' AND spo_code = '$skeys'";
+			$spo_res = mysql_query($spo_que);
+			$sports_score = array();
+			while($spo_obj = mysql_fetch_object($spo_res))
+			{
+				$sports_score[$spo_obj->spo_code] = $spo_obj->score;
+			}
+
+			$city_gold = $t_city_gold_arr[$skeys];
+
+			// 금
+			echo "<td align='center'>$city_gold[gold]</td>";
+
+			// 은
+			echo "<td align='center'>$city_gold[silver]</td>";
+
+			// 동
+			echo "<td align='center'>$city_gold[bronze]</td>";
+
+			// 계
+			echo "<td align='center'>$city_gold[total]</td>";
+
+			// 득점
+			echo "<td align='center' style='background:#FFC000'>".number_format($sports_score[$skeys])." </td>";
+		}
+
+		foreach($wp_exp_game as $skeys => $svals)
+		{
+			$spo_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid='$s_gam_uid' AND spo_code = '$skeys'";
+			$spo_res = mysql_query($spo_que);
+			$sports_score = array();
+			while($spo_obj = mysql_fetch_object($spo_res))
+			{
+				$sports_score[$spo_obj->spo_code] = $spo_obj->score;
+			}
+
+			$city_gold = $t_city_gold_arr[$skeys];
+
+			// 금
+			echo "<td align='center'>$city_gold[gold]</td>";
+
+			// 은
+			echo "<td align='center'>$city_gold[silver]</td>";
+
+			// 동
+			echo "<td align='center'>$city_gold[bronze]</td>";
+
+			// 계
+			echo "<td align='center'>$city_gold[total]</td>";
+
+			// 득점
+			echo "<td align='center' style='background:#FFC000'>".number_format($sports_score[$skeys])." </td>";
+		}
+		?>
+		</tr>
+
+</table>
+</body>

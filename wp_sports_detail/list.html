@@ -1,0 +1,154 @@
+<?
+//LIMIT절 생성
+if(!$page) $page=1;
+$offset = ($page - 1) * $max_record;
+$limit = $max_record;
+
+//ORDER BY절 생성
+if(!$orderby) $orderby = " isuse asc, spo_code asc, code asc, sex asc,code_detail asc,orderby asc ";
+else $orderby = $orderby." ".$desc;
+
+//WHERE절 생성 //
+$where = " WHERE gam_uid='$gam_uid' ";
+//삭제데이터까지 출력
+if(!$s_isuse) $where .= " AND isuse = '0' ";
+
+//스포츠종목코드가
+if($spo_code) $where .= " AND spo_code = '$spo_code' ";
+
+if(eregi("[^[:space:]]+",$key))
+	$Q_key = " AND  $keyfield LIKE '%$key%' ";
+$where .= $Q_key;
+
+
+// 레코드 쿼리 //
+$query = "SELECT *
+		   FROM wp_sports_event_detail
+		 $where ORDER BY $orderby  LIMIT $offset, $limit";
+$result = mysql_query($query);
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+
+?>
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li> 1. 설명</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<form name="schForm" action="index.html?mode=list" method="post">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th width="15%">검색조건</th>
+					<td align="left" colspan="3">
+						<select name="spo_code">
+							<option value=''>-경기종목-</option>
+							<?
+							foreach($wp_sports_code as $keys => $values){
+								if($keys == $spo_code)
+									$is_selected = " selected ";
+								else $is_selected = "";
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+							?>
+						</select>
+						<input id="lb" type="checkbox" name="s_isuse" value="1" <? if($s_isuse=="1"){ echo " checked";}?>>미사용데이터포함</label>
+						<input type="submit" name="sch" value="검색하기" tabindex="8" class="btnBox3" onclick="this.form.submit()">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="5%">번호</th>
+			<th width="10%">경기종목</th>
+			<th width="8%">경기구분</th>
+			<th width="15%">2차종목</th>
+			<th width="7%">성별</th>
+			<th >세부종목</th>
+			<th width="10%">참가인원</th>
+			<th width="7%">정렬</th>
+			<th width="5%">수정</th>
+		</tr>
+		<?
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord("wp_sports_event_detail", $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		for($i=0;$i<mysql_num_rows($result);$i++)
+		{
+			$obj = mysql_fetch_array($result, MYSQL_BOTH);
+			if($obj[isuse] == "1"){
+				$bgcolor = "bgcolor='#e7944a' ";
+			}else $bgcolor = "";
+
+		?>
+		<tr <?=$bgcolor?>>
+			<td align="center"><?=$article_num?><br> <?=$obj[uid]?></td>
+			<td align="center"><?=$wp_sports_code[$obj[spo_code]]?></td>
+			<td align="center"><?=$wp_game_kind[$obj[game_kind]]?></td>
+			<td align="center"><?=$obj[name]?>(<?=$obj[code]?>)</td>
+			<td align="center"><?=$wp_sex_code[$obj[sex]]?></td>
+			<td align="center"><?=$obj[code_detail_name]?>(<?=$obj[code_detail]?>)</td>
+			<td align="center"><?=$obj[player_cnt]?></td>
+			<td align="center"><?=$obj[orderby]?></td>
+			<td align="center">
+				<a href="./index.html?<?=$basic_get.$add_get?>&mode=modify&uid=<?=$obj[uid]?>"><img src="../wp_button/s_modify.gif"></a>&nbsp;
+				<a href="./delete.php?<?=$basic_get.$add_get?>&mode=list&uid=<?=$obj[uid]?>" onClick="return confirm('정말 삭제하시겠습니까?')"><img src="../wp_button/s_delete.gif"></a>
+			</td>
+		</tr>
+		<?
+			$article_num--;
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+	</form>
+</tr>
+<tr>
+	<td>
+		<? require_once "../wp_object/page_move.html";?>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="button" name="input" value="입력하기" class="btn_send" onclick="location.href='./index.html?<?=$basic_get.$add_get?>&mode=input'">
+				<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='./index.html?<?=$basic_get.$add_get?>&page=&mode=list'">
+				<input type="button" name="input" value="경기종목목록으로" class="btn_send" onclick="location.href='./index.html?mode=list'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>

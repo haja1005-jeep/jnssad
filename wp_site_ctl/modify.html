@@ -1,0 +1,299 @@
+<?
+// 레코드 쿼리 //
+$query = "SELECT uid,t_name, t_name_txt, read_level, write_level,reply_level,delete_level,
+				file,secret,editor,wkind,file_type, cust_type,file_size,modify_level, read_level_s
+				FROM wp_board_ctl WHERE uid='$uid' LIMIT 1";
+$values = $Mysql->ArrayQuery($query);
+
+// 레코드 결과 //
+$my_uid = $values[0];
+$my_t_name = $values[1];
+$my_t_name_txt = $values[2];
+$my_read_level = $values[3];
+$my_write_level = $values[4];
+$my_reply_level = $values[5];
+$my_delete_level = $values[6];
+$my_file = $values[7];
+$my_secret = $values[8];
+$my_editor = $values[9];
+$my_wkind = $values[10];
+$my_file_type = $values[11];
+$my_cust_type = $values[12];
+$my_file_size = $values[13];
+$my_modify_level = $values[14];
+$my_read_level_s = $values[15];
+
+$my_file_size = ($my_file_size / 1000 ) /1024;
+
+?>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<form name="signForm" method="post" enctype="multipart/form-data" action="modify.php?code=<?=$code?>&type=<?=$type?>&uid=<?=$uid?>&page=<?=$page?>&keyfield=<?=$keyfield?>&key=<?=$key?>">
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="5">
+		<tr>
+			<td bgcolor="<?=$tr_color01?>" height="2" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>테 이 블</b></font></td>
+			<td>
+				<input type="text" name="t_name" size="20" maxlength="20" class="input" value="<?=$my_t_name?>">
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>테이블명</b></font></td>
+			<td>
+				<input type="text" name="t_name_txt" size="25" maxlength="25" class="input" value="<?=$my_t_name_txt?>">
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>읽기권한<br><font color="#cc0000">(*비밀글일경우의 권한)</font></b></font></td>
+			<td>
+				<?
+				$is_checked = "";
+				$i_tmp = split(":",$my_read_level_s);
+				foreach($table_level as $a_key=>$value){
+					for($i=0;$i<count($i_tmp);$i++){
+						if($i_tmp[$i]=="") continue;
+						if($a_key == $i_tmp[$i]){
+							$is_checked = " checked";
+							break;
+						} else {
+							$is_checked = "";
+			}
+					}//for
+				?>
+				<label name="lb"><input id="lb" type="checkbox" name="read_level_s[]" value="<?=$a_key?>" <?=$is_checked?>> <?=$value?> </label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>읽기권한</b></font></td>
+			<td>
+				<?
+				$is_checked = "";
+				$i_tmp = split(":",$my_read_level);
+				foreach($table_level as $a_key=>$value){
+					for($i=0;$i<count($i_tmp);$i++){
+						if($i_tmp[$i]=="") continue;
+						if($a_key == $i_tmp[$i]){
+							$is_checked = " checked";
+							break;
+						} else {
+							$is_checked = "";
+			}
+					}//for
+				?>
+				<label name="lb"><input id="lb" type="checkbox" name="read_level[]" value="<?=$a_key?>" <?=$is_checked?>> <?=$value?> </label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>쓰기권한</b></font></td>
+			<td>
+				<?
+				$is_checked = "";
+				$i_tmp = split(":",$my_write_level);
+				foreach($table_level as $a_key=>$value){
+					for($i=0;$i<count($i_tmp);$i++){
+						if($i_tmp[$i]=="") continue;
+						if($a_key == $i_tmp[$i]){
+							$is_checked = " checked";
+							break;
+						} else {
+							$is_checked = "";
+						}
+					}//for
+				?>
+				<label name="lb"><input id="lb" type="checkbox" name="write_level[]" value="<?=$a_key?>" <?=$is_checked?>> <?=$value?> </label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>답변권한</b></font></td>
+			<td>
+				<?
+				$is_checked = "";
+				$i_tmp = split(":",$my_reply_level);
+				foreach($table_level as $a_key=>$value){
+					for($i=0;$i<count($i_tmp);$i++){
+						if($i_tmp[$i]=="") continue;
+						if($a_key == $i_tmp[$i]){
+							$is_checked = " checked";
+							break;
+						} else {
+							$is_checked = "";
+						}
+					}//for
+				?>
+				<label name="lb"><input id="lb" type="checkbox" name="reply_level[]" value="<?=$a_key?>" <?=$is_checked?>> <?=$value?> </label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>삭제권한</b></font></td>
+			<td>
+				<?
+				$is_checked = "";
+				$i_tmp = split(":",$my_delete_level);
+				foreach($table_level as $a_key=>$value){
+					for($i=0;$i<count($i_tmp);$i++){
+						if($i_tmp[$i]=="") continue;
+						if($a_key == $i_tmp[$i]){
+							$is_checked = " checked";
+							break;
+						} else {
+							$is_checked = "";
+						}
+					}//for
+				?>
+				<label name="lb"><input id="lb" type="checkbox" name="delete_level[]" value="<?=$a_key?>" <?=$is_checked?>> <?=$value?> </label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>수정권한</b></font></td>
+			<td>
+				<?
+				$is_checked = "";
+				$i_tmp = split(":",$my_modify_level);
+				foreach($table_level as $a_key=>$value){
+					for($i=0;$i<count($i_tmp);$i++){
+						if($i_tmp[$i]=="") continue;
+						if($a_key == $i_tmp[$i]){
+							$is_checked = " checked";
+							break;
+						} else {
+							$is_checked = "";
+						}
+					}//for
+				?>
+				<label name="lb"><input id="lb" type="checkbox" name="modify_level[]" value="<?=$a_key?>" <?=$is_checked?>> <?=$value?> </label>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>첨부갯수</b></font></td>
+			<td>
+				<input type="text" name="file" size="2" maxlength="1" class="input" value="<?=$my_file?>">
+				 최대 9개까지 가능
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>비밀글</b></font></td>
+			<td>
+				<label name="lb"><input id="lb" type="radio" name="secret" value="yes" <?if($my_secret == "yes"){ echo "checked";}?>>사용 </label>
+				<label name="lb"><input id="lb" type="radio" name="secret" value="no" <?if($my_secret == "no"){ echo "checked";}?>>사용하지 않음 </label>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center" width="12%"><font color="<?=$tr_color05?>"><b>에디터</b></font></td>
+			<td>
+				<label name="lb"><input id="lb" type="radio" name="editor" value="yes" <?if($my_editor == "yes"){ echo "checked";}?>>사용 </label>
+				<label name="lb"><input id="lb" type="radio" name="editor" value="no" <?if($my_editor == "no"){ echo "checked";}?>>사용하지 않음 </label>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>공지권한</b></font></td>
+			<td>
+				<?
+				$is_checked = "";
+				$i_tmp = split(":",$my_wkind);
+				foreach($table_level as $a_key=>$value){
+					for($i=0;$i<count($i_tmp);$i++){
+						if($i_tmp[$i]=="") continue;
+						if($a_key == $i_tmp[$i]){
+							$is_checked = " checked";
+							break;
+						} else {
+							$is_checked = "";
+						}
+					}//for
+				?>
+				<label name="lb"><input id="lb" type="checkbox" name="wkind[]" value="<?=$a_key?>" <?=$is_checked?>> <?=$value?>
+				<?}?>
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>업로드파일타입</b></font></td>
+			<td>
+				<label name="lb"><input id="lb" type="radio" name="file_type" value="normal" <?if($my_file_type == "normal"){ echo "checked";}?>>일반타입 </label>
+				<label name="lb"><input id="lb" type="radio" name="file_type" value="img" <?if($my_file_type == "img"){ echo "checked";}?>>이미지 </label>
+				<label name="lb"><input id="lb" type="radio" name="file_type" value="custom" <?if($my_file_type == "custom"){ echo "checked";}?>>사용자정의 </label>
+
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>사용자정의타입</b></font></td>
+			<td>
+				<input type="text" name="cust_type" size="50" maxlength="100" class="input" value="<?=$my_cust_type?>">
+				<br>*업로드타입이 사용자정의 일경우만 사용, 구분자 [:]로 입력 예) jpg:doc:hwp
+
+			</td>
+		</tr>
+		<tr>
+			<td background="../icon/sdot.gif" height="1" colspan="2"></td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color02?>" align="center"><font color="<?=$tr_color05?>"><b>업로드사이즈</b></font></td>
+			<td>
+				<input type="text" name="file_size" size="3" maxlength="3" class="input" value="<?=$my_file_size?>">
+				예) MByte단위로 입력 2M일경우 [2]를 입력
+
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="<?=$tr_color01?>" height="2" colspan="2"></td>
+		</tr>
+
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="right" height="40">
+		<input type="image" src="../button/modify.gif">
+		<a href="delete.php?code=<?=$code?>&mode=delete&type=<?=$type?>&uid=<?=$my_uid?>&page=<?=$page?>&keyfield=<?=$keyfield?>&key=<?=$key?>" onClick="return confirm('정말삭제하시겠습니까?');"><img src="../button/delete.gif" border="0"></a>
+		<a href="<?=$PHP_SELF?>?code=<?=$code?>&mode=list&type=<?=$type?>&page=<?=$page?>&keyfield=<?=$keyfield?>&key=<?=$key?>"><img src="../button/list.gif" border="0"></a>
+	</td>
+	</form>
+</tr>
+</table>

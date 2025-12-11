@@ -1,0 +1,55 @@
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>
+				</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<form name="sForm" action="score.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th rowspan="3">대회선택</th>
+					<td>
+						<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_games as $keys => $values){
+									if($keys == $s_gam_uid)
+										$is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<select name="spo_code" tabindex="2" hname="경기종목" required">
+						<option value=''>전체</option>
+						<?
+						foreach($wp_sports_code as $keys => $values){
+							if($keys == $spo_code)
+								$is_selected = " selected ";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+						?>
+						</select>
+						<input type="submit" name="sch" value="점수집계하기" class="btnBox3">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+</table>

@@ -1,0 +1,113 @@
+<!-- 내용 출력 시작-->
+<?
+//다음 정렬순서값을 구한다.
+$query = "SELECT max(orderby) + 1 as orderby FROM wp_sports_event_detail WHERE spo_code = '$spo_code'";
+
+$result = mysql_query($query);
+if (!$result) {
+   	Error("QUERY_ERROR");
+}
+$obj = mysql_fetch_array($result);
+$n_order = is_null($obj[orderby]) ? 1 : $obj[orderby];
+
+?>
+<form name="sForm" action="input.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li> 1. 2차 종목은 하나의 경기가 세부 경기로 나뉠 경우 입력한다. 예) 육상은 트랙과 필드 두 경기로 이루어지므로 2차 종목이 필드와 트랙이 된다. 볼링의 경우는 1차 종목만 있으므로 1차 종목과 동일하게 입력한다.</li>
+				<li> 2. 세부종목은 2차 종목의 세부종목을 입력한다. 예) 육상의 트랙은 100M,200M로 이루어 지므로 각각의 세부종목을 등록하여 준다.</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbInput-a">
+		<tbody>
+		<tr>
+			<th>경기종목</th>
+			<td>
+				<select name="spo_code" tabindex="1">
+					<?
+					foreach($wp_sports_code as $keys => $values){
+						if($keys == $spo_code)
+							$is_selected = " selected ";
+						else $is_selected = "";
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>경기구분</th>
+			<td>
+				<?
+				foreach($wp_game_kind as $keys => $values){
+					echo "<input type='radio' name='game_kind' value='$keys' hname='경기구분' >$values ";
+				}
+				?>
+			</td>
+		</tr>
+		<tr>
+			<th>2차종목코드</th>
+			<td><input type="text" name="code" class="input" size="20" maxlength="10" tabindex="2"  hname="경기종목하위코드" required style="ime-mode:disabled" onkeypress="Input_Eng_Num()">*영문과숫자로만 입력가능 </td>
+		</tr>
+		<tr>
+			<th>2차종목명</th>
+			<td><input type="text" name="name" class="input" size="20" maxlength="10" tabindex="3"></td>
+		</tr>
+		<tr>
+			<th>성별</th>
+			<td>
+				<label name="lb"><input id="lb" type="radio" name="sex" value="male" checked tabindex="4">남자</label>
+				<label name="lb"><input id="lb" type="radio" name="sex" value="female" tabindex="4">여자</label>
+				<label name="lb"><input id="lb" type="radio" name="sex" value="both" tabindex="4">혼성</label>
+				<!--<label name="lb"><input id="lb" type="radio" name="sex" value="both_m" tabindex="4">혼성 남</label>
+				<label name="lb"><input id="lb" type="radio" name="sex" value="both_f" tabindex="4">혼성 여</label>-->
+				<label name="lb"><input id="lb" type="radio" name="sex" value="none" tabindex="4">무관</label>
+			</td>
+		</tr>
+		<tr>
+			<th>세부종목코드</th>
+			<td><input type="text" name="code_detail" class="input" size="20" maxlength="10" tabindex="5" hname="세부종목코드" required style="ime-mode:disabled" onkeypress="Input_Eng_Num()">*영문과숫자로만입력가능</td>
+		</tr>
+		<tr>
+			<th>세부종목명</th>
+			<td><input type="text" name="code_detail_name" class="input" size="20" maxlength="20" tabindex="6"></td>
+		</tr>
+		<tr>
+			<th>경기참가인원</th>
+			<td><input type="text" name="player_cnt" class="input" size="3" maxlength="3" tabindex="5" value="1" hname="경기참가인원" required style="ime-mode:disabled" onkeypress="Num_Check()">*경기에 참가하는 인원을 입력합니다. 필수입력. 단체전일경우에는 단체전인원수를 입력.</td>
+		</tr>
+		<tr>
+			<th>기타사항</th>
+			<td><textarea name="bigo" class="input" cols="80" rows="10" tabindex="7"></textarea></td>
+		</tr>
+		<tr>
+			<th>정렬순서</th>
+			<td colspan="3"><input type="text" class="input" name="orderby" size="3" maxlength="3"  value="<?=$n_order?>" style="text-align:right" style="ime-mode:disabled" onKeypress="Num_Check()" tabindex="8"></td>
+		</tr>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="submit" name="send" value="입력하기" class="btn_send" tabindex="8">
+				<input type="button" name="send" value="목록으로" class="btn_send" tabindex="8" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>
+<!-- 내용 출력 끝 -->

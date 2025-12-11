@@ -1,0 +1,77 @@
+
+					<!-- 내용 출력 시작-->
+						<?
+						//다음 정렬순서값을 구한다.
+						$query = "SELECT max(orderby) + 1 as orderby FROM wp_sports_trouble ";
+
+						$result = mysql_query($query);
+						if (!$result) {
+						   	Error("QUERY_ERROR");
+						}
+						$obj = mysql_fetch_array($result);
+						$n_order = is_null($obj[orderby]) ? 1 : $obj[orderby];
+
+						?>
+						<form name="sForm" action="input.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+						<table class="tbInput-a">
+						<tbody>
+						<tr>
+							<th>경기종목</th>
+							<td>
+								<select name="spo_code" hname="경기종목">
+									<?
+									foreach($wp_sports_code as $keys => $values){
+										if($keys == $spo_code)
+											$is_selected = " selected ";
+										else $is_selected = "";
+										echo "<option value='$keys' $is_selected>$values</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>장애종류</th>
+							<td>
+								<select name="code" hname="장애종류" tabindex="1">
+									<?
+									foreach($wp_trouble_code as $keys => $values){
+										if($keys == $code)
+											$is_selected = " selected ";
+										else $is_selected = "";
+										echo "<option value='$keys' $is_selected >$values</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>스포츠등급코드</th>
+							<td><input type="text" name="level_code" class="input" hname="스포츠등급" size="20" required maxlength="50" tabindex="2" style="ime-mode:disabled"></td>
+						</tr>
+						<tr>
+							<th>스포츠등급명</th>
+							<td><input type="text" name="level_name" class="input" hname="스포츠등급명" size="20" required maxlength="10" tabindex="3"></td>
+						</tr>
+						<tr>
+							<th>비&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;고</th>
+							<td colspan="3"><input type="text" name="bigo" class="input" hname="비고" size="30" maxlength="25" tabindex="4"></td>
+						</tr>
+						<tr>
+							<th>정렬순서</th>
+							<td colspan="3"><input type="text" name="orderby" class="input" hname="정렬순서" size="3" maxlength="3"  value="<?=$n_order?>" style="text-align:right" style="ime-mode:disabled" onKeypress="Num_Check()" tabindex="5"></td>
+						</tr>
+						</tbody>
+						</table>
+						<table class="tbButton-a">
+						<tr>
+							<td>
+								<input type="submit" name="send" value="입력하기" class="btn_send" tabindex="6">
+								<input type="button" name="send" value="목록으로" class="btn_send" tabindex="6" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'">							</td>
+						</tr>
+						</table>
+						</form>
+
+					</div>
+					<br>
+					<!-- 내용 출력 끝 -->

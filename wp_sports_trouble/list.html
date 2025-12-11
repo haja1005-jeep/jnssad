@@ -1,0 +1,153 @@
+						<?
+
+						//LIMIT절 생성
+						if(!$page) $page=1;
+						$offset = ($page - 1) * $max_record;
+						$limit = $max_record;
+
+						//ORDER BY절 생성
+						if(!$orderby) $orderby = " isuse asc, orderby asc, spo_code asc, code asc, level_code asc";
+						else $orderby = $orderby." ".$desc;
+
+						//WHERE절 생성 //
+						//$where = " WHERE gam_uid = '$gam_uid' ";
+						$where = " WHERE 1 = 1 ";
+						//삭제데이터까지 출력
+						if(!$s_isuse) $where .= " AND isuse = '0' ";
+						//경기종목가있으면
+						if($spo_code) $where .= " AND spo_code = '$spo_code' ";
+						//장애코드가있으면
+						if($tro_code) $where .= " AND code = '$tro_code' ";
+
+						if(eregi("[^[:space:]]+",$key))
+							$Q_key = " AND  $keyfield LIKE '%$key%' ";
+						$where .= $Q_key;
+
+						// 레코드 쿼리 //
+						$query = "SELECT *
+								   FROM wp_sports_trouble
+								 $where ORDER BY $orderby LIMIT $offset, $limit";
+						echo $query;
+						$result = mysql_query($query);
+						if(!$result)
+						{
+							Error("QUERY_ERROR");
+							exit;
+						}
+						?>
+						<form name="schForm" action="index.html?mode=list" method="post">
+						<table class="tbSearch-c">
+						<tr>
+							<th>경기종목</th>
+							<td>
+								<select name="spo_code">
+									<option value=''>전체</option>
+									<?
+									foreach($wp_sports_code as $keys => $values){
+										if($keys == $spo_code)
+											$is_selected = " selected ";
+										else $is_selected = "";
+										echo "<option value='$keys' $is_selected>$values</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>장애종류</th>
+							<td>
+								<select name="tro_code">
+									<option value=''>전체</option>
+									<?
+									foreach($wp_trouble_code as $keys => $values){
+										if($keys == $tro_code)
+											$is_selected = " selected ";
+										else $is_selected = "";
+										echo "<option value='$keys' $is_selected>$values</option>";
+									}
+									?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>사용여부</th>
+							<td>
+								<label name="lb"><input id="lb" type="checkbox" name="s_isuse" value="1" <? if($s_isuse=="1"){ echo " checked";}?>>미사용데이터출력 </label>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2" align="right">
+								<input type="submit" name="sch" value=" 검 색 ">
+							</td>
+						</tr>
+						</table>
+						</form>
+						<table class="tbList-a">
+						<tbody>
+						<tr>
+							<th width="5%">번호</th>
+							<th width="10%">경기종목</th>
+							<th width="10%">장애종류</th>
+							<th width="20%">등급코드</th>
+							<th width="10%">장애등급</th>
+							<th >비고</th>
+							<th width="7%" nowrap>정렬</th>
+							<th width="7%">수정</th>
+						</tr>
+						<?
+						// 총 레코드 수 //
+						$total_record = $Mysql->getTotalRecord("wp_sports_trouble", $where);
+
+						// 페이지 목록 //
+						$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+						// 일련 번호 //
+						$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+						// 레코드 결과 //
+						for($i=0;$i<mysql_num_rows($result);$i++)
+						{
+							$obj = mysql_fetch_array($result, MYSQL_BOTH);
+							if($obj[isuse] == "1"){
+								$bgcolor = "bgcolor='#e7944a' ";
+							}else $bgcolor = "";
+
+						?>
+						<tr <?=$bgcolor?>>
+							<td align="center"><?=$article_num?></td>
+							<td align="center"><?=$wp_sports_code[$obj[spo_code]]?></td>
+							<td align="center"><?=$obj[name]?></td>
+							<td align="left"><?=$obj[level_code]?></td>
+							<td align="center"><?=$obj[level_name]?></td>
+							<td align="left"><?=$obj[bigo]?></td>
+							<td align="center"><?=$obj[orderby]?></td>
+							<td align="center">
+								<a href="./index.html?<?=$basic_get.$add_get?>&mode=modify&uid=<?=$obj[uid]?>"><img src="../wp_button/s_modify.gif"></a>&nbsp;&nbsp;
+								<a href="./delete.php?<?=$basic_get.$add_get?>&mode=list&uid=<?=$obj[uid]?>" onClick="return confirm('정말 삭제하시겠습니까?')"><img src="../wp_button/s_delete.gif"></a>
+							</td>
+						</tr>
+						<?
+							$article_num--;
+						}//for
+						?>
+						</tbody>
+						</table>
+						<table width="100%" border="0" cellspacing="0" cellpadding="0">
+						<tr>
+							<td align="center">
+							<? require_once "../wp_object/page_move.html";?>
+							</td>
+						</tr>
+						</table>
+						<table class="tbButton-a">
+						<tr>
+							<td>
+								<a href="aa.html"><input type="button" name="input" value="입력하기" class="btn_send" onclick="location.href='./index.html?<?=$basic_get.$add_get?>&mode=input'"></a>
+								<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='index.html?mode=list'">
+							</td>
+						</tr>
+						</table>
+						</div>
+
+					</div>
+					<br>

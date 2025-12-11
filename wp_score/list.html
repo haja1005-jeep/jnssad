@@ -1,0 +1,343 @@
+<!-- 선수 검색 시작 -->
+<a name="list">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li> 종목별 득점자 현황(메달점수 제외)을 보기 위해서는 종목명을 클릭하세요. (예, 골볼을 클릭하면 시/군별 득점자 현황을 보실 수 있습니다.)</li>
+				<li> 시/군의 해당 종목 참가자 득점현황을 보기 위해서는 시군의 종목의 점수를 클릭하세요.(예, 목포시+골볼의 점수를 클릭하면 목포시에서 골볼에 참가한 선수의 득점현황을 보실 수 있습니다.)</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<form name="sForm" action="index.html?code=<?=$code?>&mode=<?=$mode?>" method="post" onSubmit="return validate(this)">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th rowspan="3">검색조건</th>
+					<td>
+						<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_games as $keys => $values){
+									if($keys == $s_gam_uid)
+										$is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<input type="submit" name="sch" value="검색하기" class="btnBox3"> &nbsp;
+						<input type="button" value="엑셀출력" class="btnBox3" onclick="location.href='excel.html?code=<?=$code?>&mode=<?=$mode?>&s_gam_uid=<?=$s_gam_uid?>';">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th rowspan="2">시/군</th>
+			<th colspan="2">결과</th>
+			<th>기본점수</th>
+			<th colspan="15">정식종목</th>
+			<th colspan="6">시범종목</th>
+			<th>개최지<br>가산점</th>
+		</tr>
+		<tr>
+			<th width="5%">총순위</th>
+			<th width="5%">총합계<br>(메달점수제외)</th>
+			<th width="5%">참가인원</th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','GOALBALL')">골볼</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','BILLIARDS')">당구</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','LAWNBOWL')">론볼</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','VOLLEYBALL')">좌식배구</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','BADMINTON')">배드민턴</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','BOCCIA')">보치아</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','SWIMMING')">수영</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','BOWLING')">볼링</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','POWERLIFTING')">역도</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','ATHIETICS')">육상</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','ROWING')">실내조정</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','FOOTSAL')">축구</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','TABLETENNIS')">탁구</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','GATEBALL')">게이트볼</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','GOLF')">파크골프</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','BADUK')">바둑</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','FENCING')">펜싱</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','TENNIS')">테니스</a></th>	
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','HORSERIDING')">승마</a></th>
+			<th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','DANCE')">댄스스포츠</a></th>
+		    <th><a href="#none" onclick="Score_List('<?=$s_gam_uid?>','','ARCHERY')">양궁</a></th>
+			<th width="5%"><?=$game_city?><br>(20%)</th>
+		</tr>
+		<?
+
+		// 시/군의 총득점 순위 검색 - 참가인원수 본격적인 경기전
+		$rank_que = "SELECT clu_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY clu_code ORDER BY sum(score) desc";
+
+		// 시/군의 총득점 순위 검색
+		//$rank_que = "SELECT clu_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY clu_code ORDER BY sum(score) + sum(CASE WHEN medal_score THEN  medal_score ELSE 0 END) desc ";
+
+
+		$rank_res = mysql_query($rank_que);
+		$rank_city = array();
+		while($rank_obj = mysql_fetch_object($rank_res))
+		{
+			$rank_city[$rank_obj->clu_code] = $rank_obj->score;
+		}
+
+		$rank = 1;
+		$tr_cnt = 1;
+		foreach($rank_city as $keys => $vals)
+		{
+
+			// 전년도 시/군별 득점현황 검색
+			$b_score_que = "SELECT clu_code,spo_code, sum(score) score FROM wp_score WHERE clu_code = '$keys' AND gam_uid='$before_gam_uid' GROUP BY clu_code, spo_code";
+			$b_score_res = mysql_query($b_score_que);
+			$b_city_score = array();
+			while($b_score_obj = mysql_fetch_object($b_score_res))
+			{
+				$b_city_score[$b_score_obj->spo_code] = $b_score_obj->score;
+			}
+
+			// 전년도 총합계
+			$b_rank_que = "SELECT clu_code, sum(score) score FROM wp_score WHERE gam_uid = '$before_gam_uid' AND clu_code = '$keys' ";
+			$b_rank_res = mysql_query($b_rank_que);
+			$b_rank_obj = mysql_fetch_object($b_rank_res);
+
+			echo "<tr id='b_$tr_cnt' style='display:nones; background:#e6e6e6'>";
+
+			// 시/군 : 전년도
+			//echo "<td align='center' style='background:white;' rowspan='2'>".$wp_club_code[$keys]."</td>";
+
+			// 총순위 : 전년도
+			//echo "<td align='center'>전년도</td>";
+
+			// 총합계 : 전년도
+			//echo "<td align='center'>".number_format($b_rank_obj->score)."</td>";
+
+			// 참가점수 : 전년도
+			//echo "<td align='center'>".$b_city_score[참가점수]."</td>";
+
+			// 가산점 : 전년도
+			//echo "<td align='center'></td>";
+
+			// 종목별점수 : 전년도
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','GOALBALL')\">".number_format($b_city_score[GOALBALL])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','BILLIARDS')\">".number_format($b_city_score[BILLIARDS])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','LAWNBOWL')\">".number_format($b_city_score[LAWNBOWL])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','VOLLEYBALL')\">".number_format($b_city_score[VOLLEYBALL])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','BADMINTON')\">".number_format($b_city_score[BADMINTON])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','BOCCIA')\">".number_format($b_city_score[BOCCIA])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','SWIMMING')\">".number_format($b_city_score[SWIMMING])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','BOWLING')\">".number_format($b_city_score[BOWLING])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','POWERLIFTING')\">".number_format($b_city_score[POWERLIFTING])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','ATHIETICS')\">".number_format($b_city_score[ATHIETICS])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','ROWING')\">".number_format($b_city_score[ROWING])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','FOOTSAL')\">".number_format($b_city_score[FOOTSAL])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','TABLETENNIS')\">".number_format($b_city_score[TABLETENNIS])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','GATEBALL')\">".number_format($b_city_score[GATEBALL])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','BADUK')\">".number_format($b_city_score[BADUK])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','GOLF')\">".number_format($b_city_score[GOLF])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','FENCING')\">".number_format($b_city_score[FENCING])."</a></td>";
+			//echo "<td align='center'><a href='#none' onclick=\"Score_List($before_gam_uid,'$keys','TENNIS')\">".number_format($b_city_score[TENNIS])."</a></td>";
+			//echo "</tr>";
+
+			$tr_cnt++;
+
+
+			$score_que = "SELECT clu_code,spo_code, sum(score) score FROM wp_score WHERE clu_code = '$keys' AND gam_uid='$s_gam_uid' GROUP BY clu_code, spo_code";
+			$score_res = mysql_query($score_que);
+			$city_score = array();
+			while($score_obj = mysql_fetch_object($score_res))
+			{
+				$city_score[$score_obj->spo_code] = $score_obj->score;
+			}
+
+			echo "<tr onmouseover=\"this.style.background='#FFFF80'\" onmouseout=\"this.style.background='#ffffff'\">";
+
+			// 시/군
+			echo "<td align='center'>".$wp_club_code[$keys]."</td>";
+
+			// 총순위
+			echo "<td align='center'>$rank</td>";
+
+			// 총합계
+			echo "<td align='center'>".number_format($vals)."</td>";
+
+			// 참가점수
+			echo "<td align='center'>".$city_score[참가점수]."</td>";
+
+			// 종목별점수
+			unset($updown);
+			if($city_score[GOALBALL] > $b_city_score[GOALBALL]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[GOALBALL] < $b_city_score[GOALBALL] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','GOALBALL')\">".number_format($city_score[GOALBALL])."</a></td>";
+
+			unset($updown);
+			if($city_score[BILLIARDS] > $b_city_score[BILLIARDS]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[BILLIARDS] < $b_city_score[BILLIARDS] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','BILLIARDS')\">".number_format($city_score[BILLIARDS])."</a></td>";
+
+			unset($updown);
+			if($city_score[LAWNBOWL] > $b_city_score[LAWNBOWL]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[LAWNBOWL] < $b_city_score[LAWNBOWL] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','LAWNBOWL')\">".number_format($city_score[LAWNBOWL])."</a></td>";
+
+			unset($updown);
+			if($city_score[VOLLEYBALL] > $b_city_score[VOLLEYBALL]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[VOLLEYBALL] < $b_city_score[VOLLEYBALL] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','VOLLEYBALL')\">".number_format($city_score[VOLLEYBALL])."</a></td>";
+
+			unset($updown);
+			if($city_score[BADMINTON] > $b_city_score[BADMINTON]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[BADMINTON] < $b_city_score[BADMINTON] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','BADMINTON')\">".number_format($city_score[BADMINTON])."</a></td>";
+
+			unset($updown);
+			if($city_score[BOCCIA] > $b_city_score[BOCCIA]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[BOCCIA] < $b_city_score[BOCCIA] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','BOCCIA')\">".number_format($city_score[BOCCIA])."</a></td>";
+
+			unset($updown);
+			if($city_score[SWIMMING] > $b_city_score[SWIMMING]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[SWIMMING] < $b_city_score[SWIMMING] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','SWIMMING')\">".number_format($city_score[SWIMMING])."</a></td>";
+
+			unset($updown);
+			if($city_score[BOWLING] > $b_city_score[BOWLING]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[BOWLING] < $b_city_score[BOWLING] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','BOWLING')\">".number_format($city_score[BOWLING])."</a></td>";
+
+			unset($updown);
+			if($city_score[POWERLIFTING] > $b_city_score[POWERLIFTING]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[POWERLIFTING] < $b_city_score[POWERLIFTING] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','POWERLIFTING')\">".number_format($city_score[POWERLIFTING])."</a></td>";
+
+			unset($updown);
+			if($city_score[ATHIETICS] > $b_city_score[ATHIETICS]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[ATHIETICS] < $b_city_score[ATHIETICS] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','ATHIETICS')\">".number_format($city_score[ATHIETICS])."</a></td>";
+
+			unset($updown);
+			if($city_score[ROWING] > $b_city_score[ROWING]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[ROWING] < $b_city_score[ROWING] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','ROWING')\">".number_format($city_score[ROWING])."</a></td>";
+
+			unset($updown);
+			if($city_score[FOOTSAL] > $b_city_score[FOOTSAL]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[FOOTSAL] < $b_city_score[FOOTSAL] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','FOOTSAL')\">".number_format($city_score[FOOTSAL])."</a></td>";
+
+			unset($updown);
+			if($city_score[TABLETENNIS] > $b_city_score[TABLETENNIS]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[TABLETENNIS] < $b_city_score[TABLETENNIS] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','TABLETENNIS')\">".number_format($city_score[TABLETENNIS])."</a></td>";
+
+			unset($updown);
+			if($city_score[GATEBALL] > $b_city_score[GATEBALL]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[GATEBALL] < $b_city_score[GATEBALL] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','GATEBALL')\">".number_format($city_score[GATEBALL])."</a></td>";
+
+			unset($updown);
+			if($city_score[BADUK] > $b_city_score[BADUK]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[BADUK] < $b_city_score[BADUK] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','BADUK')\">".number_format($city_score[BADUK])."</a></td>";
+
+			unset($updown);
+			if($city_score[GOLF] > $b_city_score[GOLF]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[GOLF] < $b_city_score[GOLF] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','GOLF')\">".number_format($city_score[GOLF])."</a></td>";
+
+			unset($updown);
+			if($city_score[FENCING] > $b_city_score[FENCING]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[FENCING] < $b_city_score[FENCING] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','FENCING')\">".number_format($city_score[FENCING])."</a></td>";
+
+			unset($updown);
+			if($city_score[TENNIS] > $b_city_score[TENNIS]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[TENNIS] < $b_city_score[TENNIS] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','TENNIS')\">".number_format($city_score[TENNIS])."</a></td>";
+
+
+
+			unset($updown);
+			if($city_score[HORSERIDING] > $b_city_score[HORSERIDING]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[HORSERIDING] < $b_city_score[HORSERIDING] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','HORSERIDING')\">".number_format($city_score[HORSERIDING])."</a></td>";
+
+			unset($updown);
+			if($city_score[DANCE] > $b_city_score[DANCE]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[DANCE] < $b_city_score[DANCE] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','DANCE')\">".number_format($city_score[DANCE])."</a></td>";
+
+			unset($updown);
+			if($city_score[ARCHERY] > $b_city_score[ARCHERY]) $updown = "<span style='font-size:15px; font-weight:bold;color:blue'>▲</span>";
+			else if($city_score[ARCHERY] < $b_city_score[ARCHERY] ) $updown = "<span style='font-size:15px; font-weight:bold;color:red'>▼</span>";
+			echo "<td align='center'>$updown<a href='#none' onclick=\"Score_List($s_gam_uid,'$keys','ARCHERY')\">".number_format($city_score[ARCHERY])."</a></td>";
+
+			// 가산점
+			unset($add_score);
+			if($game_city_code == $keys) number_format($add_score = $city_score[가산점]);
+			echo "<td align='center'>$add_score</td>";
+			echo "</tr>";
+
+			$rank++;
+
+		}
+
+		$tot_que = "SELECT spo_code, sum(score) score FROM wp_score WHERE gam_uid = '$s_gam_uid' GROUP BY spo_code ";
+		$tot_res = mysql_query($tot_que);
+		$total_score = array();
+		$all_score = 0; // 총점수
+		while($tot_obj = mysql_fetch_object($tot_res))
+		{
+			$total_score[$tot_obj->spo_code] = $tot_obj->score;
+			$all_score += $tot_obj->score;
+		}
+		?>
+
+		<tr>
+			<th colspan="2">총계</th>
+			<th><?=number_format($all_score)?></th>
+			<th><?=number_format($total_score['참가점수'])?></th>
+			<th><?=number_format($total_score[GOALBALL])?></th>
+			<th><?=number_format($total_score[BILLIARDS])?></th>
+			<th><?=number_format($total_score[LAWNBOWL])?></th>
+			<th><?=number_format($total_score[VOLLEYBALL])?></th>
+			<th><?=number_format($total_score[BADMINTON])?></th>
+			<th><?=number_format($total_score[BOCCIA])?></th>
+			<th><?=number_format($total_score[SWIMMING])?></th>
+			<th><?=number_format($total_score[BOWLING])?></th>
+			<th><?=number_format($total_score[POWERLIFTING])?></th>
+			<th><?=number_format($total_score[ATHIETICS])?></th>
+			<th><?=number_format($total_score[ROWING])?></th>
+			<th><?=number_format($total_score[FOOTSAL])?></th>
+			<th><?=number_format($total_score[TABLETENNIS])?></th>
+			<th><?=number_format($total_score[GATEBALL])?></th>
+			<th><?=number_format($total_score[BADUK])?></th>
+			<th><?=number_format($total_score[GOLF])?></th>
+			<th><?=number_format($total_score[FENCING])?></th>
+			<th><?=number_format($total_score[TENNIS])?></th>
+			<th><?=number_format($total_score[HORSERIDING])?></th>
+			<th><?=number_format($total_score[DANCE])?></th>
+			<th><?=number_format($total_score[ARCHERY])?></th>
+			<th></th>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
