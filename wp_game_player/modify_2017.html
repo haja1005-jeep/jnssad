@@ -1,0 +1,703 @@
+<?
+require_once "../wp_im4u/head_2017.html";
+
+
+if($mode == "list")
+{
+	unset($top_over_05);
+	$top_over_12 = "o";
+}
+
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+?>
+
+
+
+<?
+//선수정보 wp_player_ctrl
+$query = "SELECT * FROM wp_player_ctrl WHERE isuse='0' AND wp_id='$pla_id'";
+$result = mysql_query($query);
+if(!$result){
+	Error("QUERY_ERROR");
+	exit;
+}
+if(mysql_num_rows($result) <= 0){
+	ERROR("NOT_DATA");
+	exit;
+}
+$obj = mysql_fetch_object($result);
+
+//등록해제한 선수이면 에러
+if($obj->isuse == "1"){
+	Error("NO_CLUB_PLAYER");
+	exit;
+}
+
+//해당클럽 소속의 선수가 아니면 에러
+if($Admin_auth != "top" && strcmp($obj->clu_code, $Admin_code) != 0){
+	Error("NO_CLUB_PLAYER");
+	exit;
+}
+if($obj->picture){
+	$picture = $photo_path."c_".$obj->picture_chg;
+	$picture_org = $photo_path.$obj->picture_chg;
+	$pimg = getimagesize($picture);
+	$picture_x = $pimg[0];
+	$picture_y = $pimg[1];
+	if($picture_x > 120) $picture_x = 120;
+	if($picture_y > 160) $picture_y = 160;
+}
+else
+{
+	$picture = "../wp_images/a_no_img_160.jpg";
+	$picture_x = 120;
+}
+
+
+$jumin2 = substr($obj->jumin2,0,1);
+$jumin2 = $jumin2."******";
+
+
+$birth = split("-", $obj->birthday);
+$birthday_y = $birth[0];
+$birthday_m = $birth[1];
+$birthday_d = $birth[2];
+if($obj->wheel == "0") $my_wheel = "<font color='#cc0000'>휠체어 ".$wp_wheel_code[$obj->wheel]."</font>";
+if($obj->wheel == "1") $my_wheel = "휠체어 ".$wp_wheel_code[$obj->wheel];
+
+// 생년월일 체크(만 15세 이하 신청 금지) //
+$birth_year = substr($obj->jumin1, 0, 2);
+$birth_month = substr($obj->jumin1, 2, -2);
+$birth_day = substr($obj->jumin1, -2);
+
+// 나이 체크 //
+if($birth_year < 19)
+{
+	$birth_year_num = 20;
+	$birth_year = $birth_year_num.$birth_year;
+	$age = date("Y") - $birth_year;
+}
+else
+{
+	$birth_year_num = 19;
+	$birth_year = $birth_year_num.$birth_year;
+	$age = date("Y") - $birth_year;
+}
+
+
+// 생년월일 체크 //
+$birth_date = mktime(0, 0, 0, $birth_month, $birth_day, $birth_year);
+$no_birth_date = mktime(0, 0, 0, 1, 1, 2003);
+if($birth_date >= $no_birth_date)
+{
+	Error("NO_BIRTH_ERROR");
+	exit;
+}
+
+?>
+
+<!-- 가운데 팝업창 -->
+<script language="javascript" src="../wp_config/center_pop.js"></script>
+<body>
+<div id='container'>
+
+	
+
+		<form name="sForm" action="input__mod_2018.php" method="post" onSubmit="return chkFormValidation(this) && Check_GPlayer(this);" id="registerFormValidation">
+		<input type="hidden" name="gam_uid" value="<?=$gam_uid?>">
+		<input type="hidden" name="player"  value="<?=$obj->wp_id?>">
+		<input type="hidden" name="kubun"   value="<?=$obj->kubun?>">
+		<input type="hidden" name="p_tro"   value="<?=$obj->tro_code?>">
+   		<input type="hidden" name="p_tro_text"   value="<?=$wp_trouble_code[$obj->tro_code]?>"> <!-- 장애유형 자동 선택 되게 하기 위함 2017.03.07일 추가함  
+
+        <div class="row"><!-- start row -->
+
+                            <!-- start 참가선수정보 --><div class="col-sm-3" id='player_info'>
+                                <h4><i class="pe-7s-id"></i> 참가선수정보</h4>
+                            
+							
+							<!-- Start Player_info -->
+							<div class="card card-user">
+                               <div class="image">
+                                  <img src="/v2/assets/img/full-screen-image-3.jpg" alt="..."/>   
+                               </div>
+                               <div class="content">
+                                 <div class="author">
+
+                               
+									 <a href="#none" onclick="window.open('../wp_object/zoom.html?img_path=<?=$picture_org?>','p1','width=<?=$picture_x?>,height=<?=$picture_y?>,menubars=no,scrollbars=no')"><img class="avatar border-gray" src="<?=$picture?>" width="<?=$picture_x?>">
+
+
+                                
+                                   
+                                      <h4 class="title"><?=$obj->name?>(<?=$wp_sex_code[$obj->sex]?>) <br />
+                                         <small><?=$wp_club_code[$obj->clu_code]?> - <span class='text-warning'><?=$wp_kubun_code[$obj->kubun]?></span></small>
+                                      </h4> 
+                                    </a></br>
+
+
+                                  </div>  
+                                  <p class="description">
+								     <i class="fa fa-user"></i>주민번호 : <?=$obj->jumin1?>-<?=$jumin2?> <br>
+                                     <i class="fa fa-birthday-cake"></i>생년월일 : <?=$birthday_y?>년<?=$birthday_m?>월<?=$birthday_d?>일<br>
+                                     <i class="fa fa-wheelchair"></i>장애유형 : <span class="text-danger"><?=$wp_trouble_code[$obj->tro_code]?> [<?=$wp_trouble_level[$obj->trouble_level]?>]</span>, <?=$my_wheel?></br>
+								     <i class="fa fa-phone-square"></i>일반전화 : <?=$obj->tel1?>-<?=$obj->tel2?>-<?=$obj->tel3?> <br>
+                                     <i class="fa fa-hand-paper-o"></i>핸  드  폰 : <?=$obj->hp1?>-<?=$obj->hp2?>-<?=$obj->hp3?><br>
+                                     <i class="fa fa-home"></i>(<?=$obj->zip1?>-<?=$obj->zip2?>) <?=$obj->address1?> <?=$obj->address2?>
+                                  </p>
+
+
+                               </div>
+                               <hr>
+                               <div class="footer text-center">
+
+<?
+
+
+
+				if($obj->kubun == $wp_kubun_선수 ){
+
+					if($obj->welfare_card){ //복지카드
+						$welfare_card = $photo_path.$obj->welfare_card_chg;
+						echo "<a href='#none' onclick=\"window.open('../wp_object/zoom.html?img_path=$welfare_card','zoom','width=100,height=100,scrollbars=no')\" class='btn btn-primary btn-fill'><i class='fa fa-photo'></i>복지카드</a>";
+						echo "<input type='hidden' name='is_welfare' value='1'>";
+					}else{
+						echo "<a href='#none' onclick=\"window.open('../wp_player_ctrl/pop_card_input.html?type=welfare_card&pla_id=$obj->wp_id','zoom','width=480,height=180,scrollbars=no').focus();\" class='btn btn-default btn-fill'><i class='fa fa-times'></i>복지카드</a>";
+						echo "<input type='hidden' name='is_welfare' hname='복지카드'>";
+					}
+
+	                echo "&nbsp;&nbsp;";
+					if($obj->sport_card){ //등급분류카드
+						$sport_card = $photo_path.$obj->sport_card_chg;
+						echo "<a href='#none' onclick=\"window.open('../wp_object/zoom.html?img_path=$sport_card','zoom','width=100,height=100,scrollbars=no')\" class='btn btn-primary btn-fill'><i class='fa fa-photo'></i>등급분류카드</a>";
+						echo "<input type='hidden' name='is_sport_card' value='1'>";
+					}else{
+						echo "<a href='#none' onclick=\"window.open('../wp_player_ctrl/pop_card_input.html?type=sport_card&pla_id=$obj->wp_id','zoom','width=480,height=180,scrollbars=no').focus();\" class='btn btn-default btn-fill'><i class='fa fa-times'></i>등급분류카드</a>";
+						echo "<input type='hidden' name='is_sport_card' hname='등급분류카드'>";
+					}
+				}
+
+			 
+?>
+
+   
+                               </div>
+							   
+
+                           </div><!-- End Player_info -->
+                               
+
+                                  <h5>대회참가신청현황</h5>
+                                  <div class='card GameList'>
+
+
+								  <?
+				$ii = "";
+				$ll = 1;
+	
+
+				//대회에 참가한 세부종목 검색
+				$que = "SELECT *, group_concat(spo_sec_code order by spo_sec_code asc separator '|') spo_sec_code, group_concat(spo_code_detail order by spo_code_detail asc separator '|') spo_code_details , group_concat(tro_level_code order by spo_code_detail asc separator '|') tro_level_codes FROM wp_game_player WHERE gam_uid = '$gam_uid' AND pla_id = '$obj->wp_id' $g_where GROUP BY spo_code ORDER BY spo_code, spo_sec_code, tro_code, tro_level_code";
+				$res = mysql_query($que);
+
+				
+
+               while($gObj = mysql_fetch_object($res))
+				{
+					if($gObj->kubun == $wp_kubun_선수){
+
+					
+
+						$sec = explode("|",$gObj->spo_sec_code);						
+						$scd = explode("|",$gObj->spo_code_details);
+						$tlc = explode("|",$gObj->tro_level_codes);
+
+						if($gObj->spo_code == "POWERLIFTING")
+						{
+							//echo $wp_sports_code[$gObj->spo_code];
+							echo "<span class='title'>{$wp_sports_code[$gObj->spo_code]}</span></br>";
+
+							if($sec[2] == "PL300")
+							{
+								echo " | 벤치프레스종합  ";
+							}
+							else if($sec[2] == "PL600")
+							{
+								echo " | 파워리프트종합  ";
+							}
+
+							$b_vals = "";
+
+							$ii = count($scd);
+							$lastdot = "|";
+
+							foreach($scd as $keys => $vals){
+
+								if($ii == $ll) $lastdot = " ";
+
+
+								if($b_vals == $vals) continue;
+								echo "<span class='color02'>".$wp_sports_detail_code[$vals]."</span> {$lastdot} ";
+								$b_vals = $vals;
+
+								$ll++;
+							}
+						
+						}else{
+													
+							echo "<label class='radio'><input type='radio' data-toggle='radio' name='gamePlyer' value='{$gObj->uid}' > {$wp_sports_code[$gObj->spo_code]}";
+
+							$ii = count($scd);
+							$lastdot = ",";
+							
+
+							foreach($scd as $keys => $vals){ //세부종목 출력
+
+								if($spo_sec_code == $sec[$ll-1]) {
+									
+								
+								}else{
+
+                                if($ii > 2)
+								{
+								 $spo_sec_code = $sec[$ll];
+                                } else {
+                                 $spo_sec_code = $sec[$ll-1];
+								}
+				
+
+							    if($wp_sports_code[$gObj->spo_code] != getSpo_sec_code($gObj->spo_code,$gObj->spo_sec_code))
+							      {
+								    echo " - ".getSpo_sec_code($gObj->spo_code,$spo_sec_code)."&nbsp;&nbsp; ";
+							      }
+
+					
+				                
+                                }
+
+                                $spo_sec_code = $sec[$ll-1];
+								
+								if($ii == $ll) $lastdot = " ";
+
+								echo "<span class='color01'>".$tlc[$keys]."</span>-<span class='color02'>".$wp_sports_detail_code[$vals]."</span> {$lastdot} ";
+							
+								$ll++;
+                   
+					
+
+							}
+
+							
+						}
+					}else if($gObj->kubun == $wp_kubun_종목인솔자 || $gObj->kubun == $wp_kubun_감독 || $gObj->kubun == $wp_kubun_코치){
+						echo $wp_sports_code[$gObj->spo_code];
+						if($my_trouble_code) echo " | $my_trouble_code";
+					
+					}else if($gObj->kubun == $wp_kubun_단장 || $gObj->kubun == $wp_kubun_담당 || $gObj->kubun == $wp_kubun_임원){
+						echo "<span class='color02'>참가신청완료</span>";
+					}	
+					
+					echo "</label>";
+				}
+
+                                  ?>
+								   <!--
+					                            
+                                                    
+                                                </label> -->
+
+								   <p class="btn btn-info btn-fill btn-wd w100" ></p>
+
+								  </div>
+								  
+
+
+
+
+								
+                        </div><!-- end 참가선수정보 -->
+
+
+                          
+                 
+    <!-- start 참가신청 종목선택-->
+	<div class='im4u_info01' id='im4u_info01'>
+
+    <?
+
+
+				//대회에 참가한 세부종목 검색
+				$que2 = "SELECT *, group_concat(spo_sec_code order by spo_sec_code asc separator '|') spo_sec_code, group_concat(spo_code_detail order by spo_code_detail asc separator '|') spo_code_details , group_concat(tro_level_code order by spo_code_detail asc separator '|') tro_level_codes FROM wp_game_player WHERE gam_uid = '$gam_uid' AND pla_id = '$obj->wp_id' $g_where GROUP BY spo_code ORDER BY spo_code, spo_sec_code, tro_code, tro_level_code";
+				$res2 = mysql_query($que2);
+
+				$pObj = mysql_fetch_object($res2)
+
+	?>
+
+<script type="text/javascript">
+<!--
+	 $(document).ready(function () {
+ 
+       fn_selectChange_mod_tro_code();
+       fn_selectChange_mod_tro_level_code();
+       //fn_selectChange_mod_sex();
+       fn_selectChange_mod_spo_code_detail();
+
+	  });
+//-->
+</script>
+
+
+
+
+
+
+
+
+	<?if($obj->kubun == "9"){?>
+
+		<!-- Ajax로 통해 Value 채워짐 -->
+		<input type="hidden" name="spo_code" value="<?=$pObj->spo_code?>" id="spo_code" > <!-- 종목코드 -->
+		<input type="hidden" name="spo_sec_code_input" value="<?=$pObj->spo_sec_code?>" id="spo_sec_code_input" > <!-- 2차종목코드 -->
+		<input type="hidden" name="tro_code_input" value="<?=$pObj->tro_code?>" id="tro_code_input"> <!-- 장애유형 -->
+		<input type="hidden" name="tro_level_code_input" value="<?=$pObj->tro_level_code?>" id="tro_level_code_input"><!-- 장애등급 -->
+		<input type="hidden" name="sex" value="<?=$pObj->sex?>" id="sex" ><!-- 성별 -->
+		<input type="hidden" name="group_str" value="<?=$pObj->group_str?>" id="group_str" ><!-- 팀구분 -->
+		<input type="hidden" name="spo_code_detail_input" value="<?=$pObj->spo_code_details?>" id="spo_code_detail_input"><!-- 세부종목 -->
+						 
+                            <div class="col-sm-3">
+                                     <h4>1.대회정식종목</h4>
+							          
+									  <div id='gameList'>
+									  		
+								
+				                       <?
+				                        foreach($wp_real_game as $keys => $values){ 
+                                            
+											if($pObj->spo_code == $keys) $is_choice = "btn-success";
+						                    echo "<li class='btn btn-fill-02 $is_choice' data-code ='$keys' data-name ='$values'>$values</li>";
+
+											$is_choice = "";
+					                     }
+				
+					                    ?>
+
+                                      </div>
+                                    
+
+                                      <h4>1-1.대회시범종목</h4>
+							  
+									  <div id='gameList'>
+				                       <?
+
+					                    foreach($wp_life_game as $keys => $values){
+
+										 if($pObj->spo_code == $keys) $is_choice = "btn-success";
+						                 echo "<li class='btn btn-fill-02 $is_choice' data-code ='$keys' data-name ='$values'>$values</li>";
+										 $is_choice = "";
+
+
+					                    }
+				
+					                    ?>
+                                      </div>
+ 
+                            </div> <!-- end col-sm-3 -->
+
+                            <div class="col-sm-3">
+
+						  
+						         <h4>2.장애유형</h4>
+                                 <div id="trouble_code">
+
+				                  <select multiple class="form-control" name="tro_code" tabindex="3" hname="장애유형"  onchange="fn_selectChange_tro_level_code();" size='7' id="tro_code_sel">
+					                <option value="">--- 장애유형을 선택하세요---</option>
+
+				                  </select>
+
+		                         </div>
+
+
+				 				 <h4>4.성별</h4>
+                       
+									<div id='sexList'>
+<?
+							if($pObj->sex == 'male')
+								 $is_choice1 = "btn-success";
+							if($pObj->sex == 'female')
+								 $is_choice2 = "btn-success";
+							if($pObj->sex == 'both')
+								 $is_choice3 = "btn-success";
+echo "
+		  <li class='btn btn-fill-02 $is_choice1' data-code ='male'     data-name = '남자'>남자</li>
+          <li class='btn btn-fill-02 $is_choice2' data-code ='female'   data-name = '여자'>여자</li>
+          <li class='btn btn-fill-02 $is_choice3' data-code ='both'     data-name = '혼성'>혼성</li>
+ ";
+
+?>
+
+                                    </div>
+
+
+                                <div id="team_html"> 
+								   <h5>6.팀구분(볼링,조정)</h5>
+
+			                       <div id='teamList'>
+
+								        <li class="btn btn-fill-02" data-code ='A' data-name = 'A팀'>A팀</li>
+                                        <li class="btn btn-fill-02" data-code ='B' data-name = 'B팀'>B팀</li>
+
+
+                                   </div>
+                                </div>
+   
+                             </div><!-- end col-sm-3 -->
+
+                             <div class="col-sm-3">
+
+							    <h4>3.스포츠등급</h4>
+
+								   <input type="hidden" name="h_tro_level_code" value="<?=$tro_level_code?>" id="h_tro_level_code">
+				                   <div id="tro_level_code_html">
+		
+				                
+				                    <select multiple class="form-control" name="tro_level_code" tabindex="5" hname="스포츠등급"   size='7' onchange="fn_selectChange_spo_code_detail();" size='7' id="tro_level_code_sel">
+					                 <option value="">--선택-- </option>
+				                    </select>
+                                   
+								   </div>
+
+                               
+								    <!-- 히든으로 가지고 있어야할 필수항목..-->
+                                                                  								
+                                      <h4>5. 세부종목(*필수)</h4>
+								      <!-- 히든으로 가지고 있어야할 필수항목..-->
+				                      <input type="hidden" name="h_spo_code_detail" value="<?=$spo_code_detail?>">
+                                      <div id="spo_code_detail_html"> 
+									  </div>				
+		
+                              
+                               </div><!-- end col-sm-3 -->
+
+
+
+
+				</div><!-- end 참가신청 종목선택-->
+
+
+                <!-- start 참가신청 확인-->
+				<div id='im4u_info02'>
+
+
+						 
+						 <div class="col-sm-6">
+				                    <h4>참가신청안내</h4>
+                                    <div class='card GInfo'>
+
+
+
+                                    </div>
+						 </div>	
+
+	
+
+						 <div class="col-sm-3">
+				                    <h4>참가신청내용</h4>
+                                    <div class='card ApplicationInfo'>
+                                     <ul>
+									  <li>종&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;목 :  <span id='spo_code_text'></span></li>
+									  <li>장애유형 : <span id='tro_code_text'></span></li>
+									  <li>장애등급 : <span id='tro_level_code_text'></span></li>
+									  <li>성&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;별 : <span id='sex_text'></span></li>
+									  <li>세부종목 : <span id='spo_code_detail_text'></span></li>
+									  <li>팀&nbsp;&nbsp;구&nbsp;&nbsp;분 : <span id='group_str_text'></span></li>
+									 </ul>
+                                    </div>
+
+				 		 <button type="submit" class="btn btn-warning btn-fill btn-wd">수정완료</button>
+                         <button class="btn btn-default btn-fill btn-wd" onclick="self.close();">창닫기</button>
+						 </div>	
+
+				</div><!-- end 참가신청 확인-->
+
+	<? } else if($obj->kubun == $wp_kubun_종목인솔자 || $obj->kubun == $wp_kubun_임원 || $obj->kubun == $wp_kubun_보호자 || $obj->kubun == $wp_kubun_자원봉사자 || $obj->kubun == $wp_kubun_담당 || $obj->kubun == $wp_kubun_감독 || $obj->kubun == $wp_kubun_코치 || $obj->kubun == $wp_kubun_단장) {?>
+
+   <!-- Ajax로 통해 Value 채워짐 -->
+	<input type="hidden" name="spo_code1" value="" id="spo_code1" > <!-- 종목코드 -->
+	<input type="hidden" name="tro_code_input" value="" id="tro_code_input" > <!-- 장애유형 -->
+	<input type="hidden" name="join_status" value="" id="join_status" ><!-- 참가구분 -->
+
+
+		
+    <!-- start 선수외 참가신청-->
+	<div class='im4u_info01' id='im4u_info01'>
+	
+						 <? 
+						
+						 if($obj->kubun == "6" || $obj->kubun == "7" || $obj->kubun == "8") { ?>
+                            <div class="col-sm-3">
+							       
+                                     <h4>1.경기종목</h4>
+
+									  <div id='gameList2'>
+
+									  									   
+									  		
+				                       <?
+
+					                     foreach($wp_real_game as $keys => $values){
+						                    echo "<li class='btn btn-fill-02' data-code ='$keys' data-name ='$values' >$values</li>";
+					                     }
+				                    
+					                    ?>
+
+                                      </div>
+                                    
+
+                                      <h4>1-1.경기시범종목</h4>
+							  
+									  <div id='gameList2'>
+				                       <?
+				                        // ../wp_library/setup.php에서 불러 옵니다.
+					                    foreach($wp_life_game as $keys => $values){
+						                 echo "<li class='btn btn-fill-02' data-code ='$keys' data-name ='$values' >$values</li>";
+					                    }
+				
+					                    ?>
+                                      </div>
+                                      ※ 인솔하실 종목을 선택하여 주십시오.
+									  
+                            </div> <!-- end col-sm-3 --> <? } ?>
+
+                            <div class="col-sm-3">
+
+						     <? if($obj->kubun == "7" || $obj->kubun == "8") { ?>
+						         <h4>2.장애유형</h4>
+                                 <div id="trouble_code">
+
+				                  <select multiple class="form-control" name="tro_code1" tabindex="3" hname="장애유형"  size='7' id="tro_code_sel">
+		
+					                 <?
+
+									   
+						                foreach($wp_trouble_code as $keys => $values){
+							                if($keys == $tro_code1)
+								              $is_selected = " selected ";
+							                else $is_selected = "";
+							                echo "<option value='$keys' $is_selected>$values</option>";
+						                }
+									   
+					                 ?>
+
+				                  </select>
+
+		                         </div>
+                               <? } ?>
+
+
+
+         
+				 				 <h4>참가구분</h4>
+                       
+									<div id='join_status'>
+
+             <? if($obj->kubun == "1" || $obj->kubun == "2") {  } else { 
+			
+			
+				foreach($not_players_join_code as $key_f => $val_f)
+				{
+					unset($is_choice);
+					if($obj->kubun == $wp_kubun_임원 && $key_f == "1")
+					{
+						$is_choice = " btn-success";
+					}
+					else if($obj->kubun == $wp_kubun_보호자 && $key_f == "2")
+					{
+						$is_choice = " btn-success";
+					}
+					else if($obj->kubun == $wp_kubun_자원봉사자 && $key_f == "3")
+					{
+						$is_choice = " btn-success";
+					}
+					else if($obj->kubun == $wp_kubun_종목인솔자 && $key_f == "4")
+					{
+						$is_choice = " btn-success";
+					}
+					echo "<li class='btn btn-fill-02 {$is_choice}' data-code ='{$key_f}' data-name = '{$val_f}' >{$val_f}</li>";
+				}
+
+             
+
+			 } ?>
+
+								        
+
+
+                                    </div>
+
+								   <h5></h5>
+
+			                       <div>
+
+			 		                  <button type="submit" class="btn btn-warning btn-fill btn-wd">수정완료</button>
+                                      <button class="btn btn-default btn-fill btn-wd" onclick="self.close();">창닫기</button>
+
+
+                                    </div>
+
+
+
+                             </div><!-- end col-sm-3 -->
+
+                             <div class="col-sm-3">
+
+							   
+                              
+                             </div><!-- end col-sm-3 -->
+
+
+
+
+				</div><!-- end 참가신청 종목선택-->
+
+
+                <!-- start 참가신청 확인-->
+				<div id='im4u_info02'>
+
+
+						 
+						 <div class="col-sm-6">
+
+						 </div>	
+
+	
+
+						 </div>	
+
+				</div><!-- end 참가신청 확인-->
+
+
+     <? }?>
+
+
+
+
+
+
+
+
+
+   </form>
+
+
+
+    </div><!-- end ROW -->
+									
+ </div> <!-- end container -->
+
+</body>
+
+ 
+
+</html>
+

@@ -1,0 +1,801 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=종목별 총계표.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<!--link type="text/css" rel="stylesheet" href="../wp_config/style.css"-->
+<body>
+<?
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+$T_WGP = " (SELECT distinct clu_code, pla_id, spo_code, kubun FROM wp_game_player WHERE gam_uid='$s_gam_uid') wgp";
+
+if($result_sex)
+{
+	$query = "SELECT wgp.kubun,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' GROUP BY wgp.kubun ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT kubun,count(spo_code) cnt FROM $T_WGP WHERE 1=1 GROUP BY kubun ORDER BY spo_code";
+}
+//echo $query;
+$result = mysql_query($query);
+while($obj = mysql_fetch_object($result))
+{
+	$list_01[$obj->kubun] = $obj->cnt;
+	$total_cnt += $obj->cnt;
+}
+unset($query);
+unset($result);
+unset($obj);
+
+//종목별총계
+if($result_sex)
+{
+	$query = "SELECT wgp.spo_code,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP WHERE 1=1 GROUP BY spo_code ORDER BY spo_code";
+}
+$result = mysql_query($query);
+
+while($obj = mysql_fetch_object($result)){
+	$list_10[$obj->spo_code] = $obj->cnt;
+}
+unset($query);
+unset($result);
+unset($obj);
+//휠체어 사용인원
+if($result_sex)
+{
+	$query = "SELECT wgp.spo_code,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' AND wp_player_ctrl.wheel = '0' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT wgp.spo_code,count(wgp.spo_code) cnt FROM $T_WGP, wp_player_ctrl wpc WHERE wgp.pla_id = wpc.wp_id AND wpc.wheel = '0' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+$result = mysql_query($query);
+
+while($obj = mysql_fetch_object($result)){
+	$list_11[$obj->spo_code] = $obj->cnt;
+	$total_wheel_cnt += $obj->cnt;
+}
+unset($query);
+unset($result);
+unset($obj);
+
+
+//종목인솔
+if($result_sex)
+{
+	$query = "SELECT wgp.spo_code,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' AND wgp.kubun = '6' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP where kubun = '6' GROUP BY spo_code ORDER BY spo_code";
+}
+$result = mysql_query($query);
+
+while($obj = mysql_fetch_object($result)){
+	$list_06[$obj->spo_code] = $obj->cnt;
+}
+unset($query);
+unset($result);
+unset($obj);
+//감독
+if($result_sex)
+{
+	$query = "SELECT wgp.spo_code,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' AND wgp.kubun = '7' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP where kubun = '7' GROUP BY spo_code ORDER BY spo_code";
+}
+$result = mysql_query($query);
+
+while($obj = mysql_fetch_object($result)){
+	$list_07[$obj->spo_code] = $obj->cnt;
+}
+unset($query);
+unset($result);
+unset($obj);
+//코치
+if($result_sex)
+{
+	$query = "SELECT wgp.spo_code,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' AND wgp.kubun = '8' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP where kubun = '8' GROUP BY spo_code ORDER BY spo_code";
+}
+$result = mysql_query($query);
+
+while($obj = mysql_fetch_object($result)){
+	$list_08[$obj->spo_code] = $obj->cnt;
+}
+unset($query);
+unset($result);
+unset($obj);
+//선수
+if($result_sex)
+{
+	$query = "SELECT wgp.spo_code,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' AND wgp.kubun = '9' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP WHERE kubun = '9' GROUP BY spo_code ORDER BY spo_code";
+}
+$result = mysql_query($query);
+
+while($obj = mysql_fetch_object($result)){
+	$list_09[$obj->spo_code] = $obj->cnt;
+}
+
+//종목별 시군내역
+unset($query);
+unset($result);
+unset($obj);
+//종목별총계
+$query = "SELECT spo_code,clu_code FROM wp_game_player WHERE gam_uid='$s_gam_uid' GROUP BY spo_code, clu_code";
+
+$result = mysql_query($query);
+$b_spo_code = "";
+while($obj = mysql_fetch_object($result)){
+	if($b_spo_code != $obj->spo_code) $tmp_arr = array();
+	else $tmp_arr = $list_club[$obj->spo_code];
+	$tmp_cnt = $tmp_arr[cnt];
+	if(!$tmp_arr[cnt]) $tmp_cnt = 0;
+	else $tmp_cnt = $tmp_arr[cnt];
+	if(!$tmp_arr[clu_code]) $tmp_clu_code = "";
+	else $tmp_clu_code = $tmp_arr[clu_code];
+	$tmp_arr[cnt] = $tmp_cnt+1;
+	$tmp_arr[clu_code] = $tmp_clu_code."/".$obj->clu_code;
+	$list_club[$obj->spo_code] = $tmp_arr;
+	$b_spo_code = $obj->spo_code;
+}
+?>
+	<table border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>
+			<table border="0" cellpadding="0" cellspacing="0">
+			<tr>
+				<td colspan= "13" height="50" align="center"><font size="4"><b><?=$wp_games[$s_gam_uid]?>[종목별 총계표]</b></font></td>
+			</tr>
+			</table>
+			<table border="1" cellpadding="0" cellspacing="0" style="font-size:0.8em">
+			<tr align="center">
+				<td colspan="2" rowspan="2"><b>구분</b></td>
+				<td height="35" colspan="6" align="center"><b>임원 구성원 </b></td>
+				<td colspan="3" align="center"><b>선수단 구성원 </b></td>
+				<td width="30" rowspan="2" align="center"><b>총계</b></td>
+				<td width="40" rowspan="2" align="center"><b>휠체어<br>사용<br>인원</b></td>
+				<td rowspan="2" align="center"><b>시/군<br></b></td>
+				<td rowspan="2" align="center"><b>시/군명<br></b></td>
+			</tr>
+			<tr>
+				<td width="35" height="41" align="center"><b>단장<br>
+				(1명)</b></td>
+				<td width="35" align="center">
+					<p><b>담당<br>
+					(1명)</b></p>
+				</td>
+				<td width="35" align="center"><b>임원</b></td>
+				<td width="48" align="center"><b>보호자</b></td>
+				<td width="45" align="center"><b>자원<br>
+				봉사자		</b></td>
+				<td width="45" align="center"><b>종목별<br>
+				인솔자		</b></td>
+				<td width="42" align="center"><b>감독</b></td>
+				<td width="41" align="center"><b>코치</b></td>
+				<td width="34" align="center"><b>선수</b></td>
+			</tr>
+			<tr>
+				<td height="30" colspan="2" align="center">계</td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$total_cnt?></td>
+				<td align="center"><?=$total_wheel_cnt?></td>
+				<td>&nbsp;</td>
+			</tr>
+			<tr>
+				<td height="30" colspan="2" align="center">임 원 </td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_11[""]?></td>
+				<td>&nbsp;</td>
+			</tr>
+			<tr>
+				<td width="35" rowspan="15" align="center">정식<br>
+				종목<br>
+				[15]</td>
+				<td height="30" align="center">골볼</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[GOALBALL]?></td>
+				<td align="center"><?=$list_07[GOALBALL]?></td>
+				<td align="center"><?=$list_08[GOALBALL]?></td>
+				<td align="center"><?=$list_09[GOALBALL]?></td>
+				<td align="center"><?=$list_10[GOALBALL]?></td>
+				<td align="center"><?=$list_11[GOALBALL]?></td>
+				<td align="center"><?=$list_club[GOALBALL][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[GOALBALL][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">당구</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BILLIARDS]?></td>
+				<td align="center"><?=$list_07[BILLIARDS]?></td>
+				<td align="center"><?=$list_08[BILLIARDS]?></td>
+				<td align="center"><?=$list_09[BILLIARDS]?></td>
+				<td align="center"><?=$list_10[BILLIARDS]?></td>
+				<td align="center"><?=$list_11[BILLIARDS]?></td>
+				<td align="center"><?=$list_club[BILLIARDS][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[BILLIARDS][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td width="62" height="30" align="center">론볼</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[LAWNBOWL]?></td>
+				<td align="center"><?=$list_07[LAWNBOWL]?></td>
+				<td align="center"><?=$list_08[LAWNBOWL]?></td>
+				<td align="center"><?=$list_09[LAWNBOWL]?></td>
+				<td align="center"><?=$list_10[LAWNBOWL]?></td>
+				<td align="center"><?=$list_11[LAWNBOWL]?></td>
+				<td align="center"><?=$list_club[LAWNBOWL][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[LAWNBOWL][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">좌식배구</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_07[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_08[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_09[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_10[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_11[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_club[VOLLEYBALL][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[VOLLEYBALL][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">배드민턴</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BADMINTON]?></td>
+				<td align="center"><?=$list_07[BADMINTON]?></td>
+				<td align="center"><?=$list_08[BADMINTON]?></td>
+				<td align="center"><?=$list_09[BADMINTON]?></td>
+				<td align="center"><?=$list_10[BADMINTON]?></td>
+				<td align="center"><?=$list_11[BADMINTON]?></td>
+				<td align="center"><?=$list_club[BADMINTON][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[BADMINTON][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">보치아</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BOCCIA]?></td>
+				<td align="center"><?=$list_07[BOCCIA]?></td>
+				<td align="center"><?=$list_08[BOCCIA]?></td>
+				<td align="center"><?=$list_09[BOCCIA]?></td>
+				<td align="center"><?=$list_10[BOCCIA]?></td>
+				<td align="center"><?=$list_11[BOCCIA]?></td>
+				<td align="center"><?=$list_club[BOCCIA][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[BOCCIA][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">수영</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[SWIMMING]?></td>
+				<td align="center"><?=$list_07[SWIMMING]?></td>
+				<td align="center"><?=$list_08[SWIMMING]?></td>
+				<td align="center"><?=$list_09[SWIMMING]?></td>
+				<td align="center"><?=$list_10[SWIMMING]?></td>
+				<td align="center"><?=$list_11[SWIMMING]?></td>
+				<td align="center"><?=$list_club[SWIMMING][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[SWIMMING][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">볼링</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BOWLING]?></td>
+				<td align="center"><?=$list_07[BOWLING]?></td>
+				<td align="center"><?=$list_08[BOWLING]?></td>
+				<td align="center"><?=$list_09[BOWLING]?></td>
+				<td align="center"><?=$list_10[BOWLING]?></td>
+				<td align="center"><?=$list_11[BOWLING]?></td>
+				<td align="center"><?=$list_club[BOWLING][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[BOWLING][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">역도</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[POWERLIFTING]?></td>
+				<td align="center"><?=$list_07[POWERLIFTING]?></td>
+				<td align="center"><?=$list_08[POWERLIFTING]?></td>
+				<td align="center"><?=$list_09[POWERLIFTING]?></td>
+				<td align="center"><?=$list_10[POWERLIFTING]?></td>
+				<td align="center"><?=$list_11[POWERLIFTING]?></td>
+				<td align="center"><?=$list_club[POWERLIFTING][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[POWERLIFTING][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">육상</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[ATHIETICS]?></td>
+				<td align="center"><?=$list_07[ATHIETICS]?></td>
+				<td align="center"><?=$list_08[ATHIETICS]?></td>
+				<td align="center"><?=$list_09[ATHIETICS]?></td>
+				<td align="center"><?=$list_10[ATHIETICS]?></td>
+				<td align="center"><?=$list_11[ATHIETICS]?></td>
+				<td align="center"><?=$list_club[ATHIETICS][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[ATHIETICS][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">실내조정</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[ROWING]?></td>
+				<td align="center"><?=$list_07[ROWING]?></td>
+				<td align="center"><?=$list_08[ROWING]?></td>
+				<td align="center"><?=$list_09[ROWING]?></td>
+				<td align="center"><?=$list_10[ROWING]?></td>
+				<td align="center"><?=$list_11[ROWING]?></td>
+				<td align="center"><?=$list_club[ROWING][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[ROWING][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">축구</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[FOOTSAL]?></td>
+				<td align="center"><?=$list_07[FOOTSAL]?></td>
+				<td align="center"><?=$list_08[FOOTSAL]?></td>
+				<td align="center"><?=$list_09[FOOTSAL]?></td>
+				<td align="center"><?=$list_10[FOOTSAL]?></td>
+				<td align="center"><?=$list_11[FOOTSAL]?></td>
+				<td align="center"><?=$list_club[FOOTSAL][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[FOOTSAL][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">탁구</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[TABLETENNIS]?></td>
+				<td align="center"><?=$list_07[TABLETENNIS]?></td>
+				<td align="center"><?=$list_08[TABLETENNIS]?></td>
+				<td align="center"><?=$list_09[TABLETENNIS]?></td>
+				<td align="center"><?=$list_10[TABLETENNIS]?></td>
+				<td align="center"><?=$list_11[TABLETENNIS]?></td>
+				<td align="center"><?=$list_club[TABLETENNIS][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[TABLETENNIS][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<!--
+
+			<tr>
+				<td height="30" align="center">사격</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[SHUOOTING]?></td>
+				<td align="center"><?=$list_07[SHUOOTING]?></td>
+				<td align="center"><?=$list_08[SHUOOTING]?></td>
+				<td align="center"><?=$list_09[SHUOOTING]?></td>
+				<td align="center"><?=$list_10[SHUOOTING]?></td>
+				<td align="center"><?=$list_11[SHUOOTING]?></td>
+			</tr>
+			<tr>
+				<td height="30" align="center">사이클</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[CYCLING]?></td>
+				<td align="center"><?=$list_07[CYCLING]?></td>
+				<td align="center"><?=$list_08[CYCLING]?></td>
+				<td align="center"><?=$list_09[CYCLING]?></td>
+				<td align="center"><?=$list_10[CYCLING]?></td>
+				<td align="center"><?=$list_11[CYCLING]?></td>
+			</tr>
+			-->
+			<tr>
+				<td height="30" align="center">게이트볼</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[GATEBALL]?></td>
+				<td align="center"><?=$list_07[GATEBALL]?></td>
+				<td align="center"><?=$list_08[GATEBALL]?></td>
+				<td align="center"><?=$list_09[GATEBALL]?></td>
+				<td align="center"><?=$list_10[GATEBALL]?></td>
+				<td align="center"><?=$list_11[GATEBALL]?></td>
+				<td align="center"><?=$list_club[GATEBALL][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[GATEBALL][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+			  <td height="30" align="center">파크골프</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[GOLF]?></td>
+				<td align="center"><?=$list_07[GOLF]?></td>
+				<td align="center"><?=$list_08[GOLF]?></td>
+				<td align="center"><?=$list_09[GOLF]?></td>
+				<td align="center"><?=$list_10[GOLF]?></td>
+				<td align="center"><?=$list_11[GOLF]?></td>
+				<td align="center"><?=$list_club[GOLF][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[GOLF][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+			  <td rowspan="6" align="center"><p><br>
+			    시범<br>
+종목</p>
+		      [6]</td>
+				<td height="30" align="center">바둑</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BADUK]?></td>
+				<td align="center"><?=$list_07[BADUK]?></td>
+				<td align="center"><?=$list_08[BADUK]?></td>
+				<td align="center"><?=$list_09[BADUK]?></td>
+				<td align="center"><?=$list_10[BADUK]?></td>
+				<td align="center"><?=$list_11[BADUK]?></td>
+				<td align="center"><?=$list_club[BADUK][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[BADUK][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+
+			<tr>
+			  <td height="30" align="center">펜싱</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[FENCING]?></td>
+				<td align="center"><?=$list_07[FENCING]?></td>
+				<td align="center"><?=$list_08[FENCING]?></td>
+				<td align="center"><?=$list_09[FENCING]?></td>
+				<td align="center"><?=$list_10[FENCING]?></td>
+				<td align="center"><?=$list_11[FENCING]?></td>
+				<td align="center"><?=$list_club[FENCING][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[FENCING][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+			  <td height="30" align="center">테니스</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[TENNIS]?></td>
+				<td align="center"><?=$list_07[TENNIS]?></td>
+				<td align="center"><?=$list_08[TENNIS]?></td>
+				<td align="center"><?=$list_09[TENNIS]?></td>
+				<td align="center"><?=$list_10[TENNIS]?></td>
+				<td align="center"><?=$list_11[TENNIS]?></td>
+				<td align="center"><?=$list_club[TENNIS][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[TENNIS][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">양궁</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[ARCHERY]?></td>
+				<td align="center"><?=$list_07[ARCHERYT]?></td>
+				<td align="center"><?=$list_08[ARCHERY]?></td>
+				<td align="center"><?=$list_09[ARCHERY]?></td>
+				<td align="center"><?=$list_10[ARCHERY]?></td>
+				<td align="center"><?=$list_11[ARCHERY]?></td>
+				<td align="center"><?=$list_club[ARCHERY][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[ARCHERY][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">승마</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[HORSERIDING]?></td>
+				<td align="center"><?=$list_07[HORSERIDING]?></td>
+				<td align="center"><?=$list_08[HORSERIDING]?></td>
+				<td align="center"><?=$list_09[HORSERIDING]?></td>
+				<td align="center"><?=$list_10[HORSERIDING]?></td>
+				<td align="center"><?=$list_11[HORSERIDING]?></td>
+				<td align="center"><?=$list_club[HORSERIDING][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[HORSERIDING][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" align="center">댄스스포츠</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[DANCE]?></td>
+				<td align="center"><?=$list_07[DANCE]?></td>
+				<td align="center"><?=$list_08[DANCE]?></td>
+				<td align="center"><?=$list_09[DANCE]?></td>
+				<td align="center"><?=$list_10[DANCE]?></td>
+				<td align="center"><?=$list_11[DANCE]?></td>
+				<td align="center"><?=$list_club[DANCE][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[DANCE][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			</table>
+			<table border="0" cellpadding = "0" cellspacing="0">
+			<tr>
+				<td colspan="12" align="center" height="30"></td>
+			</tr>
+			<tr>
+				<td colspan="12" align="center">
+					<?=$n_year?>년 <?=$n_mon?>월 <?=$n_day?>일
+				</td>
+			</tr>
+		  </table>
+		</td>
+	</tr>
+	</table>
+
+</body>

@@ -1,0 +1,109 @@
+
+					<!-- 내용 출력 시작-->
+						<?
+						//대회 참가 선수 정보를 가져온다.
+						$query = "SELECT * FROM wp_game_player where uid='$pla_uid'";
+
+						$result = mysql_query($query);
+						if (!$result) {
+						   	Error("QUERY_ERROR");
+						}
+
+						if(mysql_num_rows($result) < 1){
+							ERROR("NOT_DATA");
+							exit;
+						}
+						$obj = mysql_fetch_array($result,MYSQL_BOTH);
+
+						//해당 시/군의 데이터만 확인가능
+						if($Admin_auth != "top"){
+							if($obj[clu_code] != $Admin_code){
+								Error("AUTH_ERROR");
+								exit;
+							}
+						}
+
+						?>
+
+						<table class="tbList-b">
+						<tbody>
+
+						<tr>
+							<th>선수명</th>
+							<td><?=$obj[pla_name]?></td>
+							<th>소속클럽</th>
+							<td>
+								<?=$obj[clu_class_name]?>(<?=$obj[clu_code]?>)
+							</td>
+						</tr>
+						<tr>
+							<th>참가종목</th>
+							<td>
+								<?=$wp_sports_code[$obj[spo_code]]?>/<?=$wp_sports_detail_code[$obj[spo_code_detail]]?>
+							</td>
+							<th>참가유형</th>
+							<td >
+								<?=$wp_trouble_code[$obj[tro_code]]?>/ <?=$wp_trouble_level_code[$obj[tro_level_code]]?>(<?=$obj[tro_level_code]?>)
+							</td>
+						</tr>
+						<tr>
+							<th>등번호</th>
+							<td>
+								<?=$obj[back_no]?>
+							</td>
+							<th>레인번호</th>
+							<td><?=$obj[lane_no]?></td>
+						</tr>
+						<tr>
+							<th>순위</th>
+							<td>
+								<?=$obj[rank]?>
+							</td>
+							<th>기록</th>
+							<td>
+								<?=$obj[record]?>
+							</td>
+						</tr>
+						<tr>
+							<th>기록1</th>
+							<td>
+								<?=$obj[record_01]?>
+							</td>
+							<th>기록2</th>
+							<td>
+								<?=$obj[record_02]?>
+							</td>
+						</tr>
+						<tr>
+							<th>기록3</th>
+							<td>
+								<?=$obj[record_03]?>
+							</td>
+							<th>기록4</th>
+							<td>
+								<?=$obj[record_04]?>
+							</td>
+						</tr>
+						<tr>
+							<th>최고기록</th>
+							<td>
+								<?=$obj[record_best]?>
+							</td>
+							<th>기록합계</th>
+							<td>
+								<?=$obj[record_tot]?>
+							</td>
+						</tr>
+
+						</tbody>
+						</table>
+						<table class="tbButton-a">
+						<tr>
+							<td>
+								<input type="button" name="send" value="목록으로" class="btn_send" tabindex="17" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'">
+							</td>
+						</tr>
+						</table>
+						</form>
+					<!-- 내용 출력 끝 -->
+

@@ -1,0 +1,317 @@
+<?
+$query = "SELECT * FROM wp_game_prize WHERE uid = '$uid'";
+$result = mysql_query($query);
+$obj = mysql_fetch_object($result);
+?>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+	<td>
+		<form name="inputForm" action="modify.php?<?=$basic_get?>&uid=<?=$uid?>" method="post" onSubmit="return validate(this)">
+		<table class="tbInput-a">
+		<tr>
+			<th width="15%">상장구분</th>
+			<td><b><?=$wp_prize_kind[$obj->prz_kind]?></b></td>
+		</tr>
+		<tr>
+			<th>상장번호</th>
+			<td><input type="text" size="10" maxlength="15" name="prz_num" value="<?=$obj->prz_num?>"></td>
+		</tr>
+		<?
+		if($prz_kind =="01")
+		{
+		?>
+		<tr>
+			<th width="15%">시/군</th>
+			<td>
+				<select name="clu_code">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_club_code as $keys => $values)
+					{
+						if($obj->clu_code == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>순위</th>
+			<td>
+				<select name="rank">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_rank_code as $keys => $values)
+					{
+						if($obj->rank == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<?
+		}
+		if($prz_kind =="02" || $prz_kind =="03" || $prz_kind =="04")
+		{
+		?>
+		<tr>
+			<th width="15%">시/군</th>
+			<td>
+				<select name="clu_code">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_club_code as $keys => $values)
+					{
+						if($obj->clu_code == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<?
+		}
+		if($prz_kind =="05" || $prz_kind =="08")
+		{
+		?>
+		<tr>
+			<th width="15%">시/군</th>
+			<td>
+				<select name="clu_code">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_club_code as $keys => $values)
+					{
+						if($obj->clu_code == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>종목</th>
+			<td>
+				<select name="spo_code">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_sports_code as $keys => $values)
+					{
+						if($obj->spo_code == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>세부종목</th>
+			<td><input type="text" size="50" maxlength="50" name="spo_name" value="<?=$obj->spo_name?>"></td>
+		</tr>
+		<tr>
+			<th>순위</th>
+			<td>
+				<select name="rank">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_rank_code as $keys => $values)
+					{
+						if($obj->rank == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>참가선수</th>
+			<td><input type="text" size="50" maxlength="50" name="prz_pla_name" value="<?=$obj->prz_pla_name?>"></td>
+		</tr>
+		<?
+		}
+		if($prz_kind =="06")
+		{
+		?>
+		<tr>
+			<th width="15%">시/군</th>
+			<td>
+				<select name="clu_code">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_club_code as $keys => $values)
+					{
+						if($obj->clu_code == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>종목</th>
+			<td>
+				<select name="spo_code">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_sports_code as $keys => $values)
+					{
+						if($obj->spo_code == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>참가선수</th>
+			<td><input type="text" size="50" maxlength="50" name="prz_pla_name" value="<?=$obj->prz_pla_name?>"></td>
+		</tr>
+		<?
+		}
+		if($prz_kind =="07" || $prz_kind =="09")
+		{
+		?>
+		<tr>
+			<th width="15%">시/군</th>
+			<td>
+				<select name="clu_code">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_club_code as $keys => $values)
+					{
+						if($obj->clu_code == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>종목</th>
+			<td>
+				<select name="spo_code">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_sports_code as $keys => $values)
+					{
+						if($obj->spo_code == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>세부종목</th>
+			<td><input type="text" size="50" maxlength="50" name="spo_name" value="<?=$obj->spo_name?>"></td>
+		</tr>
+		<tr>
+			<th>순위</th>
+			<td>
+				<select name="rank">
+					<option value=''>--선택--</option>
+					<?
+					foreach($wp_rank_code as $keys => $values)
+					{
+						if($obj->rank == $keys)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>참가선수</th>
+			<td><input type="text" size="50" maxlength="50" name="prz_pla_name" value="<?=$obj->prz_pla_name?>"></td>
+		</tr>
+		<?
+		}
+		?>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td style="padding-top:20px" align="center">
+		<input type="submit" name="input" class="btnBox3" value=" 수 정 ">
+		<input type="button" name="send" value="목록으로" class="btn_send" onclick="history.back(-1)">
+	</td>
+</tr>
+</table>

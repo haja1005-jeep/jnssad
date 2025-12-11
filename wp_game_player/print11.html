@@ -1,0 +1,27 @@
+<form name="sForm" action="excel12.html" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<!-- 선수 검색 시작 -->
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+					<option value="">--선택-- </option>
+					<?
+						foreach($wp_games as $keys => $values){
+						 	if($keys == $gam_uid)
+								$is_selected = " selected";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+				<input type="submit" name="sch" tabindex="5" value="전년대비증감표 출력" class="btnBox3">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>

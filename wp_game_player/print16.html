@@ -1,0 +1,275 @@
+<?php
+/**
+ * add by hsjang
+ */
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+// 대회번호 체크 //
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+
+function dump($str) {
+    echo "<pre>";
+    print_r($str);
+    echo "</pre>";
+}
+
+?>
+<form name="sForm" id="sForm" method="post" onSubmit="return validate(this)">
+	<table class="table-global">
+		<tr>
+			<td>
+				<!-- 선수 검색 시작 -->
+				<table class="tbSearch-c">
+				<tr>
+					<th width="10%">대회선택</th>
+					<td>
+						<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+							<option value="">--선택-- </option>
+							<?php
+								foreach($wp_games as $keys => $values) {
+									$is_selected = ($keys == $s_gam_uid) ? 'selected' : '';
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<select name="result_sex" tabindex="2" hname="성별선택">
+							<option value="">--성별무관-- </option>
+							<?
+								foreach($wp_result_sex as $keys => $values)
+								{
+									echo "<option value='$keys'>$values</option>";
+								}
+							?>
+						</select>
+						<input type="button" tabindex="4" value="미리보기" data-btn="preview" class="btnBox3">
+						<input type="button" tabindex="5" value="전체총계표 출력" data-btn="excel" class="btnBox3">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+</form>
+<script type="text/javascript">
+	$(function() {
+		var fObj = $('#sForm');
+		$('[data-btn="preview"]').click(function() {
+			fObj.attr('action', location.href);
+			fObj.submit();
+		});
+
+		$('[data-btn="excel"]').click(function() {
+			fObj.attr('action', './<?= str_replace('print', 'excel', $mode) ?>.html');
+			fObj.submit();
+		});
+	});
+</script>
+
+<!--s 테이블 작업 요청 //-->
+<link rel="stylesheet" href="wp_game_player.css">
+<style>
+.table-type01{min-width:9880px;table-layout:fixed;border-collapse:collapse;border-spacing:0}
+.table-type01 th{background:#eaeaea;border-bottom:1px solid #000;border-right:1px solid #000;}
+.table-type01 td{font-size:12px;border-bottom:1px solid #000;border-right:1px solid #000;text-align:center}
+</style>
+
+<div style="max-width:1630px;overflow:auto">
+<table class="table-type01">
+	<thead>
+		<tr>
+			<th rowspan="3">구분</th>
+			<?php foreach($wp_game_code as $key_f => $val_f) { ?>
+			<th colspan="11"><?= $val_f ?></th>
+			<?php } ?>
+			<th colspan="11">총합계</th>
+		</tr>
+		<tr>
+			<?php foreach($wp_game_code as $key_f => $val_f) { ?>
+			<th colspan="6">임원 구성원</th>
+			<th colspan="3">선수단 구성원</th>
+			<th rowspan="2">총계</th>
+			<th rowspan="2">휠체어<br>사용<br>인원</th>
+			<?php } ?>
+			<th colspan="6">임원 구성원</th>
+			<th colspan="3">선수단 구성원</th>
+			<th rowspan="2">총계</th>
+			<th rowspan="2">휠체어<br>사용<br>인원</th>
+		</tr>
+		<tr>
+			<?php foreach($wp_game_code as $key_f => $val_f) { ?>
+			<th>단장<br>(1명)</th>
+			<th>담당<br>(1명)</th>
+			<th>임원</th>
+			<th>보호자</th>
+			<th>자원<br>봉사자</th>
+			<th>종목별<br>인솔자</th>
+			<th>감독</th>
+			<th>코치</th>
+			<th>선수</th>
+			<?php } ?>
+			<th>단장<br>(1명)</th>
+			<th>담당<br>(1명)</th>
+			<th>임원</th>
+			<th>보호자</th>
+			<th>자원<br>봉사자</th>
+			<th>종목별<br>인솔자</th>
+			<th>감독</th>
+			<th>코치</th>
+			<th>선수</th>
+		</tr>
+	</thead>
+	<tbody>
+		<?php
+        $player = $data = array();
+
+        // 지역별, 게임별, 참가자 수
+        $tmp = array_keys($wp_game_code);
+        $spo_code_arr = "'" . implode("','", $tmp) . "'";
+        $sql = "
+            select
+                pla_id,
+                gam_uid,
+                spo_code,
+                clu_code,
+                kubun,
+                count(1) as cnt
+            from wp_game_player
+            where spo_code IN (" . $spo_code_arr . ")
+            group by pla_id, gam_uid, spo_code, clu_code, kubun
+        ";
+        $result = mysql_query($sql);
+        while($list = mysql_fetch_assoc($result)) {
+            $player[$list['gam_uid']][$list['spo_code']][$list['clu_code']][$list['kubun']] += 1;
+        }
+
+		// 시/군 체크
+		foreach($sigun_code as $key_f => $val_f) {
+			// 시/군명
+			echo "
+			<tr>
+				<td>{$val_f}</td>
+			";
+			// 전체종목 체크
+			foreach($wp_game_code as $key_g => $val_g)
+			{
+				// 참가자 구분 체크
+				foreach($wp_kubun_code as $key_k => $val_k)
+				{
+                    /*
+                    // 레코드 쿼리(참가자)
+					$game_player_que = "
+                        SELECT *
+                        FROM
+                            wp_game_player
+                        WHERE
+                            gam_uid='$s_gam_uid'
+                            AND spo_code='$key_g'
+                            AND clu_code='$key_f'
+                            AND kubun='$key_k'
+                        GROUP BY pla_id
+                    ";
+					$game_player_res = mysql_query($game_player_que);
+					$game_player_row = mysql_num_rows($game_player_res);
+                    */
+
+                    $game_player_row = $player[$s_gam_uid][$key_g][$key_f][$key_k];
+                    if (!$game_player_row) $game_player_row = 0;
+                    $data[$key_f][$key_k] += $game_player_row;
+
+					echo "<td>$game_player_row</td>";
+
+                    /*
+					// 레코드 쿼리(종목별 > 참가자)
+					$event_player_que = "
+                        SELECT *
+                        FROM
+                            wp_game_player
+                        WHERE
+                            gam_uid='$s_gam_uid'
+                            AND spo_code='$key_g'
+                            AND kubun='$key_k'
+                        GROUP BY pla_id
+                    ";
+					$event_player_res = mysql_query($event_player_que);
+					$event_player_row = mysql_num_rows($event_player_res);
+
+					// 레코드 쿼리(구분별 > 참가자)
+					$kubun_player_que = "
+                        SELECT *
+                        FROM
+                            wp_game_player
+                        WHERE
+                            gam_uid='$s_gam_uid'
+                            AND clu_code='$key_f'
+                            AND kubun='$key_k'
+                        GROUP BY pla_id, spo_code
+                    ";
+					$kubun_player_res = mysql_query($kubun_player_que);
+					$kubun_player_row = mysql_num_rows($kubun_player_res);
+                    */
+
+					// 레코드 쿼리(휠체어 사용)
+					$wheel_que = "
+                        SELECT COUNT(*) cnt
+                        FROM
+                            wp_game_player GAME,
+                            wp_player_ctrl CTRL
+                        WHERE
+                            GAME.gam_uid='$s_gam_uid'
+                            AND GAME.clu_code='$key_f'
+                            AND GAME.spo_code='$key_g'
+                            AND GAME.kubun='$key_k'
+                            AND GAME.pla_id=CTRL.wp_id
+                            AND CTRL.wheel='0'
+                        GROUP BY GAME.pla_id
+                    ";
+					$wheel_res = mysql_query($wheel_que);
+					$wheel_row = mysql_num_rows($wheel_res);
+
+                    $data[$key_f]['wheel'] += $wheel_row;
+                    $data[$key_f]['total'] += $game_player_row;
+                    $game_player_sum += $game_player_row; // 종목별 총계
+
+				} // end foreach - wp_kubun_code
+
+				// 총계 //
+				echo "<td>{$game_player_sum}</td>";
+				unset($game_player_sum);
+
+				// 휠체어사용인원 //
+				echo "<td>$wheel_row</td>";
+
+			} // end foreach - wp_game_code
+
+            // 가로열 마지막
+            foreach ((array)$wp_kubun_code as $_kubun => $_txt) {
+                $subTotal = $data[$key_f][$_kubun];
+                echo "<td>{$subTotal}</td>";
+            }
+            echo "<td>".$data[$key_f]['total']."</td>";
+            echo "<td>".$data[$key_f]['wheel']."</td>";
+			echo "</tr>";
+
+            unset($data);
+			unset($city_wheel_sum);
+		}
+		?>
+	</tbody>
+</table>
+</div>

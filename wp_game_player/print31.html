@@ -1,0 +1,186 @@
+<?
+//LIMIT절 생성
+if(!$page) $page=1;
+$offset = ($page - 1) * $max_record;
+$limit = $max_record;
+
+//ORDER BY절 생성
+if(!$orderby) $orderby = " clu_code ASC, pla_name ASC,spo_code ASC, tro_code ASC, tro_level_code ASC,spo_code_detail ASC ";
+else $orderby = $orderby." ".$desc;
+
+//해당 시/군의 데이터만 확인가능
+//WHERE절 생성 //
+if($Admin_auth == "top"){
+	$where = " WHERE gam_uid = '$gam_uid' ";
+} else{
+	$where = " WHERE clu_code = '$Admin_code' ";
+}
+
+//시/군가있으면
+if($clu_code) $where .= " AND clu_code = '$clu_code' ";
+
+// 레코드 쿼리 //
+$query = "SELECT *
+		   FROM wp_game_player
+		 $where ORDER BY $orderby LIMIT $offset, $limit";
+
+$result = mysql_query($query);
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+
+?>
+<form name="sForm" action="excel31.html" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>
+					정렬순서란? 검색 후 하단에 선수정보 리스트를 출력할 때 정렬할 순서를 나타냅니다.
+					<br>
+					출력순서 미지정시 <font color="#cc0000"><b>1:선수구분, 2:성명순, 3:성별순, 4:장애유형  </b></font>으로 정렬하여 출력
+				</li>
+				<li>해당 대회, 경기종목, 선수구분등을 선택하신 후 <font color="#cc0000">[명부총괄표 출력]</font>버튼을 클릭하시면 대회에 참가한 선수의 명부를 엑셀로 다운로드 받으실 수 있습니다.</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<!-- 선수 검색 시작 -->
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th>정렬순서</th>
+					<td align="left" colspan="4">
+						1순위
+						<select name="orderby1" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby1)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						2순위
+						<select name="orderby2" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby2)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						3순위
+						<select name="orderby3" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby3)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						4순위
+						<select name="orderby4" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby4)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th width="10%">검색조건</th>
+					<td>
+						<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+							<?
+								foreach($wp_games as $keys => $values){
+									if($keys == $gam_uid)
+										$is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<?
+						//시/군구 이면 자기 데이터 출력
+						if($Admin_auth == "normal" || $Admin_auth == "sponsor") {
+						?>
+						<input type="hidden" name="clu_code" hname="대회주최기관" required value="<?=$Admin_code?>">
+						<? }else{?>
+							<select name="clu_code" tabindex="1" hname="소속시도">
+								<option value="">--시/군-- </option>
+								<?
+									foreach($wp_club_code as $keys => $values){
+										if($keys == $clu_code) $is_selected = " selected";
+										else $is_selected = "";
+										echo "<option value='$keys' $is_selected>$values</option>";
+									}
+								?>
+							</select>
+						<?}?>
+
+						<?
+						// 경기단체(경기종목)//
+						if($Admin_auth == "user")
+						{
+							$my_s_arr = explode("team",$Site_Admin);
+							$spo_code = $my_s_arr[1];
+
+							$my_s_fixed = "disabled";
+						 }
+
+						echo "
+						<select name='spo_code' tabindex='2' hname='경기종목' $my_s_fixed>
+							<option value=''>-경기종목-</option>
+						";
+						foreach($wp_sports_code as $keys => $values){
+							if($keys == $spo_code)
+								$is_selected = " selected ";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+						echo "</select>";
+						?>
+						</select>
+						<select name="kubun" tabindex="3" hname="선수구분">
+							<option value="">--선수구분-- </option>
+							<?
+								foreach($wp_kubun_code as $keys => $values){
+									if($keys == $kubun)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>&nbsp;&nbsp;<input type="submit" name="sch" tabindex="5" value="체육회 제출 명부출력" class="btnBox3">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+</table>

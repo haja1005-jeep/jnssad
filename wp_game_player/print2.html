@@ -1,0 +1,108 @@
+<?
+//LIMIT절 생성
+if(!$page) $page=1;
+$offset = ($page - 1) * $max_record;
+$limit = $max_record;
+
+//ORDER BY절 생성
+if(!$orderby) $orderby = " clu_code ASC, pla_name ASC,spo_code ASC, tro_code ASC, tro_level_code ASC,spo_code_detail ASC ";
+else $orderby = $orderby." ".$desc;
+
+//해당 시/군의 데이터만 확인가능
+//WHERE절 생성 //
+if($Admin_auth == "top"){
+	$where = " WHERE gam_uid = '$gam_uid' ";
+} else{
+	$where = " WHERE gam_uid = '$gam_uid' AND clu_code = '$Admin_code' ";
+}
+
+//시/군가있으면
+if($clu_code) $where .= " AND clu_code = '$clu_code' ";
+
+// 레코드 쿼리 //
+$query = "SELECT *
+		   FROM wp_game_player
+		 $where ORDER BY $orderby LIMIT $offset, $limit";
+$result = mysql_query($query);
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+
+?>
+<form name="sForm" action="excel2.html" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>해당 대회를 선택 하신 후 <font color="#cc0000">[총괄인원표 출력]</font>버튼을 클릭하시면 엑셀 파일로 대회 참가 총괄 인원표를 다운로드 받으실 수 있습니다.</li>
+				<li>출력 구분에서 <font color="#cc0000">'누적포함'</font>을 선택하신 후 출력하시면 <font color="#cc0000">한 선수가 여러 종목을 참가한 데이터를 포함하여 출력됩니다.</font></li>
+				<li>출력 구분에서 <font color="#cc0000">'실제인원'</font>을 선택하신 후 출력하시면 <font color="#0000cc">한 선수가 여러 종목을 참가한 데이터를 포함하지 않습니다.</font></li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+<!-- 선수 검색 시작 -->
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th>선택조건</th>
+					<td>
+						<div style="display:inline;zoom:1;">
+							<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+								<option value="">--선택-- </option>
+								<?
+									foreach($wp_games as $keys => $values){
+										if($keys == $gam_uid)
+											$is_selected = " selected";
+										else $is_selected = "";
+										echo "<option value='$keys' $is_selected>$values</option>";
+									}
+								?>
+							</select>
+							<?
+							//시/군구 이면 자기 데이터 출력
+							if($Admin_auth == "normal" || $Admin_auth == "sponsor") {
+							?>
+							<input type="hidden" name="clu_code" hname="대회주최기관" required value="<?=$Admin_code?>">
+							<? }else{?>
+								<select name="clu_code" tabindex="2" hname="소속시도" >
+									<option value="">--시/군선택-- </option>
+									<?
+										foreach($wp_club_code as $keys => $values){
+											if($keys == $clu_code) $is_selected = " selected";
+											else $is_selected = "";
+											echo "<option value='$keys' $is_selected>$values</option>";
+										}
+									?>
+								</select>
+							<?}?>
+							<select name="t_game_player" tabindex="3" hname="총괄인원표 출력구분" required>
+								<option value="">--출력구분-- </option>
+								<?
+									foreach($total_game_player as $keys => $values){
+										unset($is_selected);
+										if($keys == '1') $is_selected = " selected";
+										echo "<option value='$keys' $is_selected>$values</option>";
+									}
+								?>
+							</select>
+							<input type="submit" name="sch" tabindex="5" value="총괄인원표 출력" class="btnBox3">
+						</div>
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+</table>

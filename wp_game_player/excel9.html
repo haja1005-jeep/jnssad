@@ -1,0 +1,244 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=".$spo_code_name."_종목별이벤트총계표.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<!--link type="text/css" rel="stylesheet" href="../wp_config/style.css"-->
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+<tr>
+	<td>
+		<table border="0" cellpadding="0" cellspacing="0">
+		<tr>
+			<td colspan= "12" height="50" align="center"><font size="4"><b><?=$wp_games[$s_gam_uid]?> 참가자 - <?=$spo_code_name?>[종목별이벤트 총계표]</b></font></td>
+		</tr>
+		</table>
+		<table width="600px" border="1" cellpadding="0" cellspacing="0" style="font-size:0.8em">
+		<tr align="center">
+			<td width="30px"><b>종목</b></td>
+			<td width="30px"><b>등급</b></td>
+			<td width="30px"><b>성별</b></td>
+			<td height="35"><b>세부</b></td>
+			<td align="center"><b>시군</b></td>
+			<td align="center">총원</td>
+			<td align="center"><b>이벤트</b></td>
+			<?
+			foreach($wp_club_code as $keys => $vals){
+				if($keys == "jnsad" || $keys == "WEBPLUS") continue;
+				echo "<td width='30'>".substr($vals,0,4)."</td>";
+				if($prt_name == "1") echo "<td width='30px'>이름</td>";
+			}
+			?>
+		</tr>
+		<?
+		if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+		$where = " WHERE gam_uid = '$s_gam_uid'";
+		//검색조건
+		if($spo_code && $spo_code != "AS100" && $spo_code !="AS200")
+		{
+			$where .= " AND spo_code = '$spo_code'";
+		}
+		else
+		{
+			$where .= " AND spo_sec_code = '$spo_code'";
+		}
+
+		$query = "SELECT * FROM wp_game_event $where GROUP BY spo_code, tro_level_code, sex,spo_code_detail ORDER BY spo_code ASC, spo_sec_code ASC, tro_level_code ASC, sex ASC, spo_code_detail ASC";
+		$result = mysql_query($query);
+		while($obj = mysql_fetch_object($result)){
+			$my_spo_code = $wp_game_code[$obj->spo_code];
+			if($wp_sports_code[$obj->spo_code] != getSpo_sec_code($obj->spo_code,$obj->spo_sec_code)){
+				$my_spo_code .= getSpo_sec_code($obj->spo_code,$obj->spo_sec_code);
+			}
+
+			$my_tro_code = substr($wp_trouble_code[$obj->tro_code],0,4);
+			$my_tro_level_code = getTrouble_level_code($obj->spo_code, $obj->tro_level_code)."[$obj->tro_level_code] ";
+			$my_sex = $wp_sex_code[$obj->sex]." ";
+			$my_detail_code = $wp_sports_detail_code[$obj->spo_code_detail];
+
+			/* 2017년 3월 10일 2차종목 미입력으로 주석처리 $a_que = "SELECT clu_code,group_concat(pla_name,sex_kind,group_str order by group_str asc separator ', ') pla_names,count(*) cnt FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND kubun='9' AND spo_code='$obj->spo_code' AND spo_sec_code='$obj->spo_sec_code' AND tro_level_code='$obj->tro_level_code' AND sex = '$obj->sex' AND spo_code_detail='$obj->spo_code_detail' GROUP BY clu_code ORDER BY clu_code ASC, pla_name ASC";*/ 
+			
+			$a_que = "SELECT clu_code,group_concat(pla_name,sex_kind,group_str order by group_str asc separator ', ') pla_names,count(*) cnt FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND kubun='9' AND spo_code='$obj->spo_code'  AND tro_level_code='$obj->tro_level_code' AND sex = '$obj->sex' AND spo_code_detail='$obj->spo_code_detail' GROUP BY clu_code ORDER BY clu_code ASC, pla_name ASC";		
+			
+			//echo $a_que;
+			$a_res = mysql_query($a_que);
+			$club_cnt_arr = array();
+			$tot_cnt = 0;
+			$pla_name_arr = array();
+			while($a_obj = mysql_fetch_object($a_res)){
+				$club_cnt_arr[$a_obj->clu_code] = $a_obj->cnt;
+				$pla_name_arr[$a_obj->clu_code] = $a_obj->pla_names;
+				$tot_cnt += $a_obj->cnt;
+			}
+			unset($my_add);
+			unset($font_color);
+			if(count($club_cnt_arr) >=3){
+				$my_add_flag = 1;
+			} else {
+				$my_add_flag = 0;
+			}
+
+			//단체전 경기일 경우 3개시군이상 각 시군별 2명 이상시 성립
+			if($obj->spo_code == "BOWLING" && $obj->spo_code_detail == "BL102"){
+				// 시군별 2명이 되어야 성립되던 조건을 삭제 2012. 04. 25.
+				//if(count($club_cnt_arr) >= 3 && $tot_cnt == (count($club_cnt_arr) * 2)){
+				if(count($club_cnt_arr) >= 3){
+					$my_add_flag = 1;
+				}
+				else $my_add_flag = 0;
+			}
+			else if($obj->spo_code == "LAWNBOWIS" && $obj->spo_code_detail == "LB103"){
+				foreach($wp_club_code as $keys => $vals){
+					if($keys == "jnsad" || $keys == "WEBPLUS") continue;
+					if($club_cnt_arr[$keys] % 2 != 0){
+						$my_add_flag = 0; //성립되지 않음
+						break;
+					}
+				} //foreach
+			}
+			else if($obj->spo_code == "TABLETENNIS" && $obj->spo_code_detail == "TT201"){
+				foreach($wp_club_code as $keys => $vals){
+					if($keys == "jnsad" || $keys == "WEBPLUS") continue;
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 2 ){
+						$my_add_flag = 0; //성립되지 않음
+						break;
+					}
+				} //foreach
+			}
+			else if($obj->spo_code == "FOOTSAL"){
+				foreach($wp_club_code as $keys => $vals){
+					if($keys == "jnsad" || $keys == "WEBPLUS") continue;
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 5 ){
+						$my_add_flag = 0; //성립되지 않음
+						break;
+					}
+				} //foreach
+			}
+
+			if($my_add_flag == 1){ //성립이면
+				$my_add = "성립";
+			}else{
+				if(count($club_cnt_arr) > 0) $font_color = "style='color:#cc0000;font-weight:bold'";
+			}
+
+		echo "
+		<tr>
+			<td align='center'>$my_spo_code</td>
+			<td nowrap>$my_tro_level_code</td>
+			<td align='center'>$my_sex</td>
+			<td nowrap>$my_detail_code</td>
+			<td align='center' $font_color>".count($club_cnt_arr)."</td>
+			<td align='center'>$tot_cnt</td>
+			<td>$my_add</td>
+		";
+			foreach($wp_club_code as $keys => $vals){
+				unset($font_color);
+				if($keys == "jnsad" || $keys == "WEBPLUS") continue;
+				if($obj->spo_code == "LAWNBOWIS" && $obj->spo_code_detail == "LB103"){
+					if($club_cnt_arr[$keys] % 2 != 0){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "GOALBALL"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 3 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "GATEBALL"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 5 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "DART"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 5 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "VOLLEYBALL"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 6 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "TABLETENNIS" && $obj->spo_code_detail == "TT201"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 2 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "FOOTSAL"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 5 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "BILLIARDS"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 2 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "SHUFFLEBOARD"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 3 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "CUROLLING"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 3 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "TARGET"){
+					if($club_cnt_arr[$keys] > 0 && $club_cnt_arr[$keys] < 3 ){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}else if($obj->spo_code == "HANDLER"){
+					if($club_cnt_arr[$keys] % 2 != 0){
+						$font_color = "style='color:#cc0000;font-weight:bold'";
+					}
+				}
+				echo "<td align='center' width='20px' $font_color>".$club_cnt_arr[$keys]."</td>";
+				if($prt_name == "1") {
+				
+				//종목별이벤트 총계표에서 남녀구분 2016.03.16
+				$patterns[0] = '/1/';
+                $patterns[1] = '/2/';
+				$patterns[2] = '/3/';
+                $patterns[3] = '/4/';
+                $replacements[0] = '<font color=\'blue\'>_M</font>';
+                $replacements[1] = '<font color=\'Green\'>_W</font>';
+                $replacements[2] = '<font color=\'blue\'>_M</font>';
+                $replacements[3] = '<font color=\'Green\'>_W</font>';
+
+				$pla_name0 =  preg_replace($patterns, $replacements, $pla_name_arr[$keys]);
+
+				//팀구분
+				$t_patterns[0] = '/A/';
+                $t_patterns[1] = '/B/';
+
+                $t_replacements[0] = '<font color=\'red\'> (A팀)</font>';
+                $t_replacements[1] = '<font color=\'red\'> (B팀)</font>';
+
+				$pla_name =  preg_replace($t_patterns, $t_replacements, $pla_name0);			
+
+
+				
+				echo "<td nowrap $font_color>".$pla_name.$group_str."</td>";
+
+
+				}
+			}
+		echo "
+		</tr>";
+		 }?>
+		</table>
+	</td>
+</tr>
+</table>
+</body>
+</html>

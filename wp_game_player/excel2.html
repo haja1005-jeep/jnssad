@@ -1,0 +1,911 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=총괄인원표.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<!--link type="text/css" rel="stylesheet" href="../wp_config/style.css"-->
+<body>
+<?
+	if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+	if($clu_code)
+		$clu_code_a[0] = $clu_code;
+	else $clu_code_a = array_keys($wp_club_code);
+	foreach($clu_code_a as $kyes => $values){
+		$clu_code = $clu_code_a[$kyes];
+		if($clu_code == "test" || $clu_code == 'jnsad') continue;
+
+		unset($list_01);
+		unset($list_02);
+		unset($list_03);
+		unset($list_04);
+		unset($list_05);
+		unset($list_06);
+		unset($list_07);
+		unset($list_08);
+		unset($list_09);
+		unset($list_10);
+		unset($list_11);
+		unset($total_cnt);
+		unset($total_wheel_cnt);
+?>
+
+	<table border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>
+			<table border="0" cellpadding="0" cellspacing="0">
+			<tr>
+				<?
+				// 누적 포함(0), 실인원(1) 구분 //
+				if($t_game_player == 0)
+				{
+					$my_title = "참가자 [총괄 인원표] - 누적포함";
+				}
+				else
+				{
+					$my_title = "참가자 [총괄 인원표] - 실인원";
+				}
+				?>
+				<td colspan= "13" height="50" align="center"><font size="4"><b><?=$wp_games[$s_gam_uid]?> <?=$my_title?></b></font></td>
+			</tr>
+			</table>
+			<table border="1" cellpadding="0" cellspacing="0" style="font-size:0.8em">
+			<tr align="center">
+				<td colspan="2" rowspan="2"><b>구분</b></td>
+				<td height="35" colspan="6" align="center"><b>임원 구성원 </b></td>
+				<td colspan="3" align="center"><b>선수단 구성원 </b></td>
+				<td width="30" rowspan="2" align="center"><b>총계</b></td>
+				<td width="40" rowspan="2" align="center"><b>휠체어<br>
+				사용<br>
+				인원</b></td>
+			</tr>
+			<tr>
+				<td width="35" height="41" align="center"><b>단장<br>
+				(1명)</b></td>
+				<td width="35" align="center">
+					<p><b>담당<br>
+					(1명)</b></p>
+				</td>
+				<td width="35" align="center"><b>임원</b></td>
+				<td width="48" align="center"><b>보호자</b></td>
+				<td width="45" align="center"><b>자원<br>
+				봉사자		</b></td>
+				<td width="45" align="center"><b>종목별<br>
+				인솔자		</b></td>
+				<td width="42" align="center"><b>감독</b></td>
+				<td width="41" align="center"><b>코치</b></td>
+				<td width="34" align="center"><b>선수</b></td>
+			</tr>
+			<?
+				if($Admin_auth == 'top'){
+					$Q_club = " AND clu_code = '$clu_code'";
+					$Q_club1 = " AND wgp.clu_code = '$clu_code'";
+				}else {
+					$Q_club = " AND clu_code = '$Admin_code'";
+					$Q_club1 = " AND wgp.clu_code = '$Admin_code'";
+				}
+
+				// 누적 포함(0), 실인원(1) 구분 //
+				if($t_game_player == 0)
+				{
+					$T_WGP = " (SELECT clu_code, pla_id, spo_code, kubun FROM wp_game_player WHERE gam_uid='$s_gam_uid') wgp";
+					$DIS_T_WGP = " (SELECT distinct clu_code, pla_id, spo_code, kubun FROM wp_game_player WHERE gam_uid='$s_gam_uid') wgp";
+
+					//전체
+					$query = "SELECT kubun,count(spo_code) cnt FROM $DIS_T_WGP
+							WHERE 1=1 $Q_club
+							GROUP BY kubun ORDER BY spo_code";
+
+					$result = mysql_query($query);
+
+					while($obj = mysql_fetch_object($result)){
+						$dis_list_01[$obj->kubun] = $obj->cnt;
+						$dis_total_cnt += $obj->cnt;
+					}
+					unset($query);
+					unset($result);
+					unset($obj);
+
+					//종목별총계
+					$query = "SELECT spo_code,count(spo_code) cnt FROM $DIS_T_WGP
+							WHERE 1=1 $Q_club
+							GROUP BY spo_code ORDER BY spo_code";
+					$result = mysql_query($query);
+
+					while($obj = mysql_fetch_object($result)){
+						$dis_list_10[$obj->spo_code] = $obj->cnt;
+					}
+
+					unset($query);
+					unset($result);
+					unset($obj);
+					//휠체어 사용인원
+					$query = "SELECT wgp.spo_code,count(wgp.spo_code) cnt FROM $DIS_T_WGP, wp_player_ctrl wpc
+							WHERE wgp.pla_id = wpc.wp_id
+							$Q_club1
+							AND wpc.wheel = '0'
+							GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+					$result = mysql_query($query);
+
+					while($obj = mysql_fetch_object($result)){
+						$dis_list_11[$obj->spo_code] = $obj->cnt;
+						$dis_total_wheel_cnt += $obj->cnt;
+					}
+				}
+				else
+				{
+					$T_WGP = " (SELECT distinct clu_code, pla_id, spo_code, kubun FROM wp_game_player WHERE gam_uid='$s_gam_uid') wgp";
+				}
+
+				unset($query);
+				unset($result);
+				unset($obj);
+				//전체
+				$query = "SELECT kubun,count(spo_code) cnt FROM $T_WGP
+						WHERE 1=1 $Q_club
+						GROUP BY kubun ORDER BY spo_code";
+				//echo $query;
+				$result = mysql_query($query);
+
+				while($obj = mysql_fetch_object($result)){
+					$list_01[$obj->kubun] = $obj->cnt;
+					$total_cnt += $obj->cnt;
+				}
+				unset($query);
+				unset($result);
+				unset($obj);
+				//종목별총계
+				$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP
+						WHERE 1=1 $Q_club
+						GROUP BY spo_code ORDER BY spo_code";
+				$result = mysql_query($query);
+
+				while($obj = mysql_fetch_object($result)){
+					$list_10[$obj->spo_code] = $obj->cnt;
+				}
+				unset($query);
+				unset($result);
+				unset($obj);
+				//휠체어 사용인원
+				$query = "SELECT wgp.spo_code,count(wgp.spo_code) cnt FROM $T_WGP, wp_player_ctrl wpc
+						WHERE wgp.pla_id = wpc.wp_id
+						$Q_club1
+						AND wpc.wheel = '0'
+						GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+				$result = mysql_query($query);
+
+				while($obj = mysql_fetch_object($result)){
+					$list_11[$obj->spo_code] = $obj->cnt;
+					$total_wheel_cnt += $obj->cnt;
+				}
+				unset($query);
+				unset($result);
+				unset($obj);
+
+
+				//종목인솔
+				$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP
+						where kubun = '6' $Q_club
+						GROUP BY spo_code ORDER BY spo_code";
+				$result = mysql_query($query);
+
+				while($obj = mysql_fetch_object($result)){
+					$list_06[$obj->spo_code] = $obj->cnt;
+				}
+				unset($query);
+				unset($result);
+				unset($obj);
+				//감독
+				$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP
+						where kubun = '7' $Q_club
+						GROUP BY spo_code ORDER BY spo_code";
+				$result = mysql_query($query);
+
+				while($obj = mysql_fetch_object($result)){
+					$list_07[$obj->spo_code] = $obj->cnt;
+				}
+				unset($query);
+				unset($result);
+				unset($obj);
+				//코치
+				$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP
+						where kubun = '8' $Q_club
+						GROUP BY spo_code ORDER BY spo_code";
+				$result = mysql_query($query);
+
+				while($obj = mysql_fetch_object($result)){
+					$list_08[$obj->spo_code] = $obj->cnt;
+				}
+				unset($query);
+				unset($result);
+				unset($obj);
+				//선수
+				$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP
+						WHERE kubun = '9' $Q_club
+						GROUP BY spo_code ORDER BY spo_code";
+				$result = mysql_query($query);
+
+				while($obj = mysql_fetch_object($result)){
+					$list_09[$obj->spo_code] = $obj->cnt;
+				}
+
+			?>
+			<tr>
+				<td height="30" colspan="2" align="center">계</td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?>
+					<?
+					if($t_game_player == 0 && $list_01[$wp_kubun_단장] > 0)
+					{
+						$M_wp_kubun_단장 = $dis_list_01[$wp_kubun_단장]-$list_01[$wp_kubun_단장];
+						echo "(".$M_wp_kubun_단장.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?>
+					<?
+					if($t_game_player == 0 && $list_01[$wp_kubun_담당] > 0)
+					{
+						$M_wp_kubun_담당 = $dis_list_01[$wp_kubun_담당]-$list_01[$wp_kubun_담당];
+						echo "(".$M_wp_kubun_담당.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?>
+					<?
+					if($t_game_player == 0 && $list_01[$wp_kubun_임원] > 0)
+					{
+						$M_wp_kubun_임원 = $dis_list_01[$wp_kubun_임원]-$list_01[$wp_kubun_임원];
+						echo "(".$M_wp_kubun_임원.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?>
+					<?
+					if($t_game_player == 0 && $list_01[$wp_kubun_보호자] > 0)
+					{
+						$M_wp_kubun_보호자 = $dis_list_01[$wp_kubun_보호자]-$list_01[$wp_kubun_보호자];
+						echo "(".$M_wp_kubun_보호자.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?>
+					<?
+					if($t_game_player == 0 && $list_01[$wp_kubun_자원봉사자] > 0)
+					{
+						$M_wp_kubun_자원봉사자 = $dis_list_01[$wp_kubun_자원봉사자]-$list_01[$wp_kubun_자원봉사자];
+						echo "(".$M_wp_kubun_자원봉사자.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?>
+					<?
+					if($t_game_player == 0 && $list_01[$wp_kubun_종목인솔자] > 0)
+					{
+						$M_wp_kubun_종목인솔자 = $dis_list_01[$wp_kubun_종목인솔자]-$list_01[$wp_kubun_종목인솔자];
+						echo "(".$M_wp_kubun_종목인솔자.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?>
+					<?
+					if($t_game_player == 0 && $list_01[$wp_kubun_감독] > 0)
+					{
+						$M_wp_kubun_감독 = $dis_list_01[$wp_kubun_감독]-$list_01[$wp_kubun_감독];
+						echo "(".$M_wp_kubun_감독.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?>
+					<?
+					if($t_game_player == 0 && $list_01[$wp_kubun_코치] > 0)
+					{
+						$M_wp_kubun_코치 = $dis_list_01[$wp_kubun_코치]-$list_01[$wp_kubun_코치];
+						echo "(".$M_wp_kubun_코치.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?>
+					<?
+					if($t_game_player == 0 && $list_01[$wp_kubun_선수] > 0)
+					{
+						$M_wp_kubun_선수 = $dis_list_01[$wp_kubun_선수]-$list_01[$wp_kubun_선수];
+						echo "(".$M_wp_kubun_선수.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$total_cnt?>
+					<?
+					if($t_game_player == 0 && $total_cnt > 0)
+					{
+						$M_total_cnt = $dis_total_cnt-$total_cnt;
+						echo "(".$M_total_cnt.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$total_wheel_cnt?>
+					<?
+					if($t_game_player == 0 && $total_wheel_cnt > 0)
+					{
+						$M_wheel_cnt = $dis_total_wheel_cnt-$total_wheel_cnt;
+						echo "(".$M_wheel_cnt.")";
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<td height="30" colspan="2" align="center">임 원 </td>
+				<td align="center"><?=$list_01["1"]?></td>
+				<td align="center"><?=$list_01["2"]?></td>
+				<td align="center"><?=$list_01["3"]?></td>
+				<td align="center"><?=$list_01["4"]?></td>
+				<td align="center"><?=$list_01["5"]?></td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_11[""]?></td>
+			</tr>
+			<tr>
+				<td width="35" rowspan="15" align="center">정식<br>종목<br>
+				[15]</td>
+				<td width="62" height="30" align="center">골볼</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[GOALBALL]?></td>
+				<td align="center"><?=$list_07[GOALBALL]?></td>
+				<td align="center"><?=$list_08[GOALBALL]?></td>
+				<td align="center"><?=$list_09[GOALBALL]?></td>
+				<td align="center"><?=$list_10[GOALBALL]?>
+					<?
+					if($t_game_player == 0 && $list_10[GOALBALL] > 0)
+					{
+						$M_GOALBALL = $dis_list_10[GOALBALL]-$list_10[GOALBALL];
+						echo "(".$M_GOALBALL.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[GOALBALL]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">당구</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BILLIARDS]?></td>
+				<td align="center"><?=$list_07[BILLIARDS]?></td>
+				<td align="center"><?=$list_08[BILLIARDS]?></td>
+				<td align="center"><?=$list_09[BILLIARDS]?></td>
+				<td align="center"><?=$list_10[BILLIARDS]?>
+					<?
+					if($t_game_player == 0 && $list_10[BILLIARDS] > 0)
+					{
+						$M_BILLIARDS = $dis_list_10[BILLIARDS]-$list_10[BILLIARDS];
+						echo "(".$M_BILLIARDS.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[BILLIARDS]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">론볼</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[LAWNBOWL]?></td>
+				<td align="center"><?=$list_07[LAWNBOWL]?></td>
+				<td align="center"><?=$list_08[LAWNBOWL]?></td>
+				<td align="center"><?=$list_09[LAWNBOWL]?></td>
+				<td align="center"><?=$list_10[LAWNBOWL]?>
+					<?
+					if($t_game_player == 0 && $list_10[LAWNBOWL] > 0)
+					{
+						$M_LAWNBOWIS = $dis_list_10[LAWNBOWL]-$list_10[LAWNBOWL];
+						echo "(".$M_LAWNBOWIS.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[LAWNBOWL]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">좌식배구</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_07[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_08[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_09[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_10[VOLLEYBALL]?>
+					<?
+					if($t_game_player == 0 && $list_10[VOLLEYBALL] > 0)
+					{
+						$M_VOLLEYBALL = $dis_list_10[VOLLEYBALL]-$list_10[VOLLEYBALL];
+						echo "(".$M_VOLLEYBALL.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[VOLLEYBALL]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">배드민턴</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BADMINTON]?></td>
+				<td align="center"><?=$list_07[BADMINTON]?></td>
+				<td align="center"><?=$list_08[BADMINTON]?></td>
+				<td align="center"><?=$list_09[BADMINTON]?></td>
+				<td align="center"><?=$list_10[BADMINTON]?>
+					<?
+					if($t_game_player == 0 && $list_10[BADMINTON] > 0)
+					{
+						$M_BADMINTON = $dis_list_10[BADMINTON]-$list_10[BADMINTON];
+						echo "(".$M_BADMINTON.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[BADMINTON]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">보치아</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BOCCIA]?></td>
+				<td align="center"><?=$list_07[BOCCIA]?></td>
+				<td align="center"><?=$list_08[BOCCIA]?></td>
+				<td align="center"><?=$list_09[BOCCIA]?></td>
+				<td align="center"><?=$list_10[BOCCIA]?>
+					<?
+					if($t_game_player == 0 && $list_10[BOCCIA] > 0)
+					{
+						$M_BOCCIA = $dis_list_10[BOCCIA]-$list_10[BOCCIA];
+						echo "(".$M_BOCCIA.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[BOCCIA]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">수영</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[SWIMMING]?></td>
+				<td align="center"><?=$list_07[SWIMMING]?></td>
+				<td align="center"><?=$list_08[SWIMMING]?></td>
+				<td align="center"><?=$list_09[SWIMMING]?></td>
+				<td align="center"><?=$list_10[SWIMMING]?>
+					<?
+					if($t_game_player == 0 && $list_10[SWIMMING] > 0)
+					{
+						$M_SWIMMING = $dis_list_10[SWIMMING]-$list_10[SWIMMING];
+						echo "(".$M_SWIMMING.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[SWIMMING]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">볼링</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BOWLING]?></td>
+				<td align="center"><?=$list_07[BOWLING]?></td>
+				<td align="center"><?=$list_08[BOWLING]?></td>
+				<td align="center"><?=$list_09[BOWLING]?></td>
+				<td align="center"><?=$list_10[BOWLING]?>
+					<?
+					if($t_game_player == 0 && $list_10[BOWLING] > 0)
+					{
+						$M_BOWLING = $dis_list_10[BOWLING]-$list_10[BOWLING];
+						echo "(".$M_BOWLING.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[BOWLING]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">역도</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[POWERLIFTING]?></td>
+				<td align="center"><?=$list_07[POWERLIFTING]?></td>
+				<td align="center"><?=$list_08[POWERLIFTING]?></td>
+				<td align="center"><?=$list_09[POWERLIFTING]?></td>
+				<td align="center"><?=$list_10[POWERLIFTING]?>
+					<?
+					if($t_game_player == 0 && $list_10[POWERLIFTING] > 0)
+					{
+						$M_POWERLIFTING = $dis_list_10[POWERLIFTING]-$list_10[POWERLIFTING];
+						echo "(".$M_POWERLIFTING.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[POWERLIFTING]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">육상</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[ATHIETICS]?></td>
+				<td align="center"><?=$list_07[ATHIETICS]?></td>
+				<td align="center"><?=$list_08[ATHIETICS]?></td>
+				<td align="center"><?=$list_09[ATHIETICS]?></td>
+				<td align="center"><?=$list_10[ATHIETICS]?>
+					<?
+					if($t_game_player == 0 && $list_10[ATHIETICS] > 0)
+					{
+						$M_ATHIETICS = $dis_list_10[ATHIETICS]-$list_10[ATHIETICS];
+						echo "(".$M_ATHIETICS.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[ATHIETICS]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">실내조정</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[ROWING]?></td>
+				<td align="center"><?=$list_07[ROWING]?></td>
+				<td align="center"><?=$list_08[ROWING]?></td>
+				<td align="center"><?=$list_09[ROWING]?></td>
+				<td align="center"><?=$list_10[ROWING]?>
+					<?
+					if($t_game_player == 0 && $list_10[ROWING] > 0)
+					{
+						$M_ROWING = $dis_list_10[ROWING]-$list_10[ROWING];
+						echo "(".$M_ROWING.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[ROWING]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">축구</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[FOOTSAL]?></td>
+				<td align="center"><?=$list_07[FOOTSAL]?></td>
+				<td align="center"><?=$list_08[FOOTSAL]?></td>
+				<td align="center"><?=$list_09[FOOTSAL]?></td>
+				<td align="center"><?=$list_10[FOOTSAL]?>
+					<?
+					if($t_game_player == 0 && $list_10[FOOTSAL] > 0)
+					{
+						$M_FOOTSAL = $dis_list_10[FOOTSAL]-$list_10[FOOTSAL];
+						echo "(".$M_FOOTSAL.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[FOOTSAL]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">탁구</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[TABLETENNIS]?></td>
+				<td align="center"><?=$list_07[TABLETENNIS]?></td>
+				<td align="center"><?=$list_08[TABLETENNIS]?></td>
+				<td align="center"><?=$list_09[TABLETENNIS]?></td>
+				<td align="center"><?=$list_10[TABLETENNIS]?>
+					<?
+					if($t_game_player == 0 && $list_10[TABLETENNIS] > 0)
+					{
+						$M_TABLETENNIS = $dis_list_10[TABLETENNIS]-$list_10[TABLETENNIS];
+						echo "(".$M_TABLETENNIS.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[TABLETENNIS]?></td>
+			</tr>
+			<!--
+			<tr>
+				<td height="25" align="center">사격</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[SHUOOTING]?></td>
+				<td align="center"><?=$list_07[SHUOOTING]?></td>
+				<td align="center"><?=$list_08[SHUOOTING]?></td>
+				<td align="center"><?=$list_09[SHUOOTING]?></td>
+				<td align="center"><?=$list_10[SHUOOTING]?></td>
+				<td align="center"><?=$list_11[SHUOOTING]?></td>
+			</tr>
+			<tr>
+				<td height="25" align="center">사이클</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[CYCLING]?></td>
+				<td align="center"><?=$list_07[CYCLING]?></td>
+				<td align="center"><?=$list_08[CYCLING]?></td>
+				<td align="center"><?=$list_09[CYCLING]?></td>
+				<td align="center"><?=$list_10[CYCLING]?></td>
+				<td align="center"><?=$list_11[CYCLING]?></td>
+			</tr>
+			-->
+			<tr>
+				<td height="30" align="center">게이트볼</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[GATEBALL]?></td>
+				<td align="center"><?=$list_07[GATEBALL]?></td>
+				<td align="center"><?=$list_08[GATEBALL]?></td>
+				<td align="center"><?=$list_09[GATEBALL]?></td>
+				<td align="center"><?=$list_10[GATEBALL]?>
+					<?
+					if($t_game_player == 0 && $list_10[GATEBALL] > 0)
+					{
+						$M_GATEBALL = $dis_list_10[GATEBALL]-$list_10[GATEBALL];
+						echo "(".$M_GATEBALL.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[GATEBALL]?></td>
+			</tr>
+			<tr>
+			  <td height="25" align="center">파크골프</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[GOLF]?></td>
+				<td align="center"><?=$list_07[GOLF]?></td>
+				<td align="center"><?=$list_08[GOLF]?></td>
+				<td align="center"><?=$list_09[GOLF]?></td>
+				<td align="center"><?=$list_10[GOLF]?>
+					<?
+					if($t_game_player == 0 && $list_10[GOLF] > 0)
+					{
+						$M_GOLF = $dis_list_10[GOLF]-$list_10[GOLF];
+						echo "(".$M_GOLF.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[GOLF]?></td>
+			</tr>
+			<tr>
+			  <td rowspan="6" align="center">시범<br>
+			    종목<br>
+[6]</td>
+				<td height="25" align="center">바둑</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[BADUK]?></td>
+				<td align="center"><?=$list_07[BADUK]?></td>
+				<td align="center"><?=$list_08[BADUK]?></td>
+				<td align="center"><?=$list_09[BADUK]?></td>
+				<td align="center"><?=$list_10[BADUK]?>
+					<?
+					if($t_game_player == 0 && $list_10[BADUK] > 0)
+					{
+						$M_DART = $dis_list_10[BADUK]-$list_10[BADUK];
+						echo "(".$M_DART.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[BADUK]?></td>
+			</tr>
+
+			<tr>
+			  <td height="25" align="center">펜싱</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[FENCING]?></td>
+				<td align="center"><?=$list_07[FENCING]?></td>
+				<td align="center"><?=$list_08[FENCING]?></td>
+				<td align="center"><?=$list_09[FENCING]?></td>
+				<td align="center"><?=$list_10[FENCING]?>
+					<?
+					if($t_game_player == 0 && $list_10[FENCING] > 0)
+					{
+						$M_FENCING = $dis_list_10[FENCING]-$list_10[FENCING];
+						echo "(".$M_FENCING.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[FENCING]?></td>
+			</tr>
+			<tr>
+			  <td height="25" align="center">테니스</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[TENNIS]?></td>
+				<td align="center"><?=$list_07[TENNIS]?></td>
+				<td align="center"><?=$list_08[TENNIS]?></td>
+				<td align="center"><?=$list_09[TENNIS]?></td>
+				<td align="center"><?=$list_10[TENNIS]?>
+					<?
+					if($t_game_player == 0 && $list_10[TENNIS] > 0)
+					{
+						$M_TENNIS = $dis_list_10[TENNIS]-$list_10[TENNIS];
+						echo "(".$M_TENNIS.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[TENNIS]?></td>
+			</tr>
+			<tr>
+			  <td height="30" align="center">다트</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[DART]?></td>
+				<td align="center"><?=$list_07[DART]?></td>
+				<td align="center"><?=$list_08[DART]?></td>
+				<td align="center"><?=$list_09[DART]?></td>
+				<td align="center"><?=$list_10[DART]?>
+					<?
+					if($t_game_player == 0 && $list_10[DART] > 0)
+					{
+						$M_DART = $dis_list_10[DART]-$list_10[DART];
+						echo "(".$M_DART.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[DART]?></td>
+			</tr>
+			<tr>
+			  <td height="25" align="center">승마</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[HORSERIDING]?></td>
+				<td align="center"><?=$list_07[HORSERIDING]?></td>
+				<td align="center"><?=$list_08[HORSERIDING]?></td>
+				<td align="center"><?=$list_09[HORSERIDING]?></td>
+				<td align="center"><?=$list_10[HORSERIDING]?>
+					<?
+					if($t_game_player == 0 && $list_10[HORSERIDING] > 0)
+					{
+						$M_HORSERIDING = $dis_list_10[HORSERIDING]-$list_10[HORSERIDING];
+						echo "(".$M_HORSERIDING.")";
+					}
+					?>
+				</td>
+				<td align="center"><?=$list_11[HORSERIDING]?></td>
+			</tr>
+			<tr>
+				<td height="30" align="center">댄스스포츠</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center">&nbsp;</td>
+				<td align="center"><?=$list_06[DANCE]?></td>
+				<td align="center"><?=$list_07[DANCE]?></td>
+				<td align="center"><?=$list_08[DANCE]?></td>
+				<td align="center"><?=$list_09[DANCE]?></td>
+				<td align="center"><?=$list_10[DANCE]?></td>
+				<td align="center"><?=$list_11[DANCE]?></td>
+				<td align="center"><?=$list_club[DANCE][cnt]?></td>
+				<td>
+					<?
+					$clu_codes = explode("/",$list_club[DANCE][clu_code]);
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						echo $wp_club_code[$vals].",";
+					}
+					?>
+				</td>
+			</tr>
+			</table>
+			<table border="0" cellpadding = "0" cellspacing="0">
+			<tr>
+				<td colspan="12" align="center" height="25"></td>
+			</tr>
+			<tr>
+				<td colspan="12" align="center">
+					<?=$wp_games[$s_gam_uid]?>에 참가하는 선수단 현황을 제출합니다.
+				</td>
+			</tr>
+			<tr>
+				<td colspan="12" align="center" height="25"></td>
+			</tr>
+			<tr>
+				<td colspan="12" align="center">
+					<?=$n_year?>년 <?=$n_mon?>월 <?=$n_day?>일
+				</td>
+			</tr>
+			<tr>
+				<td colspan="12" align="center" height="25"></td>
+			</tr>
+			<tr>
+				<td colspan="12" align="right">
+					<font size="3"><b>소속&nbsp;&nbsp;&nbsp;<?=$wp_club_code[$clu_code]?>시,군</b></font>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="12" align="center" height="25"></td>
+			</tr>
+			<tr>
+				<td colspan="12" align="left">
+					<font size="3"><b>전라남도장애인체육회장 귀하</b></font>
+				</td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	</table>
+<?
+	}//while
+?>
+
+</body>

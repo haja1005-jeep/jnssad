@@ -1,0 +1,105 @@
+<?if($spo_sec_code){?>
+<script type="text/javascript">
+window.onload = function(){
+	Sports_Sec_Code(document.sForm,1);
+	//코드값 셋팅
+	setTimeout('setSpo_sec_code()',50);
+}
+</script>
+<?}?>
+<a name="list">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>
+				</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th>상장종류</th>
+			<th>상장번호</th>
+			<th>경기종목</th>
+		</tr>
+		<?
+		//LIMIT절 생성
+		if(!$page) $page=1;
+		$offset = ($page - 1) * $max_record;
+		$limit = $max_record;
+
+		//ORDER BY절 생성
+		$orderby .= " prz_num ASC";
+
+		//WHERE절 생성 //
+		$where = " WHERE gam_uid='$s_gam_uid' ";
+
+		// 레코드 쿼리 //
+		$query = "SELECT * FROM wp_game_prize $where GROUP BY prz_kind, spo_code ORDER BY $orderby LIMIT $offset, $limit";
+		$result = mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord(wp_game_prize, $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result))
+		{
+
+			$prz_num = explode("-",$obj->prz_num);
+			$mid_num = $prz_num[1];
+
+			$my_spo_sec_code = getSpo_sec_code($obj->spo_code, $obj->spo_sec_code);
+
+			$my_spo_txt = "";
+			if($obj->spo_code){
+				$my_spo_txt = $wp_sports_code[$obj->spo_code];
+			}
+
+		?>
+		<tr <?=$bgcolor?>>
+			<td align="center"><?=$wp_prize_kind[$obj->prz_kind]?></td>
+			<td align="center"><?=$obj->prz_num?></td>
+			<td align="center"><?=$my_spo_txt?></td>
+		</tr>
+		<?
+			unset($my_rank);
+			unset($my_clu_code);
+			unset($my_spo_sec_code);
+			unset($my_spo_code_detail);
+			$article_num--;
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+</form>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>
+				<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='index.html?<?=$basic_get.$add_get?>'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>

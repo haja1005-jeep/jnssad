@@ -1,0 +1,182 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=상해보험가입명부.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<body>
+<?
+
+	if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+	$where = " WHERE gam_uid = '$s_gam_uid'";
+	if($clu_code){
+		$where .= " AND clu_code = '$clu_code'";
+	}
+	if($kubun)
+		$where .= " AND kubun='$kubun'";
+	if($spo_code)
+		$where .= " AND spo_code = '$spo_code'";
+	if($spo_sec_code)
+		$where .= " AND spo_sec_code = '$spo_sec_code'";
+	if($tro_code)
+		$where .= " AND tro_code = '$tro_code'";
+	//출력순
+	//ORDER BY절 생성
+	if($orderby1 == "name") $orderby1 = "pla_name";
+	if($orderby2 == "name") $orderby2 = "pla_name";
+	if($orderby3 == "name") $orderby3 = "pla_name";
+	if($orderby4 == "name") $orderby4 = "pla_name";
+	//출력순
+	if(!$orderby1 && !$orderby2 && !$orderby3 && !$orderby4)
+		//$orderby .= " wgp.spo_code ASC, wgp.kubun ASC, wgp.pla_name ASC, wgp.sex ASC,wgp.tro_code ASC, ";
+		$orderby .= " wgp.spo_code ASC, wgp.kubun ASC, wgp.spo_sec_code ASC,wgp.tro_level_code ASC, wgp.tro_code ASC, wgp.sex ASC, wgp.spo_code_detail ASC, wgp.pla_name ASC, ";
+	if($orderby1)
+		$orderby .= " wgp.$orderby1 ASC";
+	if($orderby2)
+		$orderby .= " wgp.$orderby2 ASC, ";
+	if($orderby3)
+		$orderby .= " wgp.$orderby3 ASC, ";
+	if($orderby4)
+		$orderby .= " wgp.$orderby4 ASC, ";
+	$orderby .= " wgp.uid desc ";
+
+	// 레코드 쿼리 //
+	$query = "SELECT * FROM (SELECT *, group_concat(concat(spo_code,'§',spo_sec_code,'§',spo_code_detail,'§',tro_code,'§',tro_level_code) order by spo_code_detail asc separator '†') as in_game FROM wp_game_player wgp $where group by pla_id) wgp, (SELECT wp_id,sex,isuse,trouble_level,jumin1,jumin2,hp1,hp2,hp3 FROM wp_player_ctrl) wpc WHERE wpc.isuse='0' AND wgp.pla_id = wpc.wp_id ORDER BY $orderby";
+	//echo $query;
+	$result = mysql_query($query);
+	if(!$result){
+		Error("QUERY_ERROR");
+		exit;
+	}
+	?>
+<table border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td align="center">
+			<font size="5"><b>상해보험가입명부</b></font>
+			<br>
+			<table border="1" cellpadding="0" cellspacing="0">
+				<tr>
+					<th width="4%">번호</th>
+					<th width="5%">시/군</th>
+					<th width="7%">구분</th>
+					<th width="6%">선수명</th>
+					<th width="5%">성별</th>
+					<th width="5%">연락처</th>
+					<th width="6%">종목</th>
+					<th width="8%">세부종목1</th>
+					<th width="8%">세부종목2</th>
+					<th width="8%">세부종목3</th>
+					<?
+					if($spo_code == "POWERLIFTING"){
+						echo"
+						<th width='8%'>KG</th>
+						<th width='8%'>계체량</th>
+						";
+					}
+					?>
+					<th width="8%">장애유형</th>
+					<th width="15%">스포츠등급</th>
+					<th width="7%">장애등급</th>
+					<th width="20%">주민번호</th>
+				</tr>
+				<?
+					// 일련 번호 //
+					$article_num = mysql_num_rows($result);
+					while($obj = mysql_fetch_object($result)){
+						unset($my_spo_code_detail1);
+						unset($my_spo_code_detail2);
+						unset($my_spo_code_detail3);
+						$my_spo_code_detail = "";
+						$my_jumin = "";
+						$my_sex = "";
+						$my_trouble_level = "";
+						$my_jumin = $obj->jumin1."-".substr($obj->jumin2,0,1)."******";
+						//$my_jumin = $obj->jumin1."-".$obj->jumin2;
+
+						$my_sex = $wp_sex_code[$obj->sex];
+						if($obj->trouble_level) $my_level = $obj->trouble_level."급";
+
+						if($obj->spo_code == "POWERLIFTING"){
+							$game_kg = "";
+							$game_arr = explode("†",$obj->in_game);
+							for($j = 0; $j < count($game_arr); $j++){
+								if(!$game_arr[$j]) continue;
+								$g_tmp = explode("§",$game_arr[$j]);
+								$game_kg = $wp_sports_detail_code[$g_tmp[2]];
+								if($g_tmp[4] == "PL-A"){
+									if($g_tmp[1]== "PL100") $my_spo_code_detail1 = getSpo_sec_code($g_tmp[0], $g_tmp[1]);
+									if($g_tmp[1]== "PL200") $my_spo_code_detail2 = getSpo_sec_code($g_tmp[0], $g_tmp[1]);
+									if($g_tmp[1]== "PL300") $my_spo_code_detail3 = getSpo_sec_code($g_tmp[0], $g_tmp[1]);
+								}else{
+									if($g_tmp[1]== "PL400") $my_spo_code_detail1 = getSpo_sec_code($g_tmp[0], $g_tmp[1]);
+									if($g_tmp[1]== "PL500") $my_spo_code_detail2 = getSpo_sec_code($g_tmp[0], $g_tmp[1]);
+									if($g_tmp[1]== "PL600") $my_spo_code_detail3 = getSpo_sec_code($g_tmp[0], $g_tmp[1]);
+								}
+							}
+						}else{
+							$game_arr = explode("†",$obj->in_game);
+							for($j = 0; $j < count($game_arr); $j++){
+								if(!$game_arr[$j]) continue;
+								$g_tmp = explode("§",$game_arr[$j]);
+								if($j == 0) $my_spo_code_detail1 .= getSpo_sec_code($g_tmp[0], $g_tmp[1])."  ".$wp_sports_detail_code[$g_tmp[2]]."<br>";
+								if($j == 1) $my_spo_code_detail2 .= getSpo_sec_code($g_tmp[0], $g_tmp[1])."  ".$wp_sports_detail_code[$g_tmp[2]]."<br>";
+								if($j == 2) $my_spo_code_detail3 .= getSpo_sec_code($g_tmp[0], $g_tmp[1])."  ".$wp_sports_detail_code[$g_tmp[2]]."<br>";
+							}
+						}
+
+
+						//스포츠등급
+						if($obj->tro_level_code)
+							$my_tro_level_name = getTrouble_level_code($obj->spo_code, $obj->tro_level_code)."(".$obj->tro_level_code.")";
+						else $my_tro_level_name = "";
+				?>
+				<tr>
+					<td align="center"><?=$article_num?></td>
+					<td align="center"><?=$wp_club_code[$obj->clu_code]?></td>
+					<td align="center"><?=$wp_kubun_code[$obj->kubun]?></td>
+					<td align="center"><?=$obj->pla_name?></td>
+					<td align="center"><?=$my_sex?></td>
+					<td align="center"><?=$obj->hp1?>-<?=$obj->hp2?>-<?=$obj->hp3?></td>
+					<td align="center"><?=$wp_sports_code[$obj->spo_code]?></td>
+					<td align="center"><?=$my_spo_code_detail1?></td>
+					<td align="center"><?=$my_spo_code_detail2?></td>
+					<td align="center"><?=$my_spo_code_detail3?></td>
+					<?
+					if($obj->spo_code == "POWERLIFTING"){
+						echo "
+						<td align='center'>$game_kg</td>
+						<td align='center'>&nbsp;</td>
+						";
+					}
+					?>
+					<td align="center"><?=$wp_trouble_code[$obj->tro_code]?></td>
+					<td align="center"><?=$my_tro_level_name?></td>
+					<td align="center"><?=$my_level?></td>
+					<td align="center"><?=$my_jumin?></td>
+				</tr>
+				<?
+					$article_num--;
+					} //while ?>
+			</table>
+		</td>
+	</tr>
+</table>
+</body>

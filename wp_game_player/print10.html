@@ -1,0 +1,163 @@
+<?php
+/**
+ * add by hsjang
+ */
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+// 대회번호 체크 //
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+
+$query = "SELECT spo_code, tro_code, (SELECT sex FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) r_sex, count(*) cnt FROM wp_game_player wgp WHERE gam_uid = '$s_gam_uid' GROUP BY spo_code, tro_code, r_sex ORDER BY spo_code";
+$result = mysql_query($query);
+
+$spo_arr = array();
+$b_spo_code = "";
+$tro_code_cnt = 0;
+while($obj = mysql_fetch_object($result)){
+	if($obj->spo_code != $b_spo_code)
+	{
+		$tmp_arr["total_cnt"] = $tro_code_cnt;
+		$spo_arr[$b_spo_code] = $tmp_arr;
+		$tro_code_cnt = 0;
+		$tmp_arr = array();
+	};
+	$keys = $obj->tro_code."/".$obj->r_sex;
+	$tmp_arr["$keys"] = $obj->cnt;
+
+	$tro_code_cnt += $obj->cnt;
+	$b_spo_code = $obj->spo_code;
+}
+$tmp_arr["total_cnt"] = $tro_code_cnt;
+$spo_arr[$b_spo_code] = $tmp_arr;
+?>
+
+<form name="sForm" id="sForm" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<!-- 선수 검색 시작 -->
+		<table class="tbSearch-c">
+			<tr>
+				<!-- 선수 검색 시작 -->
+				<th width="10%">대회선택</th>
+				<td>
+					<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+						<option value="">--선택-- </option>
+						<?
+							foreach($wp_games_before as $keys => $values){
+								$is_selected = ($keys == $s_gam_uid) ? 'selected' : '';
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+						?>
+					</select>
+					<input type="button" tabindex="4" value="미리보기" data-btn="preview" class="btnBox3">
+					<input type="button" tabindex="5" value="장애유형별총계표 출력" data-btn="excel" class="btnBox3">
+				</td>
+			</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>
+
+<script type="text/javascript">
+  $(function() {
+    var fObj = $('#sForm');
+    $('[data-btn="preview"]').click(function() {
+      fObj.attr('action', location.href);
+      fObj.submit();
+    });
+
+    $('[data-btn="excel"]').click(function() {
+      fObj.attr('action', './<?= str_replace('print', 'excel', $mode) ?>.html');
+      fObj.submit();
+    });
+  });
+</script>
+
+<link rel="stylesheet" href="wp_game_player.css">
+<table class="table-type01">
+	<thead>
+		<tr>
+			<th rowspan="2">구분</th>
+			<th rowspan="2">총계</th>
+			<th rowspan="2">임원</th>
+			<th colspan="2">절단및기타장애</th>
+			<th colspan="2">척수장애</th>
+			<th colspan="2">뇌성(뇌병변)마비</th>
+			<th colspan="2">시각장애</th>
+			<th colspan="2">청각장애</th>
+			<th colspan="2">지적장애</th>
+			<th rowspan="2">비장애</th>
+		</tr>
+		<tr>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+		</tr>
+	</thead>
+	<tbody>
+		<?
+		$spo_data = $spo_arr[""];
+		$etc_cnt =  $spo_data["/male"] + $spo_data["/female"];
+		echo "
+		<tr>
+			<td align='center'>임원</td>
+			<td>$etc_cnt</td>
+			<td colspan='14'></td>
+		</tr>
+		";
+		foreach($wp_game_code as $key_f => $val_f)
+		{
+			$spo_data = $spo_arr["$key_f"];
+			$my_else = $spo_data["/male"] + $spo_data["/female"];
+			$my_notrou = $spo_data["NOTROU/male"] + $spo_data["NOTROU/female"];
+			echo "
+				<tr>
+					<td>$val_f</td>
+					<td>$spo_data[total_cnt]</td>
+					<td>$my_else</td>
+					<td>".$spo_data["IWAS/male"]."</td>
+					<td>".$spo_data["IWAS/female"]."</td>
+					<td>".$spo_data["IWAS_2/male"]."</td>
+					<td>".$spo_data["IWAS_2/female"]."</td>
+					<td>".$spo_data["CP-ISRA/male"]."</td>
+					<td>".$spo_data["CP-ISRA/female"]."</td>
+					<td>".$spo_data["IBSA/male"]."</td>
+					<td>".$spo_data["IBSA/female"]."</td>
+					<td>".$spo_data["CISS/male"]."</td>
+					<td>".$spo_data["CISS/female"]."</td>
+					<td>".$spo_data["INAS-FID/male"]."</td>
+					<td>".$spo_data["INAS-FID/female"]."</td>
+					<td>$my_notrou</td>
+				</tr>
+			";
+		}
+		?>
+	</tbody>
+</table>

@@ -1,0 +1,353 @@
+<script type="text/javascript">
+window.onload = function(){
+	var frm = document.sForm;
+	Sports_Sec_Code(frm);
+	//경기2차종목 셋팅
+	setTimeout('setSpo_sec_code()',50);
+}
+</script>
+
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>
+					정렬순서란? 검색 후 하단에 선수정보 리스트를 출력할 때 정렬할 순서를 나타냅니다.
+					<br>
+					출력순서 미지정시 <font color="#cc0000"><b>1:선수구분, 2:성명순, 3:성별순, 4:장애유형  </b></font>으로 정렬하여 출력
+				</li>
+				<li>대회 참가한 선수 전체를 출력할 시에는 해당대회를 선택 후 <font color="#cc0000">[선수전체출력]</font>버튼을 클릭하여 출력한다.</li>
+				<li>개별 출력을 원할 시에는 하단의 검색을 하신 후 원하는 선수를 선택하여 <font color="#cc0000">[개별신청서출력]</font>버튼을 클릭하여 출력합니다.</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<form name="listForm1" action="excel7.html" target="_blank" method="post" onSubmit="return print_player(this, 'chk_id')">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th width="10%">정렬순서</th>
+					<td align="left">
+						1순위
+						<select name="orderby1" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby1)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						2순위
+						<select name="orderby2" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby1)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						3순위
+						<select name="orderby3" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby1)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>,
+						4순위
+						<select name="orderby4" hname="출력순">
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_orderby_code as $keys => $values){
+									if($keys == $orderby1)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>검색조건</th>
+					<td align="left">
+						<select name="s_gam_uid" tabindex="5" hname="대회선택">
+							<?
+								foreach($wp_games as $keys => $values){
+									if($keys == $gam_uid)
+										$is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<?
+						//시/군구 이면 자기 데이터 출력
+						if($Admin_auth == "normal" || $Admin_auth == "sponsor") {
+							echo "<input type='hidden' name='clu_code' hname='대회주최기관' value='$Admin_code'>";
+						}else{
+							echo "
+							<select name='clu_code' tabindex='1' hname='시/도'>
+								<option value=''>--시/도 선택-- </option>
+							";
+								foreach($wp_club_code as $keys => $values){
+									if($keys == $clu_code) $is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							echo "</select>";
+						}
+						?>
+						<input type="hidden" name="p_code">
+						<input type="button" name="sch" class="btnBox3" value=" 선수전체출력 " onclick="this.form.p_code.value='all';this.form.submit();">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+<tr>
+</tr>
+	<td>
+		<form name="sForm" action="index.html?mode=print7#list" method="post" onSubmit="return validate(this)">
+		<!-- 선수 검색 시작 -->
+		<a name="list">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th width="10%" rowspan="3">검색조건</th>
+					<td>
+						<select name="s_gam_uid" tabindex="5" hname="대회선택">
+							<option value="">--대회선택-- </option>
+							<?
+								foreach($wp_games as $keys => $values){
+									if($keys == $gam_uid)
+										$is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<?
+						//시/군구 이면 자기 데이터 출력
+						if($Admin_auth == "normal" || $Admin_auth == "sponsor") {
+							echo "<input type='hidden' name='clu_code' hname='대회주최기관' required value='$Admin_code'>";
+						}else{
+							echo "
+							<select name='clu_code' tabindex='1' hname='소속시도' required>
+								<option value=''>--시/도-- </option>
+							";
+								foreach($wp_club_code as $keys => $values){
+									if($keys == $clu_code)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							echo "</select>";
+						}
+						?>
+						<select name="spo_code" tabindex="2" onchange="Sports_Sec_Code(this.form)">
+							<option value=''>--경기종목--</option>
+							<?
+							foreach($wp_sports_code as $keys => $values){
+								if($keys == $spo_code)
+									$is_selected = " selected ";
+								else $is_selected = "";
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+							?>
+						</select>
+						<script id="sports_sec_code"></script>
+						<!-- 히든으로 가지고 있어야할 필수항목..-->
+						<input type="hidden" name="h_spo_sec_code" value="<?=$spo_sec_code?>">
+						<select name="spo_sec_code" tabindex="2" hname="2차종목">
+							<option value="">--2차종목-- </option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<select name="keyfield">
+							<option value="name">성 명</option>
+						</select>
+						<input type="text" size="15" maxlength="30" name="key">
+						<input type="button" name="sch" tabindex="5" value="검색하기" class="btnBox3" onclick="this.form.submit()">
+						<input type="button" name="input" value="개별참가신청서 출력" class="btnBox3" onclick="print_player2('chk_id')">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="3%"><input type="checkbox" name="chk" value="chk_id" onClick="selectAll(this.form,this.value)"></th>
+			<th width="5%">번호</th>
+			<th width="10%">시/군</th>
+			<th width="8%">성명</th>
+			<th width="5%">성별</th>
+			<th width="17%">주민번호</th>
+			<th>참가 종목</th>
+		</tr>
+		<?
+		//LIMIT절 생성
+		if(!$page) $page=1;
+		$offset = ($page - 1) * $max_record;
+		$limit = $max_record;
+		//ORDER BY절 생성
+		if(!$orderby) $orderby = " clu_code ASC, pla_name ASC,spo_code ASC, tro_code ASC, tro_level_code ASC";
+		else $orderby = $orderby." ".$desc;
+
+		//해당 시/군의 데이터만 확인가능
+		//WHERE절 생성 //
+		if($Admin_auth == "top"){
+			$where = " WHERE gam_uid = '$gam_uid'";
+		} else{
+			$where = " WHERE gam_uid = '$gam_uid' AND clu_code = '$Admin_code' ";
+		}
+
+		//시/군선택
+		if($clu_code) $where .= " AND clu_code = '$clu_code' ";
+		//경기종목가있으면
+		if($spo_code) $where .= " AND spo_code = '$spo_code' ";
+		//경기2차종목가있으면
+		if($spo_sec_code) $where .= " AND spo_sec_code = '$spo_sec_code' ";
+		//성별이 있으면
+		if($sex) $where .= " AND sex = '$sex' ";
+		//장애유형 가있으면
+		if($tro_code) $where .= " AND tro_code = '$tro_code' ";
+		//장애세부유형 가있으면
+		if($tro_level_code) $where .= " AND tro_level_code = '$tro_level_code' ";
+
+		if(eregi("[^[:space:]]+",$key))
+			$Q_key = " AND  $keyfield LIKE '%$key%' ";
+		$where .= $Q_key;
+
+		$where .= " GROUP BY pla_id ";
+
+		$query = "SELECT *, (SELECT sex FROm wp_player_ctrl WHERE isuse='0' AND wp_id = wgp.pla_id) p_sex, (SELECT concat(jumin1,'-',jumin2) FROm wp_player_ctrl WHERE isuse='0' AND wp_id = wgp.pla_id) p_jumin, (SELECT wheel FROm wp_player_ctrl WHERE isuse='0' AND wp_id = wgp.pla_id) wheel FROM wp_game_player wgp $where ORDER BY $orderby LIMIT $offset, $limit";
+		//echo $query;
+		$result = mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord(" (SELECT * FROM wp_game_player $where ) a", "");
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result))
+		{
+
+			if($obj->isuse == "1"){
+				$bgcolor = "bgcolor='#e7944a' ";
+			}else $bgcolor = "";
+
+			$signdate_d = date('Y-m-d',$obj->signdate);
+			if($obj->tro_code)
+				$my_trouble_code = getTrouble_level_code($obj->spo_code, $obj->tro_level_code)."(".$obj->tro_level_code.")";
+			else $my_trouble_code = "";
+
+			//대회에 참가한 세부종목 검색
+			$que = "SELECT * FROM wp_game_player WHERE gam_uid = '$gam_uid' AND pla_id = '$obj->pla_id' ORDER BY spo_code, spo_sec_code, tro_code, tro_level_code";
+			$res = mysql_query($que);
+			unset($my_spo_detail_code);
+			while($gObj = mysql_fetch_object($res)){
+				if($gObj->spo_sec_code)
+					$my_spo_detail_code .= getSpo_sec_code($gObj->spo_code, $gObj->spo_sec_code)."(".$wp_sports_detail_code[$gObj->spo_code_detail]."),";
+			}
+
+
+		?>
+		<tr <?=$bgcolor?>>
+			<td align="center"><input type="checkbox" name="chk_id[]" value="<?=$obj->pla_id?>"></td>
+			<td align="center"><?=$article_num?></td>
+			<td align="center"><?=$wp_club_code[$obj->clu_code]?></td>
+			<td align="center"><?=$obj->pla_name?></td>
+			<td align="center"><?=$wp_sex_code[$obj->p_sex]?></td>
+			<td align="center">
+				<?
+				$my_jumin_arr = explode("-",$obj->p_jumin);
+				echo $my_jumin_arr[0]."-".substr($my_jumin_arr[1],0,1)."******";
+				?>
+			</td>
+			<td align="left">
+				<?
+				echo "<b>선수정보 : </b>";
+				if($obj->kubun)
+					echo $wp_kubun_code[$obj->kubun]." | ";
+				if($obj->tro_code)
+					echo $wp_trouble_code[$obj->tro_code]." | ";
+				if($obj->trouble_level)
+					echo $wp_trouble_level[$obj->trouble_level]." | ";
+				if($obj->tro_level_code)
+					echo $my_trouble_code." | ";
+				echo "휠체어".$wp_wheel_code[$obj->wheel]." | ";
+				echo "<br><b>참가종목 : </b>";
+				if($obj->spo_code)
+					echo $wp_sports_code[$obj->spo_code]." | ";
+				if($obj->spo_sec_code && $wp_sports_code[$obj->spo_code] != getSpo_sec_code($obj->spo_code, $obj->spo_sec_code))
+					echo getSpo_sec_code($obj->spo_code, $obj->spo_sec_code)." | ";
+				if($my_spo_detail_code)
+					echo "<font color='#cc0000'>".$my_spo_detail_code."</font> | ";
+				?>
+			</td>
+		</tr>
+		<?
+			$article_num--;
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+	</form>
+</tr>
+<tr>
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td align="center">
+			<? require_once "../wp_object/page_move.html";?>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+<form name="excelForm" action="excel7.html" methos="post" target="_blank">
+<input type="hidden" name="chk_ids">
+<input type="hidden" name="clu_code">
+</form>

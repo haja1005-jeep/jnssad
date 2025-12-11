@@ -1,0 +1,67 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=역도_장애유형별_총괄표.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+
+<body>
+<?
+	$query = "SELECT spo_code, tro_code, (SELECT sex FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) r_sex, clu_code, count(*) cnt FROM wp_game_player wgp WHERE gam_uid = '$gam_uid' AND spo_code = 'POWERLIFTING' GROUP BY spo_code, tro_code, r_sex ORDER BY spo_code";
+	$result = mysql_query($query);
+	while($obj = mysql_fetch_object($result))
+	{
+		if($obj->spo_code != $b_spo_code)
+		{
+			$tmp_arr["total_cnt"] = $tro_code_cnt;
+			$spo_arr[$b_spo_code] = $tmp_arr;
+			$tro_code_cnt = 0;
+			$tmp_arr = array();
+		};
+		$clu_arr[] = $obj->clu_code;
+		$keys = $obj->tro_code."/".$obj->r_sex;
+		$tmp_arr["$keys"] = $obj->cnt;
+
+		$tro_code_cnt += $obj->cnt;
+		$b_spo_code = $obj->spo_code;
+	}
+	$tmp_arr["total_cnt"] = $tro_code_cnt;
+	$spo_arr[$b_spo_code] = $tmp_arr;
+?>
+<table width="100%" border="1" cellpadding="0" cellspacing="0">
+<tr>
+	<td rowspan="2">분류</td>
+	<?
+	foreach($wp_club_code as $key_f => $val_f)
+	{
+		echo "<td colspan='2'>$val_f</td>";
+	}
+	?>
+</tr>
+<tr>
+	<?
+	for($i = 0; $i < count($wp_club_code); $i++)
+	{
+		echo "<td>남자</td><td>여자</td>";
+	}
+	?>
+</tr>
+</body>

@@ -1,0 +1,595 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=시군별총계표.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<!--link type="text/css" rel="stylesheet" href="../wp_config/style.css"-->
+<body>
+<?
+		if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+		$query = "SELECT code, name FROM wp_club_ctrl ORDER BY code ASC";
+		$result = mysql_query($query);
+		$club_code_a = array();
+		$club_code_n = array();
+		while($obj = mysql_fetch_object($result))
+		{
+			if($obj->clu_code == "test" || $obj->clu_code == "jnsad") continue;
+			$club_code_a[$obj->code] = array();
+			$club_code_n[$obj->code] = $obj->name;
+		}
+		unset($query);
+		unset($result);
+		unset($obj);
+//		$club_code_a[$obj->code] = array();
+//		$club_code_n[$obj->code] = $obj->name;
+
+
+		$T_WGP = " (SELECT distinct clu_code, pla_id, spo_code, kubun FROM wp_game_player WHERE gam_uid='$s_gam_uid') wgp";
+
+		//전체
+		if($result_sex)
+		{
+			$query = "SELECT wgp.pla_id,wgp.clu_code,wgp.kubun,count(*) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' AND 1=1 $Q_club GROUP BY clu_code,kubun WITH rollup";
+		}
+		else
+		{
+			$query = "SELECT pla_id,clu_code,kubun,count(*) cnt FROM $T_WGP WHERE 1=1 $Q_club GROUP BY clu_code,kubun WITH rollup";
+		}
+		$result = mysql_query($query);
+		while($obj = mysql_fetch_object($result))
+		{
+			//시군별 총인원
+			$_tmp = $club_code_a[$obj->clu_code];
+			$_tmp[$obj->kubun] = $obj->cnt;
+			$club_code_a[$obj->clu_code] = $_tmp;
+
+			//선수구분별 총인원
+			$t_cnt = $list_03[$obj->kubun];
+			$t_cnt += $obj->cnt;
+			$list_03[$obj->kubun] = $t_cnt;
+		}
+		unset($query);
+		unset($result);
+		unset($obj);
+		unset($s_que);
+		unset($s_res);
+		unset($s_obj);
+
+		//휠체어 사용인원
+		$query = "SELECT pla_id, wgp.clu_code,count(wgp.clu_code) cnt FROM $T_WGP, wp_player_ctrl wpc
+				WHERE wgp.pla_id = wpc.wp_id
+				$Q_club1
+				AND wpc.wheel = '0'
+				GROUP BY wgp.clu_code ORDER BY wgp.clu_code ASC";
+		$result = mysql_query($query);
+
+		while($obj = mysql_fetch_object($result))
+		{
+			if($result_sex)
+			{
+				// 성별 쿼리 //
+				$s_que =  "SELECT wp_id, sex FROM wp_player_ctrl WHERE wp_id = '$obj->pla_id'";
+				$s_res = mysql_query($s_que);
+				$s_obj = mysql_fetch_object($s_res);
+
+				if($s_obj->sex == $result_sex)
+				{
+					$list_02[$obj->clu_code] = $obj->cnt;
+					$total_wheel_cnt += $obj->cnt;
+				}
+			}
+			else
+			{
+				$list_02[$obj->clu_code] = $obj->cnt;
+				$total_wheel_cnt += $obj->cnt;
+			}
+		}
+		unset($query);
+		unset($result);
+		unset($obj);
+		unset($s_que);
+		unset($s_res);
+		unset($s_obj);
+
+		//선수총인원
+		foreach($list_03 as $keys => $values)
+		{
+			if($keys) $total_cnt += $list_03[$keys];
+		}
+
+?>
+
+	<table border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>
+			<table border="0" cellpadding="0" cellspacing="0">
+			<tr>
+				<td colspan= "12" height="30" align="center"><font size="4"><b><?=$wp_games[$s_gam_uid]?> 참가자 [시/군별 총계표]</b></font></td>
+			</tr>
+			</table>
+			<table border="1" cellpadding="0" cellspacing="0" style="font-size:0.8em">
+			<tr align="center">
+				<td rowspan="2"><b>구분</b></td>
+				<td height="35" colspan="6" align="center"><b>임원 구성원 </b></td>
+				<td colspan="3" align="center"><b>선수단 구성원 </b></td>
+				<td width="30" rowspan="2" align="center"><b>총계</b></td>
+				<td width="40" rowspan="2" align="center"><b>휠체어<br>
+				사용<br>
+				인원</b></td>
+			</tr>
+			<tr>
+				<td width="35" height="41" align="center"><b>단장<br>
+				(1명)</b></td>
+				<td width="35" align="center">
+					<p><b>담당<br>
+					(1명)</b></p>
+				</td>
+				<td width="35" align="center"><b>임원</b></td>
+				<td width="48" align="center"><b>보호자</b></td>
+				<td width="45" align="center"><b>자원<br>
+				봉사자		</b></td>
+				<td width="45" align="center"><b>종목별<br>
+				인솔자		</b></td>
+				<td width="42" align="center"><b>감독</b></td>
+				<td width="41" align="center"><b>코치</b></td>
+				<td width="34" align="center"><b>선수</b></td>
+			</tr>
+			<tr>
+				<td height="30" align="center">계</td>
+				<td align="center"><?=$list_03[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_03[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_03[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_03[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_03[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_03[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_03[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_03[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_03[$wp_kubun_선수]?></td>
+				<td align="center"><?=$total_cnt?></td>
+				<td align="center"><?=$total_wheel_cnt?></td>
+			</tr>
+			<?
+/*
+				foreach($club_code_a as $keys => $values){
+					if($keys == "test" || $keys == "jnsad") continue;
+					$list_01 = $club_code_a[$keys];
+					if(!$club_code_n[$keys]) continue;
+*/
+			?>
+			<?
+				$keys = "moksad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "yssad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "scsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "njsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "gysad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "dysad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "gssad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "grsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "ghsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "bssad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "hssad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "jhsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "gjsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "hnsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "yasad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "masad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "hpsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "ygsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "jssad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "wdsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "jdsad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?
+				$keys = "sasad";
+				$list_01 = $club_code_a[$keys];
+			?>
+			<tr>
+				<td height="30" align="center"><?=$club_code_n[$keys]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_단장]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_담당]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_임원]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_보호자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_자원봉사자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_코치]?></td>
+				<td align="center"><?=$list_01[$wp_kubun_선수]?></td>
+				<td align="center"><?=$list_01[""]?></td>
+				<td align="center"><?=$list_02[$keys]?></td>
+			</tr>
+			<?// }?>
+			</table>
+			<table border="0" cellpadding = "0" cellspacing="0">
+			<tr>
+				<td colspan="12" align="center" height="30"></td>
+			</tr>
+			<tr>
+				<td colspan="12" align="center">
+					<?=$n_year?>년 <?=$n_mon?>월 <?=$n_day?>일
+				</td>
+			</tr>
+			<tr>
+				<td colspan="12" align="center" height="30"></td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	</table>
+
+</body>

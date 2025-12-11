@@ -1,0 +1,101 @@
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>
+				</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<form name="sForm" action="prize.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th rowspan="3">대회선택</th>
+					<td>
+						<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_games as $keys => $values){
+									if($keys == $s_gam_uid)
+										$is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<select name="spo_code" tabindex="2" hname="경기종목" required">
+							<option value=''>전체</option>
+							<?
+							foreach($wp_sports_code as $keys => $values){
+								if($keys == $spo_code)
+									$is_selected = " selected ";
+								else $is_selected = "";
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+							?>
+							</select>
+							<?
+							if($spo_code=="ATHIETICS"){
+								if($spo_sec_code == "AS100") $is_selected1 = " selected ";
+								if($spo_sec_code == "AS200") $is_selected2 = " selected ";
+								echo "<select name='spo_sec_code' required onchange='this.form.submit();'>
+									<option value=''>선택</option>
+									<option value='AS100' $is_selected1>트랙</option>
+									<option value='AS200' $is_selected2>필드</option>
+									</select>
+								";
+							}
+							?>
+						<input type="submit" name="sch" value="상장집계하기" class="btnBox3">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+<!-- 2014-09-19 박민철 수정
+	상장 집계에서 단체전 상장도 같이 집계하도록 수정하여 삭제함 
+<tr>
+	<td>
+		<form name="sForm" action="prize_group.php?<?=$basic_get.$add_get?>" method="post" onSubmit="return validate(this)">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th rowspan="3">대회선택</th>
+					<td>
+						<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_games as $keys => $values){
+									if($keys == $s_gam_uid)
+										$is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<input type="submit" name="sch" value="단체전상장집계하기" class="btnBox3">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+-->
+</table>

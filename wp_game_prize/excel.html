@@ -1,0 +1,172 @@
+<?
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<link type="text/css" rel="stylesheet" href="../wp_config/style.css">
+<!--
+<STYLE type="text/css">
+.break { page-break-after: always ;}
+</STYLE>
+-->
+<script language="javascript">
+function printWindow()
+{
+	factory.printing.Print(false, window)
+}
+</script>
+<body onload="printWindow();" scroll="auto">
+<!--<body onload="printWindow();" scroll="auto">-->
+<!--
+<body scroll="auto">
+-->
+<object id=factory style="display:none"
+classid="clsid:1663ed61-23eb-11d2-b92f-008048fdd814"
+codebase="http://www.jnsadplayer.or.kr/wp_library/smsx.cab#Version=6,1,429,14">
+</object>
+<?
+/* 2014-09-19 박민철 수정
+	경기번호로 체크 했던 부분들을 전체적으로 수정함.
+*/
+
+// 출력할 선수들
+$player_arr = array();
+if($uid)
+{
+	// 발행 버튼 클릭을 통한 출력
+	$player_arr[] = $uid;
+}
+else
+{
+	// 체크된 상장 출력
+	$player_arr =  $all;
+}
+
+
+foreach($player_arr as $key_f => $val_f)
+{
+	$uid = $player_arr[$key_f];
+
+	// 발행 정보 체크 //
+	$query = "SELECT * FROM wp_game_prize WHERE uid = '$uid'";
+	$result = mysql_query($query);
+	if (!$result)
+	{
+		Error("QUERY_ERROR");
+		exit;
+	}
+	$obj = mysql_fetch_object($result);
+	$prz_kind = $obj->prz_kind;
+
+	//상장번호
+	$my_prz_num = $obj->prz_num;
+
+	// 클럽 추출 //
+	$my_clu_code = $wp_club_code[$obj->clu_code];
+
+	// 순위 추출//
+	$my_rank = $wp_rank_code[$obj->rank];
+
+	// 종목 추출 //
+	$my_spo_code = $wp_sports_code[$obj->spo_code];
+
+	// 참가자 이름 //
+	$my_prz_pla_name = $obj->prz_pla_name;
+
+	// 참가자 이름 재배치를 위한 설정 //
+	unset($prize_player_name);
+	$player_name = explode(",", $my_prz_pla_name);
+	$prize_player_number = count($player_name) - 1;
+	$prize_player_count = 0;
+	foreach($player_name as $key_f => $val_f)
+	{
+		$prize_player_name .= $val_f;
+
+		if($key_f == 2 || $key_f == 5 || $key_f == 8 || $key_f == 11)
+		{
+			$prize_player_name .= "<br>";
+		}
+		if($key_f == 0 || $key_f == 1 || $key_f == 3 || $key_f == 4 || $key_f == 6 || $key_f == 7 || $key_f == 9 || $key_f == 10)
+		{
+			if($prize_player_number != $prize_player_count)
+			{
+				$prize_player_name .= ",";
+			}
+		}
+
+		// 참가자수 증가 //
+		$prize_player_count++;
+	}
+
+
+	//역도는 게임번호별 종목현황을 재설
+	if($obj->spo_code == "POWERLIFTING") {
+		$player_weight= $wp_sports_detail_code[$obj->spo_code_detail];
+		$my_game_txt = $my_spo_code." ".getSpo_sec_code($obj->spo_code, $obj->spo_sec_code)."<br>".$wp_sex_code[$obj->sex]." (".$player_weight.")";
+	}
+	else if($obj->spo_code == "SWIMMING")
+	{
+		$player_swim = getSpo_sec_code($obj->spo_code,$obj->spo_sec_code);
+		$wp_sports_detail_code[$obj->spo_code_detail]."(".$obj->tro_level_code.")";
+		$my_game_txt = $my_spo_code." $player_swim ". $wp_sex_code[$obj->sex]." ". $wp_sports_detail_code[$obj->spo_code_detail]."(".$obj->tro_level_code.")";
+	}
+	else if($obj->spo_code == "ATHIETICS")
+	{
+		$my_game_txt = $my_spo_code." (".$wp_sports_detail_code[$obj->spo_code_detail].")";
+	}
+	else if($obj->game_code == "BILLIARDS_BA200-07")
+	{
+		$my_spo_sec_code = $wp_sports_detail_code[$obj->spo_code_detail]."(".$obj->tro_level_code.")";
+		$my_game_txt = $my_spo_code."(단체전)";
+
+	}
+
+	else 
+	{
+		$my_spo_sec_code = $wp_sports_detail_code[$obj->spo_code_detail]."(".$obj->tro_level_code.")";
+		$my_game_txt = $my_spo_code."(".$my_spo_sec_code.")";
+
+	}
+
+
+	// 프린팅 내용 //
+	if($prz_kind == "05")
+	{
+		require "print_05_01.html";
+	}
+	else
+	{
+		require "print_".$prz_kind.".html";
+	}
+
+	// 발행수 입력 //
+	$u_insert = mysql_query("UPDATE wp_game_prize SET count=count+1 WHERE uid='$uid'");
+	// 발행자 정보 입력 //
+	if($u_insert)
+	{
+		$i_fields = array("prz_uid","id","signdate");
+		$i_values = array("$t_uid","$Site_Admin",$signdate);
+		$i_insert = $Mysql->Insert(wp_prize_count,$i_fields,$i_values);
+	}
+
+}
+
+?>
+</body>

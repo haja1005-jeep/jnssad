@@ -1,0 +1,200 @@
+<?
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+
+<?
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+?>
+
+
+<link type="text/css" rel="stylesheet" href="../wp_im4u/css/print.css">
+<SCRIPT>
+function Installed(){	try	{	return (new ActiveXObject('IEPageSetupX.IEPageSetup'));	}	catch (e)	{	return false;	}}
+function PrintTest(){
+	if (!Installed()) alert("컨트롤이 설치되지 않았습니다. 정상적으로 인쇄되지 않을 수 있습니다.")
+	else alert("정상적으로 설치되었습니다.");
+}
+</SCRIPT>
+<script language="JavaScript" for="IEPageSetupX" event="OnError(ErrCode, ErrMsg)">
+	alert('에러 코드: ' + ErrCode + "\n에러 메시지: " + ErrMsg);
+</script>
+<script>
+function Xprint() {
+IEPageSetupX.header= "" ;              // 머리말 설정
+IEPageSetupX.footer= "";               // 꼬리말 설정
+IEPageSetupX.leftMargin=10;            // 왼쪽 여백 (단위:mm)
+IEPageSetupX.topMargin=20;             // 위쪽 여백 (단위:mm)
+IEPageSetupX.rightMargin=10;           // 오른쪽 여백 (단위:mm)
+IEPageSetupX.bottomMargin=15;          // 아래쪽 여백 (단위:mm)
+IEPageSetupX.Orientation=0;            // 0 = 인쇄방향 가로, 1 = 세로
+IEPageSetupX.PrintBackground=true;    // 배경색 및 이미지 인쇄
+IEPageSetupX.PaperSize = 'A4';        // 인쇄 용지 설정
+//IEPageSetupX.RollBack();              // 수정 이전 값으로 되돌림(한단계 이전만 지원)
+//IEPageSetupX.Clear();                 // 여백은 0으로, 머리글/바닥글은 모두제거, 배경색 및 이미지 인쇄 안함
+//IEPageSetupX.SetDefault();            // 기본값으로 복원(여백 모두: 0.75mm, 머리글:&w&b페이지 &p / &P, 바닥글:&u&b&d, 배경색 및 이미지 인쇄: 안함)
+//IEPageSetupX.Preview();               // 인쇄 미리보기
+//IEPageSetupX.SetupPage();             // 페이지 설정 창 띄우기
+//IEPageSetupX.CloseIE();               // 웹브라우즈 닫기
+//IEPageSetupX.Print();                 // 인쇄
+IEPageSetupX.Print(true);             // 인쇄 대화상자 표시
+//alert(IEPageSetupX.GetPrinters());    // 프린터 목록 구하기 alert표시
+//alert(IEPageSetupX.GetDefaultPrinter()); // 기본프린터 구하기
+//PrintTest();                          // 컨트롤 설치 여부 검사
+
+//alert("인쇄가 완료되었습니다.");
+//IEPageSetupX.CloseIE();               // 웹브라우즈 닫기
+}
+</script>
+<OBJECT id=IEPageSetupX classid="clsid:41C5BC45-1BE8-42C5-AD9F-495D6C8D7586" codebase="http://www.jnsadplayer.or.kr/wp_im4u/IEPageSetupX.cab#version=1,4,0,1" width=0 height=0>	
+	<param name="copyright" value="http://isulnara.com">
+	<div style="position:absolute;top:276;left:320;width:300;height:68;border:solid 1 #99B3A0;background:#D8D7C4;overflow:hidden;z-index:1;visibility:visible;"><FONT style='font-family: "굴림", "Verdana"; font-size: 9pt; font-style: normal;'>
+	<BR>  인쇄 여백제어 컨트롤이 설치되지 않았습니다.  <BR>  <a href="http://www.jnsadplayer.or.kr/wp_im4u/IEPageSetupX_en.exe"><font color=red>이곳</font></a>을 클릭하여 수동으로 설치하시기 바랍니다.  </FONT>
+	</div>
+</OBJECT>
+<body scroll="auto" onload='Xprint();'>
+<div id='A4_land'>
+<ul>
+<?
+foreach($pla_id as $pkeys => $pvalues){
+
+		//WHERE절 생성 //
+		if($Admin_auth == "top" || $Admin_auth == "s_group"){
+			$where = " WHERE gam_uid = '$s_gam_uid'";
+		} else{
+			$where = " WHERE gam_uid = '$s_gam_uid'";
+			$clu_code = $Admin_code;
+		}
+
+
+	    //시/군이 있으면
+		$where .= " AND pla_id  = '$pvalues'";
+		if($clu_code) $where .= " AND clu_code = '$clu_code'";	
+
+		// 레코드 쿼리 //
+		$query = "SELECT *, (SELECT picture_chg picture_real FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) picture_real,
+                        group_concat(tro_level_code order by spo_code_detail asc separator '|') tro_level_codes,
+						group_concat(spo_code_detail order by spo_code_detail asc separator '|') spo_code_details,
+						group_concat(uid order by spo_code_detail asc separator '|') pla_uids				 
+				   FROM wp_game_player wgp
+				 $where";
+		$result = mysql_query($query);
+	
+
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+
+		// 레코드 결과 //
+		for($i=0;$i<mysql_num_rows($result);$i++)
+		{
+
+			$obj = mysql_fetch_object($result);
+			$my_pla_name = $obj->pla_name;
+
+			if(!$wp_sports_code[$obj->spo_code]) {
+			  $p_spo_code = "임원";
+            } else {
+              $p_spo_code = $wp_sports_code[$obj->spo_code];
+            }
+if($obj->picture_real){
+	$picture = $photo_path."c_".$obj->picture_real;
+	$picture_org = $photo_path.$obj->picture_real;
+	$pimg = getimagesize($picture);
+	$picture_x = 115;
+	$picture_y = 125;
+	if($picture_x > 115) $picture_x = 115;
+	if($picture_y > 125) $picture_y = 125;
+}else{
+	$picture = "../wp_images/a_no_img_160.jpg";
+	$picture_x = 120;
+}
+			
+?>
+
+
+<li>
+<table width="380" height="353" summary="ID 카드출력.width=400" id='idcard'>
+  <tbody>
+    <tr>
+      <td height="55" colspan="2"  style="text-align: center;border-bottom:solid #000 1px;"><h3>제27회 전라남도장애인 체육대회</h3></td>
+    </tr>
+	<tr>
+      <td height="2" colspan="2" >&nbsp;</td>
+    </tr>
+    <tr>
+      <td width='150px' height="130" style="text-align: center"><img src="<?=$picture?>" width="115" height='125'></td>
+      <td width='230px' ><img src="/wp_data_photo/<?=$obj->clu_code?>.jpg"></td>
+    </tr>
+		<tr>
+      <td height="2" colspan="2" >&nbsp</td>
+    </tr>
+    <tr>
+      <th><span class='letter_tab0'>소&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;속</span></th>
+      <td><p><?=$wp_club_code[$obj->clu_code]?> 선수단</p></td>
+    </tr>
+    <tr>
+      <th>기능(종목)</th>
+      <td><p><?=$p_spo_code?></p></td>
+    </tr>
+    <tr>
+      <th>참 가 구 분</th>
+      <td><p><?=$wp_kubun_code[$obj->kubun]?></p></td>
+    </tr>
+    <tr>
+      <th>성&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;명</th>
+      <td><p><?=$my_pla_name?></p></td>
+    </tr>
+	<tr>
+      <td height="2" colspan="2" >&nbsp</td>
+    </tr>
+    <tr>
+      <td height="30" colspan="2" bgcolor="#999999"><span class='font01'>"장애는 생각입니다. 체육은 생활입니다"</span></td>
+    </tr>
+    <tr>
+      <td height="55" class='title'><img src='/wp_im4u/images/ci.png' alt='전라남도장애인체육회'></td>
+      <td height="55" ><span class='font02'>본 증은 대회기간 중 반드시<br>목에 패용하여야 합니다.</span></td>
+    </tr>
+  </tbody>
+</table>
+</li>
+		
+		<?		
+		}//END for
+		?>
+
+
+	
+<?
+$p++;
+
+  if($p == 2) {
+
+     echo "</ul></div><div style='page-break-before:auto'></div><div id='A4_land'><ul>";
+     $p=0;
+
+  }
+
+} //END foreach
+?>	

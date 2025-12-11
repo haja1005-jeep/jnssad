@@ -1,0 +1,452 @@
+<?php
+/**
+ * add by hsjang
+ */
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<form name="sForm" id="sForm" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<!-- 선수 검색 시작 -->
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+					<option value="">--선택-- </option>
+					<?
+						foreach($wp_games as $keys => $values){
+						 	if($keys == $gam_uid)
+								$is_selected = " selected";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+				<input type="button" tabindex="4" value="미리보기" data-btn="preview" class="btnBox3">
+				<input type="button" tabindex="5" value="전년대비증감표 출력" data-btn="excel" class="btnBox3">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>
+
+<script type="text/javascript">
+  $(function() {
+    var fObj = $('#sForm');
+    $('[data-btn="preview"]').click(function() {
+      fObj.attr('action', location.href);
+      fObj.submit();
+    });
+
+    $('[data-btn="excel"]').click(function() {
+      fObj.attr('action', './<?= str_replace('print', 'excel', $mode) ?>.html');
+      fObj.submit();
+    });
+  });
+</script>
+
+<link rel="stylesheet" href="wp_game_player.css">
+<div style="max-width:1600px;overflow:auto">
+<table class="table-type01" style="min-width:3200px">
+	<thead>
+		<tr>
+			<th colspan="2" rowspan="2">구분</th>
+			<th colspan="22">참가시군</th>
+			<th rowspan="2">총계</th>
+		</tr>
+		<tr>
+			<?
+			foreach($wp_club_code as $key_f => $val_f)
+			{
+				if($key_f == "WEBPLUS" || $key_f == "jnsad") continue;
+				echo "<th height='20'>$val_f</th>";
+			}
+			?>
+		</tr>
+		<!-- <tr>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+			<th>2017년</th>
+			<th>2018년</th>
+			<th>증감△</th>
+		</tr> -->
+	</thead>
+	<tbody>
+		<tr>
+			<th colspan="2">계</th>
+			<?
+			foreach($wp_club_code as $key_f => $val_f)
+			{
+				if($key_f == "WEBPLUS" || $key_f == "jnsad") continue;
+
+				$tot_pla_que = "SELECT count(*) as tot_pla_cnt FROM wp_game_player WHERE gam_uid='$s_gam_uid' AND clu_code = '$key_f'";
+				$tot_pla_res = mysql_query($tot_pla_que);
+				$tot_pla_obj = mysql_fetch_object($tot_pla_res);
+
+
+				$tot_post_que = "SELECT count(*) as tot_pla_cnt FROM wp_game_player WHERE gam_uid = '$post_gam_uid' AND clu_code ='$key_f'";
+				$tot_post_res = mysql_query($tot_post_que);
+				$tot_post_obj = mysql_fetch_object($tot_post_res);
+
+				if($tot_pla_obj->tot_pla_cnt > $tot_post_obj->tot_pla_cnt)
+				{
+					$my_t_math = $tot_pla_obj->tot_pla_cnt - $tot_post_obj->tot_pla_cnt;
+					$my_t_result = "<font color='#FF0000'>▲$my_t_math</font>";
+				}
+				else if($tot_pla_obj->tot_pla_cnt < $tot_post_obj->tot_pla_cnt)
+				{
+					$my_t_math = $tot_post_obj->tot_pla_cnt - $tot_pla_obj->tot_pla_cnt;
+					$my_t_result = "<font color='#0000FF'>▼$my_t_math</font>";
+				}
+				else
+				{
+					$my_t_result = "=";
+				}
+
+				$tot_sum_pla = $tot_sum_pla + $tot_pla_obj->tot_pla_cnt;
+				$post_sum_pla = $post_sum_pla + $tot_post_obj->tot_pla_cnt;
+
+				echo "<td align='right'>".$tot_pla_obj->tot_pla_cnt."$my_t_result<br><font color='#cecece'>".$tot_post_obj->tot_pla_cnt."</font></td>";
+			}
+			if($tot_sum_pla > $post_sum_pla)
+			{
+				$my_t_math = $tot_sum_pla - $post_sum_pla;
+				$my_t_result = "<font color='#FF0000'>▲$my_t_math</font>";
+			}
+			else if($tot_sum_pla < $post_sum_pla)
+			{
+				$my_t_math = $post_sum_pla - $tot_sum_pla;
+				$my_t_result = "<font color='#0000FF'>▼$my_t_math</font>";
+			}
+			else
+			{
+				$my_t_result = "=";
+			}
+			echo "<td align='right'>".$tot_sum_pla."$my_t_result<br><font color='#cecece'>".$post_sum_pla."</font></td>";
+			?>
+		</tr>
+		<tr>
+			<th colspan="2">임원단</th>
+			<?
+			unset($tot_sum_pla);
+			unset($post_sum_pla);
+			foreach($wp_club_code as $key_f => $val_f)
+			{
+				if($key_f == "WEBPLUS" || $key_f == "jnsad") continue;
+
+				$tot_pla_que = "SELECT count(*) as tot_pla_cnt FROM wp_game_player WHERE gam_uid='$s_gam_uid' AND clu_code = '$key_f' AND kubun < '$wp_kubun_선수'";
+				$tot_pla_res = mysql_query($tot_pla_que);
+				$tot_pla_obj = mysql_fetch_object($tot_pla_res);
+
+
+				$tot_post_que = "SELECT count(*) as tot_pla_cnt FROM wp_game_player WHERE gam_uid='$post_gam_uid' AND clu_code = '$key_f' AND kubun < '$wp_kubun_선수'";
+				$tot_post_res = mysql_query($tot_post_que);
+				$tot_post_obj = mysql_fetch_object($tot_post_res);
+
+				if($tot_pla_obj->tot_pla_cnt > $tot_post_obj->tot_pla_cnt)
+				{
+					$my_t_math = $tot_pla_obj->tot_pla_cnt - $tot_post_obj->tot_pla_cnt;
+					$my_t_result = "<font color='#FF0000'>▲$my_t_math</font>";
+				}
+				else if($tot_pla_obj->tot_pla_cnt < $tot_post_obj->tot_pla_cnt)
+				{
+					$my_t_math = $tot_post_obj->tot_pla_cnt - $tot_pla_obj->tot_pla_cnt;
+					$my_t_result = "<font color='#0000FF'>▼$my_t_math</font>";
+				}
+				else
+				{
+					$my_t_result = "=";
+				}
+
+				$tot_sum_pla = $tot_sum_pla + $tot_pla_obj->tot_pla_cnt;
+				$post_sum_pla = $post_sum_pla + $tot_post_obj->tot_pla_cnt;
+
+				echo "<td align='right'>".$tot_pla_obj->tot_pla_cnt."$my_t_result<br><font color='#cecece'>".$tot_post_obj->tot_pla_cnt."</font></td>";
+			}
+			if($tot_sum_pla > $post_sum_pla)
+			{
+				$my_t_math = $tot_sum_pla - $post_sum_pla;
+				$my_t_result = "<font color='#FF0000'>▲$my_t_math</font>";
+			}
+			else if($tot_sum_pla < $post_sum_pla)
+			{
+				$my_t_math = $post_sum_pla - $tot_sum_pla;
+				$my_t_result = "<font color='#0000FF'>▼$my_t_math</font>";
+			}
+			else
+			{
+				$my_t_result = "=";
+			}
+			echo "<td align='right'>".$tot_sum_pla."$my_t_result<br><font color='#cecece'>".$post_sum_pla."</font></td>";
+			?>
+		</tr>
+		<?
+		foreach($wp_club_code as $key_f => $val_f)
+		{
+			if($key_f == "WEBPLUS" || $key_f == "jnsad") continue;
+
+			foreach($wp_game_code as $key_g => $val_g)
+			{
+				$tot_pla_que = "SELECT count(*) as tot_pla_cnt FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND clu_code ='$key_f' AND spo_code = '$key_g'";
+				$tot_pla_res = mysql_query($tot_pla_que);
+				$tot_pla_obj = mysql_fetch_object($tot_pla_res);
+
+
+				$tot_post_que = "SELECT count(*) as tot_pla_cnt FROM wp_game_player WHERE gam_uid = '$post_gam_uid' AND clu_code ='$key_f' AND spo_code = '$key_g'";
+				$tot_post_res = mysql_query($tot_post_que);
+				$tot_post_obj = mysql_fetch_object($tot_post_res);
+
+				$tot_pla_arr[$key_f][$key_g] = 	$tot_pla_obj->tot_pla_cnt; // 이번 대회 종목별 참가자 //
+				$post_pla_arr[$key_f][$key_g] = $tot_post_obj->tot_pla_cnt; // 지난 대회 종목별 참가자 //
+			}
+		}
+
+		// 랭크 쿼리 //
+		$tot_rank_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal WHERE gam_uid = '$s_gam_uid' GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+		$tot_rank_res = mysql_query($tot_rank_que);
+		$my_rank = 1;
+		while($tot_rank_obj = mysql_fetch_object($tot_rank_res))
+		{
+			$rank_arr[$tot_rank_obj->clu_code] = $my_rank;
+			$my_rank++;
+		}
+
+
+		$rank_post_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal WHERE gam_uid = '$post_gam_uid' GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+		$rank_post_res = mysql_query($rank_post_que);
+		$my_rank = 1;
+		while($rank_post_obj = mysql_fetch_object($rank_post_res))
+		{
+			$post_rank_arr[$rank_post_obj->clu_code] = $my_rank;
+			$my_rank++;
+		}
+		foreach($wp_real_game as $key_g => $val_g)
+		{
+			echo "<tr>";
+			if($key_g == "GOALBALL") echo "<th rowspan='15' valign='center'>정식<br>종목</th>";
+			echo "<th>".$wp_real_game[$key_g]."</th>";
+
+			unset($tot_sum_pla);
+			unset($post_sum_pla);
+			foreach($wp_club_code as $key_f => $val_f)
+			{
+				if($key_f == "WEBPLUS" || $key_f == "jnsad") continue;
+
+				if($tot_pla_arr[$key_f][$key_g] > $post_pla_arr[$key_f][$key_g])
+				{
+					$my_t_math = $tot_pla_arr[$key_f][$key_g] - $post_pla_arr[$key_f][$key_g];
+					$my_t_result = "<font color='#FF0000'>▲$my_t_math</font>";
+				}
+				else if($tot_pla_arr[$key_f][$key_g] < $post_pla_arr[$key_f][$key_g])
+				{
+					$my_t_math = $post_pla_arr[$key_f][$key_g] - $tot_pla_arr[$key_f][$key_g];
+					$my_t_result = "<font color='#0000FF'>▼$my_t_math</font>";
+				}
+				else
+				{
+					$my_t_result = "=";
+				}
+				echo "<td align='right'>".$tot_pla_arr[$key_f][$key_g]."$my_t_result<br><font color='#cecece'>".$post_pla_arr[$key_f][$key_g]."</font></td>";
+
+				$tot_sum_pla = $tot_sum_pla + $tot_pla_arr[$key_f][$key_g];
+				$post_sum_pla = $post_sum_pla + $post_pla_arr[$key_f][$key_g];
+			}
+			if($tot_sum_pla > $post_sum_pla)
+			{
+				$my_t_math = $tot_sum_pla - $post_sum_pla;
+				$my_t_result = "<font color='#FF0000'>▲$my_t_math</font>";
+			}
+			else if($tot_sum_pla < $post_sum_pla)
+			{
+				$my_t_math = $post_sum_pla - $tot_sum_pla;
+				$my_t_result = "<font color='#0000FF'>▼$my_t_math</font>";
+			}
+			else
+			{
+				$my_t_result = "=";
+			}
+			echo "<td align='right'>".$tot_sum_pla."$my_t_result<br><font color='#cecece'>".$post_sum_pla."</font></td>";
+			echo "</tr>";
+		}
+		?>
+		<tr style='background:#EEEEEE;'>
+			<th colspan="2">종합순위</th>
+			<?
+			foreach($wp_club_code as $key_f => $val_f)
+			{
+				if($key_f == "WEBPLUS" || $key_f == "jnsad") continue;
+
+				if($rank_arr[$key_f] > $post_rank_arr[$key_f])
+				{
+					$my_t_math = $rank_arr[$key_f] - $post_rank_arr[$key_f];
+					$my_t_result = "<font color='#FF0000'>▲$my_t_math</font>";
+				}
+				else if($rank_arr[$key_f] < $post_rank_arr[$key_f])
+				{
+					$my_t_math = $post_rank_arr[$key_f] - $rank_arr[$key_f];
+					$my_t_result = "<font color='#0000FF'>▼$my_t_math</font>";
+				}
+				else
+				{
+					$my_t_result = "=";
+				}
+				echo "<td align='right'>".$rank_arr[$key_f]."$my_t_result<br><font color='#cecece'>".$post_rank_arr[$key_f]."</font></td>";
+			}
+			?>
+			<td></td>
+		</tr>
+		<?
+		foreach($wp_life_game as $key_g => $val_g)
+		{
+			echo "<tr>";
+			if($key_g == "BADUK") echo "<th rowspan='8'>생활<br>체육</th>";
+			echo "<th>".$wp_life_game[$key_g]."</th>";
+
+			unset($tot_sum_pla);
+			unset($post_sum_pla);
+			foreach($wp_club_code as $key_f => $val_f)
+			{
+				if($key_f == "WEBPLUS" || $key_f == "jnsad") continue;
+
+				if($tot_pla_arr[$key_f][$key_g] > $post_pla_arr[$key_f][$key_g])
+				{
+					$my_t_math = $tot_pla_arr[$key_f][$key_g] - $post_pla_arr[$key_f][$key_g];
+					$my_t_result = "<font color='#FF0000'>▲$my_t_math</font>";
+				}
+				else if($tot_pla_arr[$key_f][$key_g] < $post_pla_arr[$key_f][$key_g])
+				{
+					$my_t_math = $post_pla_arr[$key_f][$key_g] - $tot_pla_arr[$key_f][$key_g];
+					$my_t_result = "<font color='#0000FF'>▼$my_t_math</font>";
+				}
+				else
+				{
+					$my_t_result = "=";
+				}
+				echo "<td align='right'>".$tot_pla_arr[$key_f][$key_g]."$my_t_result<br><font color='#cecece'>".$post_pla_arr[$key_f][$key_g]."</font></td>";
+
+				$tot_sum_pla = $tot_sum_pla + $tot_pla_arr[$key_f][$key_g];
+				$post_sum_pla = $post_sum_pla + $post_pla_arr[$key_f][$key_g];
+			}
+
+			if($tot_sum_pla > $post_sum_pla)
+			{
+				$my_t_math = $tot_sum_pla - $post_sum_pla;
+				$my_t_result = "<font color='#FF0000'>▲$my_t_math</font>";
+			}
+			else if($tot_sum_pla < $post_sum_pla)
+			{
+				$my_t_math = $post_sum_pla - $tot_sum_pla;
+				$my_t_result = "<font color='#0000FF'>▼$my_t_math</font>";
+			}
+			else
+			{
+				$my_t_result = "=";
+			}
+			echo "<td align='right'>".$tot_sum_pla."$my_t_result<br><font color='#cecece'>".$post_sum_pla."</font></td>";
+			echo "</tr>";
+		}
+
+		function dump($str) {
+			echo "<pre>";
+			print_r($str);
+			echo "</pre>";
+		}
+		function console($str) {
+			echo "<script>console.log({$str})</script>";
+		}
+		?>
+	</tbody>
+</table>
+</div>

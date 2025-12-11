@@ -1,0 +1,232 @@
+<?php
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=전체총계표.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+// 대회번호 체크 //
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+?>
+<body>
+<table border="0" cellpadding="0" cellspacing="0">
+<tr>
+	<td>
+		<table border="0" cellpadding="10" cellspacing="0" align="center">
+		<tr>
+			<td height="30" align="center"><font size="4"><b><?=$wp_games[$s_gam_uid]?> 참가자 [전체 총계표]</b></font></td>
+		</tr>
+		</table>
+
+		<table border="1" cellpadding="3" cellspacing="0" style="font-size:0.8em">
+		<tr align="center">
+			<td rowspan="3"><b>구분</b></td>
+			<?
+			// 전체종목 체크 //
+			foreach($wp_game_code as $key_f => $val_f)
+			{
+				echo "<td colspan='11'><b>$val_f</b></td>";
+			}
+			?>
+			<td colspan="11"><b>총합계</b></td>
+		</tr>
+		<tr height="35"  align="center">
+			<?
+			// 전체종목 체크 //
+			foreach($wp_game_code as $key_f => $val_f)
+			{
+				echo "
+					<td colspan='6'><b>임원 구성원</b></td>
+					<td colspan='3'><b>선수단 구성원</b></td>
+					<td width='30' rowspan='2'><b>총계</b></td>
+					<td width='40' rowspan='2'><b>휠체어<br>사용<br>인원</b></td>
+				";
+			}
+			?>
+			<td colspan="6"><b>임원 구성원</b></td>
+			<td colspan="3"><b>선수단 구성원</b></td>
+			<td width="30" rowspan="2"><b>총계</b></td>
+			<td width="40" rowspan="2"><b>휠체어<br>사용<br>인원</b></td>
+		</tr>
+		<tr height="41" align="center">
+			<?
+			// 전체종목 체크 //
+			foreach($wp_game_code as $key_f => $val_f)
+			{
+				echo "
+					<td width='35'><b>단장<br>(1명)</b></td>
+					<td width='35'><b>담당<br>(1명)</b></td>
+					<td width='35'><b>임원</b></td>
+					<td width='48'><b>보호자</b></td>
+					<td width='45'><b>자원<br>봉사자</b></td>
+					<td width='45'><b>종목별<br>인솔자</b></td>
+					<td width='42'><b>감독</b></td>
+					<td width='41'><b>코치</b></td>
+					<td width='34'><b>선수</b></td>
+				";
+			}
+			?>
+			<td width="35"><b>단장<br>(1명)</b></td>
+			<td width="35"><b>담당<br>(1명)</b></td>
+			<td width="35"><b>임원</b></td>
+			<td width="48"><b>보호자</b></td>
+			<td width="45"><b>자원<br>봉사자</b></td>
+			<td width="45"><b>종목별<br>인솔자</b></td>
+			<td width="42"><b>감독</b></td>
+			<td width="41"><b>코치</b></td>
+			<td width="34"><b>선수</b></td>
+		</tr>
+		<?php
+		$player = $data = $bottom = array();
+
+        // 지역별, 게임별, 참가자 수
+        $tmp = array_keys($wp_game_code);
+        $spo_code_arr = "'" . implode("','", $tmp) . "'";
+        $sql = "
+            select
+                pla_id,
+                gam_uid,
+                spo_code,
+                clu_code,
+                kubun,
+                count(1) as cnt
+            from wp_game_player
+            where spo_code IN (" . $spo_code_arr . ")
+            group by pla_id, gam_uid, spo_code, clu_code, kubun
+        ";
+        $result = mysql_query($sql);
+        while($list = mysql_fetch_assoc($result)) {
+            $player[$list['gam_uid']][$list['spo_code']][$list['clu_code']][$list['kubun']] += 1;
+        }
+
+		// 시/군 체크 //
+		foreach($sigun_code as $key_f => $val_f)
+		{
+			// 시/군명 //
+			echo "<tr height='30' align='center'>";
+			echo "<td><b>$val_f</b></td>";
+
+			// 전체종목 체크 //
+			foreach($wp_game_code as $key_g => $val_g)
+			{
+				// 참가자 구분 체크 //
+				foreach($wp_kubun_code as $key_k => $val_k)
+				{
+					$game_player_row = $player[$s_gam_uid][$key_g][$key_f][$key_k];
+                    if (!$game_player_row) $game_player_row = 0;
+
+                    $data[$key_f][$key_k] += $game_player_row; // 지역별 통계
+					$bottom[$key_g][$key_k] += $game_player_row; // 종목별, 구성원별
+
+					echo "<td>$game_player_row</td>";
+
+					// 레코드 쿼리(휠체어 사용)
+					$wheel_que = "
+                        SELECT COUNT(*) cnt
+                        FROM
+                            wp_game_player GAME,
+                            wp_player_ctrl CTRL
+                        WHERE
+                            GAME.gam_uid='$s_gam_uid'
+                            AND GAME.clu_code='$key_f'
+                            AND GAME.spo_code='$key_g'
+                            AND GAME.kubun='$key_k'
+                            AND GAME.pla_id=CTRL.wp_id
+                            AND CTRL.wheel='0'
+                        GROUP BY GAME.pla_id
+                    ";
+					$wheel_res = mysql_query($wheel_que);
+					$wheel_row = mysql_num_rows($wheel_res);
+
+					$data[$key_f]['wheel'] += $wheel_row;
+                    $data[$key_f]['total'] += $game_player_row;
+                    $game_player_sum += $game_player_row; // 종목별 총계
+					$bottom[$key_g]['wheel'] += $wheel_row; // 세로 합계
+				}
+
+				// 총계 //
+				echo "<td style='background-color:#ccc; color:#ff0000; font-weight:bold;'>$game_player_sum</td>";
+				unset($game_player_sum);
+
+				// 휠체어사용인원 //
+				echo "<td style='color:#0000ff;'>$wheel_row</td>";
+			}
+
+			// 가로열 마지막
+            foreach ((array)$wp_kubun_code as $_kubun => $_txt) {
+                $subTotal = $data[$key_f][$_kubun];
+                echo "<td>{$subTotal}</td>";
+            }
+            echo "<td style='background-color:#ffff00; color:#ff0000; font-weight:bold;'>".$data[$key_f]['total']."</td>";
+            echo "<td style='color:#0000ff;'>".$data[$key_f]['wheel']."</td>";
+
+			echo "</tr>";
+			unset($city_wheel_sum);
+		}
+		?>
+		<tr align="center">
+			<td><b>계</b></td>
+			<?php
+			// 전체종목 체크
+			$total = array();
+			$wholeTotal = 0;
+			foreach($wp_game_code as $key_g => $val_g)
+			{
+				$verticalTotal = 0;
+				foreach($wp_kubun_code as $key_k => $val_k)
+				{
+					echo "<td><b>".$bottom[$key_g][$key_k]."</b></td>";
+					$verticalTotal += $bottom[$key_g][$key_k];
+					$total[$key_k] += $bottom[$key_g][$key_k];
+				}
+
+				// 총계
+				echo "<td style='background-color:#ffff00; color:#ff0000; font-weight:bold;'>".$verticalTotal."</td>";
+
+				// 휠체어사용인원
+				$wheel_total += $bottom[$key_g]['wheel']; // 총합계
+				echo "<td style='color:#0000ff;'>".$bottom[$key_g]['wheel']."</td>";
+
+				$total['whole_total'] += $verticalTotal;
+				$total['wheel_total'] += $bottom[$key_g]['wheel'];
+			}
+
+			foreach ((array)$total as $_field => $cnt) {
+				if ($_field == 'whole_total') {
+					echo "<td style='background-color:#ffff00; color:#ff0000; font-weight:bold;'>{$cnt}</td>";
+				} elseif ($_field == 'wheel_total') {
+					echo "<td style='color:#0000ff; font-weight:bold;'>{$cnt}</td>";
+				} else {
+					echo "<td style='font-weight:bold;'>{$cnt}</td>";
+				}
+			}
+			?>
+		</tr>
+		</table>
+
+		<table border="0" cellpadding="10" cellspacing="0" align="center">
+		<tr>
+			<td><?=$n_year?>년 <?=$n_mon?>월 <?=$n_day?>일</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</body>
+</html>

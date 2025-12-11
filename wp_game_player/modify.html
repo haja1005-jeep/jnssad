@@ -1,0 +1,487 @@
+<?
+$query = "SELECT * FROM wp_player_ctrl WHERE isuse='0' AND wp_id='$pla_id'";
+$result = mysql_query($query);
+if(!$result){
+	Error("QUERY_ERROR");
+	exit;
+}
+if(mysql_num_rows($result) <= 0){
+	ERROR("NOT_DATA");
+	exit;
+}
+$obj = mysql_fetch_object($result);
+
+//등록해제한 선수이면 에러
+if($obj->isuse == "1"){
+	Error("NO_CLUB_PLAYER");
+	exit;
+}
+
+//해당클럽 소속의 선수가 아니면 에러
+if($Admin_auth != "top" && strcmp($obj->clu_code, $Admin_code) != 0){
+	Error("NO_CLUB_PLAYER");
+	exit;
+}
+if($obj->picture){
+	$picture = $photo_path."c_".$obj->picture_chg;
+	$picture_org = $photo_path.$obj->picture_chg;
+	$pimg = getimagesize($picture);
+	$picture_x = $pimg[0];
+	$picture_y = $pimg[1];
+	if($picture_x > 120) $picture_x = 120;
+	if($picture_y > 160) $picture_y = 160;
+}
+else
+{
+	$picture = "../wp_images/a_no_img_160.jpg";
+	$picture_x = 120;
+}
+
+$birth = split("-", $obj->birthday);
+$birthday_y = $birth[0];
+$birthday_m = $birth[1];
+$birthday_d = $birth[2];
+if($obj->wheel == "0") $my_wheel = "<font color='#cc0000'>휠체어 ".$wp_wheel_code[$obj->wheel]."</font>";
+if($obj->wheel == "1") $my_wheel = "휠체어 ".$wp_wheel_code[$obj->wheel];
+
+// 생년월일 체크(만 15세 이하 신청 금지) //
+$birth_year = substr($obj->jumin1, 0, 2);
+$birth_month = substr($obj->jumin1, 2, -2);
+$birth_day = substr($obj->jumin1, -2);
+
+// 나이 체크 //
+if($birth_year < 19)
+{
+	$birth_year_num = 20;
+	$birth_year = $birth_year_num.$birth_year;
+	$age = date("Y") - $birth_year;
+}
+else
+{
+	$birth_year_num = 19;
+	$birth_year = $birth_year_num.$birth_year;
+	$age = date("Y") - $birth_year;
+}
+
+// 생년월일 체크 //
+$birth_date = mktime(0, 0, 0, $birth_month, $birth_day, $birth_year);
+$no_birth_date = mktime(0, 0, 0, 3, 6, 2001);
+if($birth_date >= $no_birth_date)
+{
+	Error("NO_BIRTH_ERROR");
+	exit;
+}
+
+//참가선수 신청 정보 갖어 오기 - 수정하기 위함
+$uid = '26829';
+$query2 = "SELECT * FROM wp_game_player  WHERE uid ='$uid'";
+$result2 = mysql_query($query2);
+if(!$result2){
+	Error("QUERY_ERROR");
+	exit;
+}
+if(mysql_num_rows($result2) <= 0){
+	ERROR("NOT_DATA");
+	exit;
+}
+$obj2 = mysql_fetch_object($result2);
+
+
+
+
+?>
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>해당 선수의 정보가 맞는 지 확인합니다.</li>
+				<li>해당 선수의 <font color="#cc0000">성별, 장애유형, 장애급수</font>를 확인합니다.</li>
+				<li>하단의 참가 종목 및 장애유형, 성별, 스포츠등급, 세부종목등을 선택하여 <font color="#cc0000">[대회참가하기]</font> 버튼을 클릭하여 대회에 참가합니다.</li>
+				<li><font color="#cc0000">장애유형이 선수의 장애유형과 불일치시</font> 해당 종목에 참가가 불가능 할 수 있습니다. </li>
+				<li>혼성경기 이외에는 <font color="#cc0000">성별이 선수의 성별과 불일치시</font> 해당 종목에 참가 불가능합니다.</li>
+				<li><font color="#cc0000">복지카드가 등록이 안된 선수</font>는 복지카드를 필히 등록하여주세요.</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<form name="sForm" action="input.php" method="post" onSubmit="return validate(this) && Check_GPlayer(this) ">
+		<input type="hidden" name="gam_uid" value="<?=$gam_uid?>">
+		<input type="hidden" name="player" value="<?=$obj->wp_id?>">
+		<input type="hidden" name="kubun" value="<?=$obj->kubun?>">
+		<input type="hidden" name="p_tro" value="<?=$obj->tro_code?>">
+		<!--선수정보 출력 시작 -->
+		<table class="tbList-b">
+		<tbody>
+		<tr>
+			<th width="15%">소 속 클 럽</th>
+			<td><?=$wp_club_code[$obj->clu_code]?></td>
+			<td width="20%" align="center" rowspan="5"><a href="#none" onclick="window.open('../wp_object/zoom.html?img_path=<?=$picture_org?>','p1','width=<?=$picture_x?>,height=<?=$picture_y?>,menubars=no,scrollbars=no')"><img src="<?=$picture?>" width="<?=$picture_x?>"></a></td>
+		</tr>
+		<tr>
+			<th>선&nbsp;&nbsp;&nbsp;수&nbsp;&nbsp;&nbsp;명</th>
+			<td><b><?=$obj->name?> <font color="#0000ff">[<?=$wp_kubun_code[$obj->kubun]?>]</font></b></td>
+		</tr>
+		<tr>
+			<th>주 민 번 호</th>
+			<td><?=$obj->jumin1?>-<?=$obj->jumin2?></td>
+		</tr>
+		<tr>
+			<th>생 년 월 일</th>
+			<td ><?=$birthday_y?>년<?=$birthday_m?>월<?=$birthday_d?>일(<font color="#cc0000"><b><?=$wp_sex_code[$obj->sex]?></b></font>)</td>
+		</tr>
+		<tr>
+			<th>장 애 유 형</th>
+			<td><font color="#cc0000"><b><?=$wp_trouble_code[$obj->tro_code]?> [<?=$wp_trouble_level[$obj->trouble_level]?>]</b></font>, <?=$my_wheel?></td>
+		</tr>
+		<tr>
+			<th>첨 부 카 드</th>
+			<td colspan="2">
+				<?
+				if($obj->kubun == $wp_kubun_선수 ){
+					echo "<b>복지카드</b>&nbsp;";
+					if($obj->welfare_card){ //복지카드
+						$welfare_card = $photo_path.$obj->welfare_card_chg;
+						echo "<a href='#none' onclick=\"window.open('../wp_object/zoom.html?img_path=$welfare_card','zoom','width=100,height=100,scrollbars=no')\"><img src='../wp_icon/tip_jpg.gif'></a>";
+						echo "<input type='hidden' name='is_welfare' value='1'>";
+					}else{
+						echo "<a href='#none' onclick=\"window.open('../wp_player_ctrl/pop_card_input.html?type=welfare_card&pla_id=$obj->wp_id','zoom','width=480,height=180,scrollbars=no').focus();\"><img src='../wp_button/s_submit.gif' align='absmiddle'></a>";
+						echo "<input type='hidden' name='is_welfare' hname='복지카드'>";
+					}
+
+					echo "&nbsp;&nbsp;|&nbsp;&nbsp;<b>등급분류카드</b> &nbsp;";
+					if($obj->sport_card){ //등급분류카드
+						$sport_card = $photo_path.$obj->sport_card_chg;
+						echo "<a href='#none' onclick=\"window.open('../wp_object/zoom.html?img_path=$sport_card','zoom','width=100,height=100,scrollbars=no')\"><img src='../wp_icon/tip_jpg.gif'></a>";
+						echo "<input type='hidden' name='is_sport_card' value='1'>";
+					}else{
+						echo "<a href='#none' onclick=\"window.open('../wp_player_ctrl/pop_card_input.html?type=sport_card&pla_id=$obj->wp_id','zoom','width=480,height=180,scrollbars=no').focus();\"><img src='../wp_button/s_submit.gif' align='absmiddle'></a>";
+						echo "<input type='hidden' name='is_sport_card' hname='등급분류카드'>";
+					}
+				}
+				?>
+			</td>
+		</tr>
+		<tr>
+			<th>연&nbsp;&nbsp;&nbsp;락&nbsp;&nbsp;&nbsp;처</th>
+			<td colspan="2"><?=$obj->tel1?>-<?=$obj->tel2?>-<?=$obj->tel3?></td>
+		</tr>
+		<tr>
+			<th>핸&nbsp;&nbsp;&nbsp;드&nbsp;&nbsp;&nbsp;폰</th>
+			<td colspan="2"><?=$obj->hp1?>-<?=$obj->hp2?>-<?=$obj->hp3?></td>
+		</tr>
+		<tr>
+			<th>주&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;소</th>
+			<td colspan="2">
+				(<?=$obj->zip1?>-<?=$obj->zip2?>)<br>
+				<?=$obj->address1?> <?=$obj->address2?><br>
+			</td>
+		</tr>
+		</tbody>
+		</table>
+		<!--선수정보 출력 끝 -->
+	</td>
+</tr>
+<tr>
+	<td>
+		<!-- 선수 검색 시작 -->
+		<table class="tbList-b">
+		<?if($obj->kubun == "9"){?>
+		<tr>
+			<th width="15%">참 가 종 목</th>
+			<td width="30%">
+				<select name="spo_code" tabindex="2" hname="참가종목" required  onchange="Sports_Sec_Code(this.form, 1);">
+					<option value=''>--1차종목--</option>
+					<?
+					foreach($wp_sports_code as $keys => $values){
+					    if($keys == $obj2->spo_code) $is_selected = " selected";
+	
+						echo "<option value='$keys' $is_selected>$values</option>";
+
+						$is_selected = "";
+					}
+					?>
+				</select>
+				<script id="sports_sec_code"></script>
+				<!-- 히든으로 가지고 있어야할 필수항목..-->
+				<input type="hidden" name="h_spo_sec_code" value="<?=$spo_sec_code?>">
+				<select name="spo_sec_code" tabindex="2" hname="경기2차종목" required onchange="Trouble_Code(this.form); Init_Select(this.form, 'tro_level_code');">
+					<option value="">--2차종목-- </option>
+				</select>
+				<br>
+				&bull; 역도 2차종목은 <font color="#cc0000">벤치프레스종합과 파워리프트종합중<br>&nbsp;&nbsp;한 종목만 선택</font>하시면 자동으로 각각의 3종목이 등록됩니다.
+			</td>
+			<td rowspan="5" valign="top">
+				<ul>
+					<li><font color="#cc0000">선수는 복지카드를 필히</font> 등록하여주세요.</li>
+					<li><font color="#0000ff"><b>역도 2차종목은 벤치프레스종합과 파워리프트종합 중 <u>한 종목만 선택</u>하여 등록하세요!</b></font></li>
+					<li>신청조건을 잘 못 선택한 경우 <font color="#cc0000"><u>다시 선택을 클릭</u></font>하세요. > <input type="button" value="다시선택" class="btnBox" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=input&pla_id=<?=$pla_id?>'" style="font-size:95%; color:#cc0000"></li>
+					<li>참가신청 후 에러메세지가 출력되면 브라우저 상단 <b><font color="#cc0000">"도구 > 호환성 보기 설정"</font></b>에서 도메인을 추가하여 주세요.</li>
+					<li>
+						다음의 종목은 <font color="#cc0000">등급분류카드가 필수</font>입니다.
+						<ul>
+							<li>배드민턴 - 절단및 기타장애</li>
+							<li>보치아 - 뇌성마비</li>
+							<li>수영 - 절단및 기타장애, 뇌병변, 척수장애</li>
+							<li>육상 - 절단및 기타장애, 뇌병변, 척수장애</li>
+							<li>좌식배구 - 절단및 기타장애</li>
+							<li>탁구 - 절단및 기타장애, 뇌병변, 척수장애</li>
+						</ul>
+					</li>
+					<li><font color="#cc0000">혼성경기 출전을</font> 위해서는 <font color="#cc0000">성별을 혼성</font>을 선택하여주세요.</li>
+				</ul>
+			</td>
+		</tr>
+		<tr>
+			<th>장 애 유 형</th>
+			<td>
+				<script id="trouble_code"></script>
+				<!--
+				// 2014-06-14 브라우저 버전별 버그(화면에 재출력이 안됨)로 인하여 성별로 임시 출력함.
+				<select name="tro_code" tabindex="3" hname="장애유형" required onchange="Sports_Detail3(this.form,1);Init_Select(this.form,'sex','tro_level_code');">
+				-->
+				<select name="tro_code" tabindex="3" hname="장애유형" required onchange="Init_Select(this.form,'sex','tro_level_code');">
+					<option value="">--장애유형-- </option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>성&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;별</th>
+			<td>
+				<select name="sex" tabindex="4" hname="성별" required onChange="Sports_Detail3(this.form,1);Init_Select(this.form,'tro_level_code');">
+					<option value="">--성별-- </option>
+					<?
+						foreach($wp_game_sex as $keys => $values)
+						{
+							if($keys == $sex)
+								$is_selected = " selected";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>스포츠 등급</th>
+			<td>
+				<script id="sports_code_detail1"></script>
+				<!-- 히든으로 가지고 있어야할 필수항목..-->
+				<input type="hidden" name="h_tro_level_code" value="<?=$tro_level_code?>">
+				<select name="tro_level_code" tabindex="5" hname="스포츠등급" required onChange="Sports_Detail3(this.form,2,'checkbox');Init_Select(this.form);">
+					<option value="">--선택-- </option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>세 부 종 목</th>
+			<td>
+				<script id="sports_code_detail2"></script>
+				<!-- 히든으로 가지고 있어야할 필수항목..-->
+				<input type="hidden" name="h_spo_code_detail" value="<?=$spo_code_detail?>">
+				<span id="spo_code_detail_html"></span>
+				<!--
+				<select name="spo_code_detail" tabindex="6" hname="세부종목" required>
+					<option value="">--선택-- </option>
+				</select>
+				-->
+			</td>
+		</tr>
+		<tr>
+			<th>팀&nbsp;&nbsp;구&nbsp;&nbsp;분</th>
+			<td>
+				<select name="group_str" tabindex="6" hname="팀구분">
+					<option value="">-선택-</option>
+					<option value="A">- A팀 -</option>
+					<option value="B">- B팀 -</option>
+				</select><br>
+				<span style="color:red">※ 같은 세부종목에 대하여 한 시도에서 A팀/B팀으로 구분되어 선수참가 신청할 경우 팀 구분을 구분하여 넣어줍니다.</span>
+			</td>
+		</tr>
+		<? } else if($obj->kubun == $wp_kubun_감독 || $obj->kubun == $wp_kubun_코치) {?>
+		<!-- 감독,코치 -->
+		<tr>
+			<th width="13%">경 기 종 목</th>
+			<td>
+				<select name="spo_code1" tabindex="3" class="input" hname="경기종목" required>
+					<option value="">--선택-- </option>
+					<?
+						foreach($wp_sports_code as $keys => $values)
+						{
+							if($keys == $spo_code1)
+								$is_selected = " selected ";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>장 애 유 형</th>
+			<td>
+				<select name="tro_code1" tabindex="4" hname="장애유형">
+					<option value="">--선택-- </option>
+					<?
+						foreach($wp_trouble_code as $keys => $values){
+							if($keys == $tro_code1)
+								$is_selected = " selected ";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+			</td>
+		</tr>
+		<? } else if($obj->kubun == $wp_kubun_종목인솔자 || $obj->kubun == $wp_kubun_임원 || $obj->kubun == $wp_kubun_보호자 || $obj->kubun == $wp_kubun_자원봉사자 || $obj->kubun == $wp_kubun_담당) {?>
+		<!--  종목인솔자용 -->
+		<tr>
+			<th width="15%">참가구분</th>
+			<td>
+				<?
+				foreach($not_players_join_code as $key_f => $val_f)
+				{
+					unset($is_choice);
+					if($obj->kubun == $wp_kubun_임원 && $key_f == "1")
+					{
+						$is_choice = " checked";
+					}
+					else if($obj->kubun == $wp_kubun_보호자 && $key_f == "2")
+					{
+						$is_choice = " checked";
+					}
+					else if($obj->kubun == $wp_kubun_자원봉사자 && $key_f == "3")
+					{
+						$is_choice = " checked";
+					}
+					else if($obj->kubun == $wp_kubun_종목인솔자 && $key_f == "4")
+					{
+						$is_choice = " checked";
+					}
+					echo "<input type='radio' name='join_status' value='$key_f' onclick=\"Etc_Input($key_f)\" $is_choice>$val_f";
+				}
+				?>
+			 	※'인솔'을 체크하시면 인솔 종목이 등록됩니다.  '참가' 생활체육종목에 참가하실 수 있습니다.
+			</td>
+		</tr>
+		<?
+		if($obj->kubun == $wp_kubun_종목인솔자)
+		{
+			$is_display = "display:;";
+		}
+		else
+		{
+			$is_display = "display:none;";
+		}
+		?>
+		<tr id="select_a" style="<?=$is_display?>">
+			<th width="15%">경 기 종 목</th>
+			<td>
+				<select name="spo_code1" tabindex="3" class="input" hname="경기종목">
+					<option value="">--선택-- </option>
+					<?
+					foreach($wp_sports_code as $keys => $values){
+						if($keys == $spo_code1)
+							$is_selected = " selected ";
+						else $is_selected = "";
+						echo "<option value='$keys' $is_selected>$values</option>";
+					}
+					?>
+				</select>
+				※ 인솔하실 종목을 선택하여 주십시오.
+			</td>
+		</tr>
+		<tr id="select_b" style="display:none;">
+			<th width="15%">참 가 종 목</th>
+			<td>
+				<select name="spo_code" tabindex="2" hname="참가종목" <?=$insol_req?>  onchange="Sports_Sec_Code(this.form,1);">
+					<option value=''>--1차종목--</option>
+					<?
+					foreach($wp_life_game as $keys => $values){
+						echo "<option value='$keys'>$values</option>";
+					}
+					foreach($wp_exp_game as $keys => $values){
+						echo "<option value='$keys'>$values</option>";
+					}
+					?>
+				</select>
+				<script id="sports_sec_code"></script>
+				<!-- 히든으로 가지고 있어야할 필수항목..-->
+				<input type="hidden" name="h_spo_sec_code" value="<?=$spo_sec_code?>">
+				<select name="spo_sec_code" tabindex="2" hname="경기2차종목" <?=$insol_req?> onchange="Trouble_Code(this.form);Init_Select(this.form,'tro_level_code');">
+					<option value="">--2차종목-- </option>
+				</select>
+			</td>
+		</tr>
+		<tr id="select_c" style="display:none;">
+			<th>장 애 유 형</th>
+			<td>
+				<script id="trouble_code"></script>
+				<select name="tro_code" tabindex="3" hname="장애유형" <?=$insol_req?> onchange="Sports_Detail3(this.form,1);Init_Select(this.form,'sex','tro_level_code');">
+					<option value="">--장애유형-- </option>
+				</select>
+			</td>
+		</tr>
+		<tr id="select_d" style="display:none;">
+			<th>성&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;별</th>
+			<td>
+				<select name="sex" tabindex="4" hname="성별" <?=$insol_req?> onChange="Sports_Detail3(this.form,1);Init_Select(this.form,'tro_level_code');">
+					<option value="">--성별-- </option>
+					<?
+						foreach($wp_game_sex as $keys => $values)
+						{
+							if($keys == $sex)
+								$is_selected = " selected";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr id="select_e" style="display:none;">
+			<th>스포츠 등급</th>
+			<td>
+				<script id="sports_code_detail1"></script>
+				<!-- 히든으로 가지고 있어야할 필수항목..-->
+				<input type="hidden" name="h_tro_level_code" value="<?=$tro_level_code?>">
+				<select name="tro_level_code" tabindex="5" hname="스포츠등급" <?=$insol_req?> onChange="Sports_Detail3(this.form,2,'checkbox');Init_Select(this.form);">
+					<option value="">--선택-- </option>
+				</select>
+			</td>
+		</tr>
+		<tr id="select_f" style="display:none;">
+			<th>세 부 종 목</th>
+			<td>
+				<script id="sports_code_detail2"></script>
+				<!-- 히든으로 가지고 있어야할 필수항목..-->
+				<input type="hidden" name="h_spo_code_detail" value="<?=$spo_code_detail?>">
+				<span id="spo_code_detail_html"></span>
+				<!--
+				<select name="spo_code_detail" tabindex="6" hname="세부종목" required>
+					<option value="">--선택-- </option>
+				</select>
+				-->
+			</td>
+		</tr>
+		<? }?>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="center" style="padding-top:10px">
+		<table class="tbButton-b">
+		<tr>
+			<td align="center">
+				<input type="submit" name="sch" value="대회 참가하기" class="btnBox3" style="width:150; height:30;font-size:12pt">
+				<input type="button" name="back" value="목록으로" class="btnBox" style="width:80; height:30;font-size:11pt" onclick="location.href='../wp_game_player/index.html?<?=$basic_get.$add_get?>&mode=search'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+

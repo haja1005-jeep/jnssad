@@ -1,0 +1,182 @@
+<script language=javascript>
+
+$(document).ready( function(e) {
+
+  $( "#spo_codeSel" )
+
+    .change(function () {
+
+      var str = "";
+
+      $( "#spo_codeSel option:selected" ).each(function() {
+
+        str += $( this ).text() + " ";
+
+      });
+
+      $( "#spo_code_name").val(str);
+
+    })
+
+});
+
+
+</script>
+
+
+
+<?
+/*
+echo "$Site_Admin"; //mjcc3289
+echo "$Admin_name"; //목포시
+echo "$Admin_Id"; //c6f70c9e08d05d210b29125689cfecf5
+echo "$Admin_auth"; //normal
+echo "$Admin_code"; //mokposad
+echo "$Admin_level";//9
+*/
+
+?>
+
+
+
+
+<form name="sForm" action="excel20.html" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<!-- 선수 검색 시작 -->
+		<table class="tbSearch-c">
+		<tr>
+			<th width="10%">대회선택</th>
+			<td>
+				<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+					<option value="">--선택-- </option>
+					<?
+						foreach($wp_games as $keys => $values){
+							if($keys == $gam_uid)
+								$is_selected = " selected";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+				<?
+				// 경기단체(경기종목)//
+				if($Admin_auth == "s_group")
+				{
+					$my_s_arr = explode("team",$Site_Admin);
+					$my_spo_code = $my_s_arr[1];
+
+					// 육상의 경우 하위 3종목을 선택 할 수 있어야 한다. //
+					if($my_spo_code == "ATHIETICS")
+					{
+					?>
+					<select name="spo_code" id='spo_codeSel' tabindex="2" hname="경기종목" required > <!--Sports_Sec_Code(this.form,1);Sports_Detail3(this.form,1)">-->
+						<option value=''>--경기종목--</option>
+						<?
+						foreach($wp_sports_code as $keys => $values)
+						{
+							if($keys == $my_spo_code)
+							{
+								$is_selected = " selected ";
+							}
+							else
+							{
+								$is_selected = "";
+							}
+
+							if($keys == "ATHIETICS")
+							{
+								echo "<option value='$keys' $is_selected>$values - 전체</option>";
+								echo "<option value='AS100' $is_selected>$values - 트랙</option>";
+								echo "<option value='AS200' $is_selected>$values - 필드</option>";
+							}
+							else
+							{
+								continue;
+							}
+						}
+						?>
+					</select>
+					<?
+					}
+					else
+					{
+					// 일반 종목인 경우 경기단체의 종목에 고정 된다. //
+					?>
+					<select name="spo_code" id='spo_codeSel' tabindex="2" hname="경기종목" required disabled > <!--Sports_Sec_Code(this.form,1);Sports_Detail3(this.form,1)">-->
+						<option value=''>--경기종목--</option>
+						<?
+						foreach($wp_sports_code as $keys => $values)
+						{
+							if($keys == trim($my_spo_code))
+							{
+								$is_selected = " selected ";
+							}
+							else
+							{
+								$is_selected = "";
+							}
+
+							if($keys == "ATHIETICS")
+							{
+								echo "<option value='$keys' $is_selected>$values - 전체</option>";
+								echo "<option value='AS100' $is_selected>$values - 트랙</option>";
+								echo "<option value='AS200' $is_selected>$values - 필드</option>";
+							}
+							else
+							{
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+						}
+						?>
+					</select>
+					<input type="hidden" name="spo_code" value="<?=$my_spo_code?>">
+					
+					<?
+					}
+				 }
+				 else
+				 {
+				?>
+				<select name="spo_code" id='spo_codeSel' tabindex="2" hname="경기종목" required <?=$my_s_fixed?> > <!--Sports_Sec_Code(this.form,1);Sports_Detail3(this.form,1)">-->
+					<option value=''>--경기종목--</option>
+					<?
+
+					foreach($wp_sports_code as $keys => $values)
+					{
+						if($keys == $my_spo_code)
+						{
+							$is_selected = " selected ";
+						}
+						else
+						{
+							$is_selected = "";
+						}
+
+						if($keys == "ATHIETICS" )
+						{
+							echo "<option value='$keys' $is_selected>$values - 전체</option>";
+							echo "<option value='AS100' $is_selected>$values - 트랙</option>";
+							echo "<option value='AS200' $is_selected>$values - 필드</option>";
+						}
+						else
+						{
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					}
+					?>
+				</select>
+				<?
+				}
+				if($Admin_auth == "top" || $Admin_auth == "s_group") echo " | <input type='checkbox' name='prt_name' value='1' checked='checked'>이름출력";
+				?>
+				<input type="hidden" name="spo_code_name" value="" id='spo_code_name'>
+				<input type="submit" name="sch" tabindex="5" value="종목별이벤트총계표 출력" class="btnBox3">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>

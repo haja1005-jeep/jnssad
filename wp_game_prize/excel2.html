@@ -1,0 +1,157 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=상장발급내역.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<table border="1" cellpadding="0" cellspacing="0">
+<tbody>
+<tr>
+	<th>번호</th>
+	<th>상장종류</th>
+	<th>경기번호</th>
+	<th>상장번호</th>
+	<th>선수명</th>
+	<th>성별</th>
+	<th>경기종목</th>
+	<th>순위</th>
+	<th>시/군</th>
+	<th>발행횟수</th>
+</tr>
+<?
+
+//ORDER BY절 생성
+$orderby .= " prz_kind ASC, prz_num ASC, rank ASC, uid desc ";
+
+//WHERE절 생성 //
+$where = " WHERE gam_uid = '$s_gam_uid' ";
+//상장종류
+if($prz_kind)
+{
+	$where .= " AND  prz_kind = '$prz_kind'";
+}
+//시/군선택
+if($clu_code) $where .= " AND clu_code='$clu_code'";
+
+//종목선택
+if($spo_code) $where .= " AND spo_code='$spo_code'";
+
+//2차종목선택
+if($spo_sec_code) $where .= " AND spo_sec_code='$spo_sec_code'";
+
+if(eregi("[^[:space:]]+",$key))
+	$where .= " AND  $keyfield LIKE '%$key%' ";
+
+// 레코드 쿼리 //
+$query = "SELECT * FROM wp_game_prize $where ORDER BY $orderby ";
+$result = mysql_query($query);
+if(!$result)
+{
+	Error("QUERY_ERROR");
+	exit;
+}
+// 총 레코드 수 //
+$article_num = mysql_num_rows($result);
+// 레코드 결과 //
+while($obj = mysql_fetch_object($result))
+{
+
+	$my_spo_sec_code = getSpo_sec_code($obj->spo_code, $obj->spo_sec_code);
+	$signdate_d = date('Y.m.d',$obj->signdate);
+
+	$gct = split("-", $obj->game_code);
+	$game_code_txt = $obj->game_code;
+	if(ereg("ATHIETICS",$gct[0]) || ereg("SWIMMING",$gct[0])){
+		$gct2 = split("_", $gct[0]);
+		$_tmp = getSpo_sec_code($gct2[0],$gct2[1]);
+		$game_code_txt = $wp_sports_code[$gct2[0]]."_".$_tmp."-".$gct[1];
+	}
+	else
+	{
+		$gct2 = split("_", $gct[0]);
+		$game_code_txt = $wp_sports_code[$gct2[0]]."-".$gct[1];
+	}
+	if($obj->game_code == "")
+		$game_code_txt = "";
+
+	if($obj->rank=="")
+	{
+		$my_rank = "";
+	}
+	else
+	{
+		if($obj->rank == "1")
+		{
+			$my_rank = "<font color='#929900' size='3'><b>".$obj->rank."</b></font>위";
+		}
+		else if($obj->rank == "2")
+		{
+			$my_rank = "<font color='#A5A5A5' size='3'><b>".$obj->rank."</b></font>위";
+		}
+		else if($obj->rank == "3")
+		{
+			$my_rank = "<font color='#572C00' size='3'><b>".$obj->rank."</b></font>위";
+		}
+	}
+
+	if($obj->spo_code == "POWERLIFTING"){
+		//역도 경기이면 세부종목을 출력한다..
+		$my_spo_txt = $my_spo_sec_code."|";
+	}
+	$my_game_txt = $wp_sports_detail_code[$obj->spo_code_detail];
+	$my_name = $obj->prz_pla_name;
+	//볼링 이인조 경기 이면 이름을 동시에 출력
+	$tmp = explode("-",$obj->game_code);
+	$obj->game_code = $tmp[0]."-".str_pad($tmp[1],2,"0",STR_PAD_LEFT);
+	if($obj->game_code == "BOWLING-07"||$obj->game_code == "BOWLING-08"||$obj->game_code == "BOWLING-09"){
+		$a_que = "SELECT * FROM wp_game_record WHERE gam_uid = '$s_gam_uid' AND game_code='$obj->game_code' AND name='$my_name'";
+		$a_res = mysql_query($a_que);
+		$a_obj = mysql_fetch_object($a_res);
+		$s_que = "SELECT * FROM wp_game_record WHERE gam_uid = '$s_gam_uid' AND game_code='$a_obj->game_code' AND group_no='$a_obj->group_no' AND lane_no='$a_obj->lane_no' AND id <> '$a_obj->id'";
+		$s_res = mysql_query($s_que);
+		$s_obj = mysql_fetch_object($s_res);
+		$my_game_txt = $my_spo_code." 통합 2인조(DB)";
+		$my_name = $obj->prz_pla_name."<br>".$s_obj->name;
+	}
+
+?>
+<tr <?=$bgcolor?>>
+	<td align="center" style='mso-number-format:"\@";' ><?=$article_num?></td>
+	<td align="center" style='mso-number-format:"\@";' ><?=$wp_prize_kind[$obj->prz_kind]?></td>
+	<td align="center" style='mso-number-format:"\@";' ><?=$game_code_txt?></td>
+	<td align="center" style='mso-number-format:"\@";' ><?=$obj->prz_num?></td>
+	<td align="center" style='mso-number-format:"\@";' ><?=$my_name?></td>
+	<td align="center" style='mso-number-format:"\@";'><?=$wp_sex_code[$obj->sex]?></td>
+	<td align="center" style='mso-number-format:"\@";' ><?=$my_spo_txt?><?=$my_game_txt?></td>
+	<td align="center" style='mso-number-format:"\@";' ><?=$my_rank?></td>
+	<td align="center" style='mso-number-format:"\@";' ><?=$wp_club_code[$obj->clu_code]?></td>
+	<td align="center" style='mso-number-format:"\@";' ><?=$obj->count?></td>
+</tr>
+<?
+	unset($my_rank);
+	unset($my_clu_code);
+	unset($my_spo_sec_code);
+	unset($my_spo_code_detail);
+	$article_num--;
+}//for
+?>
+</tbody>
+</table>

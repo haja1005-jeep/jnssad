@@ -1,0 +1,154 @@
+<?php
+/**
+ * add by hsjang
+ */
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+$query = "SELECT spo_code, (SELECT sex FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) r_sex, (SELECT birthday FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) birthday FROM wp_game_player wgp WHERE gam_uid = '$s_gam_uid' ORDER BY spo_code, r_sex";
+$result = mysql_query($query);
+
+$spo_arr = array();
+$b_spo_code = "";
+
+$tro_code_cnt = 0;
+while($obj = mysql_fetch_object($result)){
+	if($obj->spo_code != $b_spo_code)
+	{
+		$spo_arr[$b_spo_code] = $tmp_arr;
+		$tro_code_cnt = 0;
+		$tmp_arr = array();
+	};
+
+	$my_birth = explode("-",$obj->birthday);
+	$my_age = 2012 - $my_birth[0];
+
+	if($my_age < 20 && $my_age >= 10) $age_type = 10;
+	else if($my_age < 30 && $my_age >= 20) $age_type = 20;
+	else if($my_age < 40 && $my_age >= 30) $age_type = 30;
+	else if($my_age < 50 && $my_age >= 40) $age_type = 40;
+	else if($my_age < 60 && $my_age >= 50) $age_type = 50;
+	else if($my_age >= 60) $age_type = 60;
+
+	$keys = $age_type."/".$obj->r_sex;
+	$tmp_arr["$keys"] = $tmp_arr["$keys"] + 1;
+
+	$b_spo_code = $obj->spo_code;
+}
+$spo_arr[$b_spo_code] = $tmp_arr;
+?>
+<form name="sForm" id="sForm" method="post" onSubmit="return validate(this)">
+<table class="table-global">
+<tr>
+	<td>
+		<!-- 선수 검색 시작 -->
+		<table class="tbSearch-c">
+			<tr>
+				<!-- 선수 검색 시작 -->
+				<th width="10%">대회선택</th>
+				<td>
+					<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+						<option value="">--선택-- </option>
+						<?
+							foreach($wp_games as $keys => $values){
+								$is_selected = ($keys == $s_gam_uid) ? 'selected' : '';
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+						?>
+					</select>
+					<input type="button" tabindex="4" value="미리보기" data-btn="preview" class="btnBox3">
+					<input type="button" tabindex="5" value="연령대별총계표 출력" data-btn="excel" class="btnBox3">
+				</td>
+			</tr>
+		</table>
+	</td>
+</tr>
+</table>
+</form>
+
+<script type="text/javascript">
+  $(function() {
+    var fObj = $('#sForm');
+    $('[data-btn="preview"]').click(function() {
+      fObj.attr('action', location.href);
+      fObj.submit();
+    });
+
+    $('[data-btn="excel"]').click(function() {
+      fObj.attr('action', './<?= str_replace('print', 'excel', $mode) ?>.html');
+      fObj.submit();
+    });
+  });
+</script>
+
+<link rel="stylesheet" href="wp_game_player.css">
+<table class="table-type01">
+	<thead>
+		<tr>
+			<th rowspan="2">구분</th>
+			<th colspan="2">10대</th>
+			<th colspan="2">20대</th>
+			<th colspan="2">30대</th>
+			<th colspan="2">40대</th>
+			<th colspan="2">50대</th>
+			<th colspan="2">60대이상</th>
+		</tr>
+		<tr>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+			<th>남</th>
+			<th>여</th>
+		</tr>
+	</thead>
+	<tbody>
+		<?
+		$spo_data = $spo_arr[""];
+		$etc_cnt =  $spo_data["/male"] + $spo_data["/female"];
+
+		foreach($wp_game_code as $key_f => $val_f)
+		{
+			$spo_data = $spo_arr["$key_f"];
+			echo "
+				<tr>
+					<td>$val_f</td>
+					<td>".$spo_data["10/male"]."</td>
+					<td>".$spo_data["10/female"]."</td>
+					<td>".$spo_data["20_2/male"]."</td>
+					<td>".$spo_data["20_2/female"]."</td>
+					<td>".$spo_data["30/male"]."</td>
+					<td>".$spo_data["30/female"]."</td>
+					<td>".$spo_data["40/male"]."</td>
+					<td>".$spo_data["40/female"]."</td>
+					<td>".$spo_data["50/male"]."</td>
+					<td>".$spo_data["50/female"]."</td>
+					<td>".$spo_data["60/male"]."</td>
+					<td>".$spo_data["60/female"]."</td>
+				</tr>
+			";
+		}
+		?>
+	</tbody>
+</table>

@@ -1,0 +1,351 @@
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>대회에 참가하기 위하여 선수명 또는 주민번호로 선수등록이 되어있는지 확인한다.</li>
+				<li>선수등록이 완료 된 선수는 <font color="#cc0000">[대회참가]</font>버튼을 클릭하여 대회참가 화면으로 이동 후 참가할 종목을 선택하여 대회 참가신청을 완료한다.</li>
+				<li>해당 선수가 등록 되어있지 않으면 <font color="#cc0000">[선수등록]</font>버튼을 클릭하여 선수등록을 마친 후 대회 참가 페이지로 이동하여 대회 참가 신청을 완료한다.</li>
+				<li><font color="#cc0000"><b>※필독</b></font> 대회에 참가 완료된 선수의 신상등록을 변경시에는 <font color="#cc0000"><br>1. 참가된 정보 삭제<br>2. 해당선수의 정보 수정<br>3. 대회 참가 신청</font> 순으로 하여야합니다. </li>
+				<li><font color="#cc0000"><b>※필독</b> 대회참가 취소</font>는 좌측의 참가자조회/취소에서 참가 취소 후 다시 대회참가 신청을 하여야합니다. </li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<form name="sForm" action="index.html?mode=search#list" method="post" onSubmit="return validate(this)">
+		<!-- 선수 검색 시작 -->
+		<a name="list">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th width="10%">시 / 군</th>
+					<td>
+					<?
+					//시/군구 이면 자기 데이터 출력
+					if($Admin_auth == "normal" || $Admin_auth == "sponsor") {
+						echo "<input type='hidden' name='clu_code' hname='시/군' value='$Admin_code'><font color='#0000ff'>".$wp_club_code[$Admin_code]."</font>";
+					 }else{
+						echo "
+						<select name='clu_code' tabindex='1' hname='시/군'>
+							<option value=''>--시/군--</option>
+						";
+							foreach($wp_club_code as $keys => $values){
+								if($keys == $clu_code) $is_selected = " selected";
+								else $is_selected = "";
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+						echo "</select>";
+					}?>
+					<select name="kubun" tabindex="2" hname="선수구분">
+						<option value="">--선수구분-- </option>
+						<?
+							foreach($wp_kubun_code as $keys => $values){
+								if($keys == $kubun)
+									$is_selected = " selected ";
+								else $is_selected = "";
+								echo "<option value='$keys' $is_selected>$values</option>";
+							}
+						?>
+					</select>
+
+					</td>
+				</tr>
+				<tr>
+					<th>선  수  명</th>
+					<td>
+						<input type="text" name="name" size="20" maxlength="10" class="input_g" >
+					</td>
+				</tr>
+					<th>주민번호</th>
+					<td>
+						<input type="text" name="jumin1" size="10" maxlength="6" class="input_g"> - <input type="text" name="jumin2" size="10" maxlength="7" class="input_g" >
+						<input type="submit" name="sch" value="검색하기" tabindex="8" class="btnBox3" onclick="this.form.submit()">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbButton-a">
+		<tr>
+			<td>&nbsp;</td>
+			<td width="35%" align="right">
+				<input type="button" value="신상등록" class="btnBox" onclick="window.open('../wp_player_ctrl/player.html?mode=input&type=pop','player','width=800,height=600,scrollbars=no')">
+				<input type="button" value="목록으로" class="btnBox" onclick="location.href='index.html?gam_uid=<?=$gam_uid?>&mode=search'">
+				<input type="button" value="참가자목록" class="btnBox" onclick="location.href='index.html?gam_uid=<?=$gam_uid?>&mode=list'">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<!-- 선수검색 끝 -->
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="6%">시/군</th>
+			<th width="6%">구분</th>
+			<th width="10%">선수명</th>
+			<th width="5%">성별</th>
+			<th width="14%">주민번호</th>
+			<th width="14%">장애유형</th>
+			<th width="6%">장애등급</th>
+			<th width="8%">휠체어</th>
+			<th width="8%">대회참가</th>
+			<th>참가한종목</th>
+		</tr>
+		<?
+		//LIMIT절 생성
+		if(!$page) $page=1;
+		$offset = ($page - 1) * $max_record;
+		$limit = $max_record;
+
+		//ORDER BY절 생성
+		$orderby = " clu_code ASC, kubun DESC, name ASC, tro_code ASC, sex ASC, uid DESC";
+
+		//WHERE절 생성 //
+		if($Admin_auth != "top")
+			$where = " WHERE clu_code = '$Admin_code' AND isuse = '0' ";
+		else
+			$where = " WHERE isuse = '0'";
+
+		//해당시군
+		if($clu_code) $where .= " AND clu_code = '$clu_code'";
+		//선수구분
+		if($kubun) $where .= " AND kubun = '$kubun'";
+		//선수명
+		if($name) $where .= " AND name like '%$name%'";
+		//주민번호
+		if($jumin1) $where .= " AND jumin1 = '$jumin1' ";
+		if($jumin2) $where .= " AND jumin2 = '$jumin2' ";
+		if($jumin1 && $jumin2)  $where .= " AND jumin1 = '$jumin1' AND jumin2 = '$jumin2' ";
+
+		if(eregi("[^[:space:]]+",$key)) $where .= " AND  $keyfield LIKE '%$key%' ";
+
+		// 레코드 쿼리 2012년 04월 06일 LIMIT 1 추가 //
+		$query = "SELECT *, (SELECT name FROM wp_club_ctrl WHERE code = wpc.clu_code LIMIT 1) clu_name
+				   FROM wp_player_ctrl wpc
+				 $where ORDER BY $orderby LIMIT $offset, $limit";
+				 //echo $query;
+		$result = mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord("wp_player_ctrl", $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+		// 레코드 결과 //
+		for($i=0;$i<mysql_num_rows($result);$i++)
+		{
+			$obj = mysql_fetch_object($result);
+
+			$my_name = $obj->name;
+			$my_jumin1 = $obj->jumin1;
+			$my_jumin2 = $obj->jumin2;
+			// 검색단어 처리 //
+			if($name)
+			{
+				$my_name = eregi_replace("($name)", "<font color='#FF0000'>\\1</font>", $my_name);
+			}
+			// 검색단어 처리 //
+			if($jumin1)
+			{
+				$my_jumin1 = eregi_replace("($jumin1)", "<font color='#FF0000'>\\1</font>", $my_jumin1);
+			}
+			// 검색단어 처리 //
+			if($jumin2)
+			{
+				$my_jumin2 = eregi_replace("($jumin2)", "<font color='#FF0000'>\\1</font>", $my_jumin2);
+			}
+
+			if($obj->isuse == "1"){
+				$bgcolor = "bgcolor='#e7944a' ";
+			}else $bgcolor = "";
+
+		?>
+		<tr <?=$bgcolor?>>
+			<td align="center"><?=$obj->clu_name?></td>
+			<td align="center"><?=$wp_kubun_code[$obj->kubun]?></td>
+			<td align="center"><a href="../wp_player_ctrl/index.html?<?=$basic_get.$basic_add?>&mode=view&pla_id=<?=$obj->wp_id?>"><?=$my_name?></a></td>
+			<td align="center"><?=$wp_sex_code[$obj->sex]?></td>
+			<td align="center"><?=$my_jumin1?>-
+				<?
+				$my_ju = substr($my_jumin2,0,1);
+				echo $my_ju."******";
+				?></td>
+			<td align="center"><?=$wp_trouble_code[$obj->tro_code]?></td>
+			<td align="center"><?=$wp_trouble_level[$obj->trouble_level]?></td>
+			<td align="center"><?=$wp_wheel_code[$obj->wheel]?></td>
+			<td align="center">
+				<?
+				if($Admin_auth == "top")
+				{
+				?>
+				<div class='btWwhite_s'><a href="index.html?<?=$basic_get.$add_get?>&mode=input&pla_id=<?=$obj->wp_id?>"><span style="color:#0000ff;font-weight:bold;font-size:8pt;">대회참가</span></a></div>
+				<?
+				}
+				else
+				{
+				?>
+
+			<div class='btWwhite_s'><a href="index.html?<?=$basic_get.$add_get?>&mode=input&pla_id=<?=$obj->wp_id?>"><span style="color:#0000ff;font-weight:bold;font-size:8pt;">대회참가</span></a></div>
+
+				
+				<!--	<div class="btWwhite_s"><a href="#none" onclick="alert('현재 대회 참가신청 기간이 아닙니다.')"><span style="color:#0000ff;font-weight:bold;font-size:8pt;">대회참가</span></a></div>	-->			
+				<?
+				}
+				?>
+			</td>
+			<td align="left">
+				<?
+			
+				$ii = "";
+				$ll = 1;
+	
+
+				//대회에 참가한 세부종목 검색
+				$que = "SELECT *, group_concat(spo_sec_code order by spo_sec_code asc separator '|') spo_sec_code, group_concat(spo_code_detail order by spo_code_detail asc separator '|') spo_code_details , group_concat(tro_level_code order by spo_code_detail asc separator '|') tro_level_codes FROM wp_game_player WHERE gam_uid = '$gam_uid' AND pla_id = '$obj->wp_id' $g_where GROUP BY spo_code ORDER BY spo_code, spo_sec_code, tro_code, tro_level_code";
+				$res = mysql_query($que);
+				while($gObj = mysql_fetch_object($res))
+				{
+					if($gObj->kubun == $wp_kubun_선수){
+
+						$sec = explode("|",$gObj->spo_sec_code);						
+						$scd = explode("|",$gObj->spo_code_details);
+						$tlc = explode("|",$gObj->tro_level_codes);
+
+						if($gObj->spo_code == "POWERLIFTING")
+						{
+							//echo $wp_sports_code[$gObj->spo_code];
+							echo "<span class='title'>{$wp_sports_code[$gObj->spo_code]}</span></br>";
+
+							if($gObj->spo_sec_code == "PL100" || $gObj->spo_sec_code == "PL200" || $gObj->spo_sec_code == "PL300")
+							{
+								echo " | 벤치프레스  ";
+							}
+							else
+							{
+								echo " | 파워리프트  ";
+							}
+
+							$b_vals = "";
+
+							$ii = count($scd);
+							$lastdot = "|";
+
+							foreach($scd as $keys => $vals){
+
+								if($ii == $ll) $lastdot = " ";
+
+
+								if($b_vals == $vals) continue;
+								echo "<span class='color02'>".$wp_sports_detail_code[$vals]."</span> {$lastdot} ";
+								$b_vals = $vals;
+
+								$ll++;
+							}
+						
+						}else{
+													
+							echo "<span class='title'>{$wp_sports_code[$gObj->spo_code]}</span></br>";
+
+							$ii = count($scd);
+							$lastdot = "|";
+							
+							    
+							    if($wp_sports_code[$gObj->spo_code] != getSpo_sec_code($gObj->spo_code,$gObj->spo_sec_code))
+							      {
+								    echo "- ".getSpo_sec_code($gObj->spo_code,$sec[0])." ";
+							      }
+
+							    echo " | $my_trouble_code ";								
+
+								$spo_sec_code = $sec[0];
+
+						
+							foreach($scd as $keys => $vals){ //세부종목 출력
+
+								if($spo_sec_code == $sec[$ll-1]) {
+									
+								
+								}else{
+
+                                if($ii > 2)
+								{
+								 $spo_sec_code = $sec[$ll];
+                                } else {
+                                 $spo_sec_code = $sec[$ll-1];
+								}
+								echo "</br>";
+
+							    if($wp_sports_code[$gObj->spo_code] != getSpo_sec_code($gObj->spo_code,$gObj->spo_sec_code))
+							      {
+								    echo "- ".getSpo_sec_code($gObj->spo_code,$spo_sec_code)." ";
+							      }
+
+							    echo " | $my_trouble_code ";
+				                
+                                }
+
+                                $spo_sec_code = $sec[$ll-1];
+								
+								if($ii == $ll) $lastdot = " ";
+
+								echo "<span class='color01'>".$tlc[$keys]."</span>-<span class='color02'>".$wp_sports_detail_code[$vals]."</span> {$lastdot} ";
+							
+								$ll++;
+                   
+					
+
+							}
+
+							
+						}
+					}else if($gObj->kubun == $wp_kubun_종목인솔자 || $gObj->kubun == $wp_kubun_감독 || $gObj->kubun == $wp_kubun_코치){
+						echo $wp_sports_code[$gObj->spo_code];
+						if($my_trouble_code) echo " | $my_trouble_code";
+					}
+					echo "<br>";
+				
+			
+				}
+				
+				?>
+				<a href="index.html?<?=$basic_get.$add_get?>&mode=input&pla_id=<?=$obj->wp_id?>">&nbsp;</a>
+
+			</td>
+		</tr>
+		<?
+			$article_num--;
+			unset($g_list);
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<? require_once "../wp_object/page_move.html";?>
+	</td>
+</tr>
+</table>

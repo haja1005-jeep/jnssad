@@ -1,0 +1,402 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=대회참가자명부.xls");
+header("Content-Description: PHP4 Generated Data");
+
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+
+
+
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+
+
+if($clu_code)
+	$clu_code_a[0] = $clu_code;
+	else $clu_code_a = array_keys($wp_club_code);
+	foreach($clu_code_a as $kyes => $values){
+		$clu_code = $clu_code_a[$kyes];
+		if($clu_code == "test" || $clu_code == 'jnsad') continue;
+?>
+
+
+
+<!-- 선수 검색 시작 -->
+<a name="list">
+<table class="table-global">
+
+
+<table border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td align="center">
+
+			<font size="5"><b><?=$wp_games[$s_gam_uid]?> 대회참가자 명부(<?=$wp_club_code[$clu_code]?>)</b></font>
+			<br>
+
+		<!-- 선수검색 끝 -->
+		<table border="1" cellpadding="0" cellspacing="0">
+		<tbody>
+		<tr>
+			<th width="3%">번호</th>
+			<th width="5%">시/군</th>
+			<th width="3%">구분</th>
+			<th width="5%">선수명</th>
+			<th width="3%">성별</th>
+			<th width="5%">주민번호</th>
+
+			<th width="5%">참가종목</th>
+			<th width="5%">2차종목</th>
+			<th width="5%">세부종목1</th>
+			<th width="5%">세부종목2</th>
+			<th width="5%">세부종목3</th>
+			<th width="5%">세부종목4</th>
+			<th width="5%">세부종목5</th>
+			<th width="5%">장애유형</th>
+			<th width="5%">스포츠등급</th>
+			<th width="5%">장애등급</th>
+			<th width="5%">전화번호</th>
+			<th>주소</th>
+		</tr>
+		<?
+
+		//ORDER BY절 생성
+		if($orderby1 == "name") $orderby1 = "pla_name";
+		if($orderby2 == "name") $orderby2 = "pla_name";
+		if($orderby3 == "name") $orderby3 = "pla_name";
+		if($orderby4 == "name") $orderby4 = "pla_name";
+		
+		//출력순
+		if(!$orderby1 && !$orderby2 && !$orderby3 && !$orderby4)
+			$orderby .= " clu_code ASC, kubun ASC, spo_code ASC, spo_sec_code ASC, spo_code_detail ASC, pla_name ASC,tro_code ASC, tro_level_code ASC,";
+		if($orderby1)
+			$orderby .= " $orderby1 ASC, ";
+		if($orderby2)
+			$orderby .= " $orderby2 ASC, ";
+		if($orderby3)
+			$orderby .= " $orderby3 ASC, ";
+		if($orderby4)
+			$orderby .= " $orderby4 ASC, ";
+		$orderby .= " uid desc ";
+
+		//해당 시/군의 데이터만 확인가능
+		//WHERE절 생성 //
+		if($Admin_auth == "top" || $Admin_auth == "s_group"){
+			$where = " WHERE gam_uid = '$s_gam_uid'";
+		} else{
+			$where = " WHERE gam_uid = '$s_gam_uid'";
+			$clu_code = $Admin_code;
+		}
+
+
+		//시/군이 있으면
+		if($clu_code) $where .= " AND clu_code = '$clu_code'";
+		if($clu_code == "testsad") $where = str_replace(" AND clu_code = '$clu_code'","",$where);
+
+		//경기종목가있으면
+		if($spo_code) $where .= " AND spo_code = '$spo_code' ";
+		
+
+		
+		//선수구분
+		if($kubun) $where .= " AND kubun= '$kubun' ";
+		
+		//장애유형 가있으면
+		if($tro_code) $where .= " AND tro_code = '$tro_code' ";
+		
+		//장애세부유형 가있으면
+		if($tro_level_code) $where .= " AND tro_level_code = '$tro_level_code' ";
+		
+		//성별 가있으면
+		if($sex) $where .= " AND sex = '$sex' ";
+		
+		//경기세부종목가있으면
+		if($spo_code_detail) $where .= " AND spo_code_detail = '$spo_code_detail' ";
+
+		if(eregi("[^[:space:]]+",$key))
+			$Q_key = " AND  $keyfield LIKE '%$key%' ";
+		$where .= $Q_key;
+
+		// 레코드 쿼리 //
+		$query = "SELECT *, (SELECT sex p_sex FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) p_sex,
+						(SELECT concat(jumin1,'-',jumin2) jumin FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) jumin,
+                        (SELECT trouble_level my_level FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) my_level,
+                        (SELECT concat(hp1,'-',hp2,'-',hp3) my_tel FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) my_tel,
+                        (SELECT zip1 zip1 FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) zip1,
+                        (SELECT zip2 zip2 FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) zip2,
+                        (SELECT address1 address1 FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) address1,
+                        (SELECT address2 address2 FROM wp_player_ctrl WHERE wp_id = wgp.pla_id) address2,
+						group_concat(spo_sec_code order by spo_sec_code asc separator '|') spo_sec_code,
+                        group_concat(tro_level_code order by spo_code_detail asc separator '|') tro_level_codes,
+						group_concat(spo_code_detail order by spo_code_detail asc separator '|') spo_code_details,
+						group_concat(uid order by spo_code_detail asc separator '|') pla_uids				 
+				   FROM wp_game_player wgp
+				 $where GROUP BY pla_id,spo_code ORDER BY $orderby";
+		$result = mysql_query($query);
+
+
+
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		// 총 레코드 수 //
+		$total_record = mysql_num_rows($result);
+
+		// 일련 번호 //
+		$article_num = $total_record;		
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result)){
+
+			$my_pla_name = $obj->pla_name;
+			
+			
+				unset($bigo);
+				$bigo="";
+				if($obj->wheel == "0"){
+					$bigo .= "휠체어";
+				}
+				if($obj->kubun >= "6")
+					$_tmp = $wp_sports_code[$obj->spo_code]."<br>";
+				else $_tmp = "";
+
+
+						//장애등급
+						if($obj->my_level)
+							$my_level = $obj->my_level."급";
+						else $my_level = "";
+                        
+						//전화번호
+						unset($my_tel);
+						if($obj->hp1) $my_tel = $obj->hp1."-".$obj->hp2."-".$obj->hp3;
+						else if($obj->hp1) $my_tel = $obj->tel1."-".$obj->teel2."-".$obj->tel3;
+
+			if($obj->tro_level_code)
+				$my_trouble_code = getTrouble_level_code($obj->spo_code, $obj->tro_level_code)."(".$obj->tro_level_code.")";
+			else $my_trouble_code = "";
+
+		?>
+
+		<tr <?=$bgcolor?>>
+			<td align="center"><?=$article_num?></td>
+			<td align="center"><?=$wp_club_code[$obj->clu_code]?></td>
+			<td align="center"><?=$wp_kubun_code[$obj->kubun]?></td>
+			<td align="center"><?=$my_pla_name?></td>
+			<td align="center"><?=$wp_sex_code[$obj->p_sex]?></td>
+			<td align="center">
+				<?
+	
+					$my_jumin_arr = explode("-",$obj->jumin);
+					$my_ju = substr($my_jumin_arr[1],0,1);
+					echo $my_jumin_arr[0]."-".$my_ju."******";
+								
+				?>
+			</td>
+
+			<td align='center'>
+			<?
+			        echo $wp_sports_code[$obj->spo_code];
+					
+            ?>
+			</td>
+
+			<td align='center'>
+			<?
+                if($obj->spo_code == "POWERLIFTING")
+
+					{
+
+						if($obj->spo_sec_code == "PL100|PL200|PL300")
+						{
+							echo "벤치프레스종합";
+						}
+						else
+						{
+							echo "파워리프트종합";
+						}
+
+                    }
+
+                if($obj->spo_code == "ATHIETICS")
+					{
+
+	                    $sec  = explode("|",$obj->spo_sec_code); //넘어는 값이 AS100|AS100|AS100
+						
+						if($sec[0] == "AS100")
+						{
+							echo "트랙";
+						}
+						else if($sec[0] == "AS200")
+						{
+							echo "필드";
+						}
+
+                    }
+					
+            ?>
+			</td>
+	
+
+				<?
+				$ii = "";
+				$ll = 1;
+
+				if($obj->kubun == $wp_kubun_선수){
+
+					
+					$sec  = explode("|",$obj->spo_sec_code);					
+					$scd  = explode("|",$obj->spo_code_details);
+					$uids = explode("|",$obj->pla_uids);
+					$tlc  = explode("|",$obj->tro_level_codes);
+								
+
+					$ii = count($scd);
+					$lastdot = "</td>";
+
+					$tdcnt = 5 - $ii;
+
+					foreach($scd as $keys => $vals){
+
+                            echo 	"<td align='left'>";
+							
+							$p_uid = $uids[$keys];
+
+							if($ii == $ll) $lastdot = " ";
+			
+                            if($obj->spo_code == "POWERLIFTING") {
+
+						            if($wp_sports_code[$obj->spo_code] != getSpo_sec_code($obj->spo_code,$obj->spo_sec_code))
+						             {
+							          echo " ".getSpo_sec_code($obj->spo_code,$sec[$ll-1])." ";
+						             }
+
+							  
+				               }
+
+						   //세부종목
+						   $wp_detail_code = $wp_sports_detail_code[$vals];
+						   
+						   
+						   if($obj->spo_code == "ATHIETICS")
+					       {
+
+						       if($sec[0] == "AS100")
+						         {
+							       $wp_detail_code = str_replace("트랙", "", $wp_detail_code);
+						         }
+						       else if($sec[0] == "AS200")
+						         {
+							       $wp_detail_code = str_replace("필드", "", $wp_detail_code);
+                                 }
+						    }
+
+    						echo "<span class='color02'>".$wp_detail_code."</span> {$lastdot} ";
+								
+							$ll++;
+						}
+
+
+					for($i=0;$i<$tdcnt;$i++)
+		             {				 
+					  echo "<td></td>";
+					 }
+				
+				} else {
+
+                      echo "<td></td><td></td><td></td><td></td><td></td>";
+				}
+				?>
+	
+
+		    <td align="center"><?=$wp_trouble_code[$obj->tro_code]?></td>
+			<td align="center"><? if($my_trouble_code) echo "$my_trouble_code";?></td>
+			
+			<td align="center"><?=$my_level?></td>
+			<td align="center"><?=$obj->my_tel?></td>
+			<td align="center">(<?=$obj->zip1?>-<?=$obj->zip2?>) <?=$obj->address1?> <?=$obj->address2?></td>
+				
+			
+		</tr>
+		<?
+			$article_num--;
+		} //while
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table border="0" cellpadding = "0" cellspacing="0">
+		<tr>
+			<td colspan="8">
+				작성1) : 선수단 직위 란에는 양식1번 순서에 의해, 단장(시장,군수), 담당(자치단체 실무자), 임원(자율),<br>
+				보호자, 자원봉사자(자율), 종목인솔자(자체단체공무원), 감독, 코치, 선수 순으로 기재
+			</td>
+		</tr>
+		<tr>
+			<td colspan="8">
+				작성2) : 선수 명부는 종목별로 작성, 연번은 계속, 비고 특이사항 과 휠체어 등을 필히표기함
+			</td>
+		</tr>
+		<tr>
+			<td colspan="8" align="center" height="30"></td>
+		</tr>
+		<tr>
+			<td colspan="8" align="center">
+				<?=$wp_games[$s_gam_uid]?>에 참가자 명부를 제출합니다.
+			</td>
+		</tr>
+		<tr>
+			<td colspan="8" align="center" height="30"></td>
+		</tr>
+		<tr>
+			<td colspan="8" align="center">
+				<?=$n_year?>년 <?=$n_mon?>월 <?=$n_day?>일
+			</td>
+		</tr>
+		<tr>
+			<td colspan="8" align="center" height="30"></td>
+		</tr>
+		<tr>
+			<td colspan="8" align="right">
+				<font size="3"><b>소속&nbsp;&nbsp;&nbsp;<?=$wp_club_code[$clu_code]?>시,군</b></font>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="8" align="center" height="30"></td>
+		</tr>
+		<tr>
+			<td colspan="8" align="left">
+				<font size="3"><b>전라남도장애인체육회장 귀하</b></font>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+
+</table>
+
+<?
+	} //for
+?>

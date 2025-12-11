@@ -1,0 +1,441 @@
+<form name="schForm" action="index.html?mode=input" method="post">
+<table class="tbInput-a">
+<tr>
+	<th width="15%">대회선택</th>
+	<td>
+		<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+			<option value="">--선택-- </option>
+			<?
+				foreach($wp_games as $keys => $values)
+				{
+					if($keys == $s_gam_uid)
+					{
+						$is_selected = " selected";
+					}
+					else
+					{
+					 	$is_selected = "";
+					}
+					echo "<option value='$keys' $is_selected>$values</option>";
+				}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>상장종류</th>
+	<td>
+		<select name="prz_kind" onchange="javascript:document.schForm.submit();">
+			<option value=''>-----선택------</option>
+			<?
+			foreach($wp_prize_kind as $keys => $values)
+			{
+				if($prz_kind == $keys)
+				{
+					$is_selected = " selected ";
+				}
+				else
+				{
+					$is_selected = "";
+				}
+				echo "<option value='$keys' $is_selected>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<?
+// 개인기록상장이면
+// if($prz_kind=="07")
+if($prz_kind=="07" || $prz_kind=="09")
+{
+?>
+<tr>
+	<th>종목</th>
+	<td>
+		<select name="spo_code" onchange="javascript:document.schForm.submit();">
+			<option value=''>-----전체------</option>
+			<?
+			foreach($wp_sports_code as $keys => $values)
+			{
+				if($spo_code == $keys)
+				{
+					$is_selected = " selected ";
+				}
+				else
+				{
+					$is_selected = "";
+				}
+				echo "<option value='$keys' $is_selected>$values</option>";
+			}
+			?>
+		</select>
+		<?
+		if($spo_code=="ATHIETICS")
+		{
+			if($spo_sec_code == "AS100")
+			{
+				$is_selected1 = " selected ";
+			}
+			if($spo_sec_code == "AS200")
+			{
+				$is_selected2 = " selected ";
+			}
+			echo "
+				<select name='spo_sec_code' onchange='this.form.submit();'>
+				<option value=''>선택</option>
+				<option value='AS100' $is_selected1>트랙</option>
+				<option value='AS200' $is_selected2>필드</option>
+				</select>
+			";
+		}
+		//게임 번호 검색
+		$g_where = " WHERE gam_uid = '$gam_uid' AND spo_code='$spo_code'";
+		if($spo_sec_code) $g_where .= " AND spo_sec_code = '$spo_sec_code'";
+		$g_que = "SELECT game_code FROM wp_game_record $g_where GROUP BY game_code ORDER BY game_code ASC";
+		$g_res = mysql_query($g_que);
+		echo "<select name='game_code' tabindex='2' hname='대진코드' onchange='this.form.submit();'><option value=''>선택</option>";
+		while($g_obj = mysql_fetch_object($g_res))
+		{
+			unset($is_choice);
+			if($g_obj->game_code == $game_code) $is_choice = " selected";
+			echo "<option value='$g_obj->game_code' $is_choice>$g_obj->game_code</option>";
+		}
+		echo "</select>";
+		?>
+	</td>
+</tr>
+<?
+}
+// 종합순위상장
+if($prz_kind =="01" || $prz_kind == "12")
+{
+?>
+<tr>
+	<th>시/군</th>
+	<td>
+		<select name="clu_code">
+			<option value=''>--선택--</option>
+			<?
+			foreach($wp_club_code as $keys => $values)
+			{
+				echo "<option value='$keys'>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>순위</th>
+	<td>
+		<select name="rank">
+			<option value=''>--선택--</option>
+			<?
+			foreach($wp_rank_code as $keys => $values)
+			{
+				echo "<option value='$keys'>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<?
+}
+if($prz_kind =="02" || $prz_kind =="03" || $prz_kind =="04")
+{
+?>
+<tr>
+	<th>시/군</th>
+	<td>
+		<select name="clu_code">
+			<option value=''>--선택--</option>
+			<?
+			foreach($wp_club_code as $keys => $values)
+			{
+				echo "<option value='$keys'>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<?
+}
+if($prz_kind =="05" || $prz_kind == "08")
+{
+?>
+<tr>
+	<th>시/군</th>
+	<td>
+		<select name="clu_code">
+			<option value=''>--선택--</option>
+			<?
+			foreach($wp_club_code as $keys => $values)
+			{
+				echo "<option value='$keys'>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>종목</th>
+	<td>
+		<select name="spo_code">
+			<option value=''>--선택--</option>
+			<?
+			foreach($wp_sports_code as $keys => $values)
+			{
+				echo "<option value='$keys'>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>세부종목</th>
+	<td><input type="text" size="50" maxlength="50" name="spo_name"></td>
+</tr>
+<tr>
+	<th>순위</th>
+	<td>
+		<select name="rank">
+			<option value=''>--선택--</option>
+			<?
+			foreach($wp_rank_code as $keys => $values)
+			{
+				echo "<option value='$keys'>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>참가선수</th>
+	<td><input type="text" size="50" maxlength="50" name="prz_pla_name"></td>
+</tr>
+<?
+}
+if($prz_kind =="06")
+{
+?>
+<tr>
+	<th>시/군</th>
+	<td>
+		<select name="clu_code">
+			<option value=''>--선택--</option>
+			<?
+			foreach($wp_club_code as $keys => $values)
+			{
+				echo "<option value='$keys'>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>종목</th>
+	<td>
+		<select name="spo_code">
+			<option value=''>--선택--</option>
+			<?
+			foreach($wp_sports_code as $keys => $values)
+			{
+				echo "<option value='$keys'>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>참가선수</th>
+	<td><input type="text" size="50" maxlength="50" name="prz_pla_name"></td>
+</tr>
+<?
+}
+if($prz_kind !="07")
+{
+echo "<tr><td colspan='2' align='center'>";
+	if($prz_kind)
+	{
+		echo "<input type='button' name='input' class='btnBox3' value=' 입 력 ' onClick=\"Insert_Prize(this.form)\";>";
+	}
+	echo "&nbsp;&nbsp;<input type='button' name='send' value='목록으로' class='btn_send' onclick='history.back(-1)'>";
+echo "</td></tr>";
+}
+?>
+</table>
+</form>
+<?
+if($game_code)
+{
+?>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+	<td>
+		<form action="pla_input.php?<?=$basic_get.$add_get?>" method="post">
+		<input type="hidden" name="prz_kind" value="<?=$prz_kind?>">
+		<input type="hidden" name="spo_code" value="<?=$spo_code?>">
+		<input type="hidden" name="spo_sec_code" value="<?=$obj->spo_sec_code?>">
+		<input type="hidden" name="game_code" value="<?=$game_code?>">
+		<table width="100%" class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="8%"><input type="checkbox" name="chk" value="chk_id" onClick="selectAll(this.form,this.value)"></th>
+			<th width="8%">번호</th>
+			<th>상장종류</th>
+			<th>종목</th>
+			<th>선수이름</th>
+			<th width="10%">순위</th>
+			<th width="8%">시/군</th>
+			<th width="8%">등록여부</th>
+			<th width="10%">상장등록</th>
+		</tr>
+		<?
+		//LIMIT절 생성
+		if(!$page) $page=1;
+		$offset = ($page - 1) * $max_record;
+		$limit = $max_record;
+
+		//ORDER BY절 생성
+		$orderby .= " rank_tot asc, uid desc ";
+
+		//WHERE절 생성 //
+		$where = " WHERE gam_uid = '$s_gam_uid' ";
+
+		// 테이블 이름 //
+		$table = "wp_game_record";
+
+		$where .= " AND game_kind = '1' AND rank_tot > 0 AND rank_tot <4 AND test_game <> '1' ";
+		if($spo_code)
+		{
+			$where .= " AND spo_code = '$spo_code' ";
+		}
+		if($spo_sec_code)
+		{
+			$where .= " AND spo_sec_code = '$spo_sec_code' ";
+		}
+		if($game_code)
+		{
+			$where .= " AND game_code = '$game_code' ";
+		}
+
+		// 레코드 쿼리 //
+		$query = "SELECT * FROM $table $where ORDER BY $orderby LIMIT $offset, $limit";
+		//echo $query;
+		$result = mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord("$table", $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result))
+		{
+			// 등록여부 체크 //
+			$c_que = "SELECT * FROM wp_game_prize WHERE gam_uid='$gam_uid' AND prz_kind='$prz_kind' AND pla_id = '$obj->id' AND game_code='$game_code' ";
+			$c_res = mysql_query($c_que);
+			$c_num = mysql_num_rows($c_res);
+
+			if($c_num)
+			{
+				$is_input = "O";
+			}
+			else
+			{
+				$is_input = "X";
+			}
+
+			foreach($wp_prize_kind as $keys => $values)
+			{
+				if(!$prz_kind)
+				{
+					$prz_kind = $obj->prz_kind;
+				}
+				if($prz_kind == $keys)
+				{
+					$my_prz_kind = $values;
+				}
+			}
+			// 종목 추출 //
+			foreach($wp_sports_code as $keys => $values)
+			{
+				if($obj->spo_code == $keys)
+				{
+					$my_spo_code = $values;
+				}
+			}
+			foreach($wp_club_code as $keys => $values)
+			{
+				if($obj->clu_code == $keys)
+				{
+					$my_clu_code = $values;
+				}
+			}
+			foreach($wp_rank_code as $keys => $values)
+			{
+				if($obj->rank_tot == $keys)
+				{
+					$my_rank = $values;
+				}
+			}
+
+			// 선수 이름 쿼리 //
+			$p_que ="SELECT pla_name FROM wp_game_player WHERE pla_id = '$obj->id'";
+			$p_res = mysql_query($p_que);
+			$p_obj = mysql_fetch_object($p_res);
+		?>
+		<tr <?=$bgcolor?>>
+			<td align="center"><input type="checkbox" name="chk_id[]" value="<?=$obj->id?>/<?=$obj->spo_code?>/<?=$obj->spo_sec_code?>"></td>
+			<td align="center"><?=$article_num?></td>
+			<td align="center"><?=$my_prz_kind?></td>
+			<td align="center"><?=$my_spo_code?></td>
+			<td align="center"><?=$p_obj->pla_name?></td>
+			<td align="center"><?=$my_rank?></td>
+			<td align="center"><?=$my_clu_code?></td>
+			<td align="center"><?=$is_input?></td>
+			<td align="center">
+		</tr>
+		<?
+			unset($my_rank);
+			unset($my_clu_code);
+			$article_num--;
+		}//for
+		?>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="center" style="padding-top:10px"><input type="submit" name="input" class="btnBox3" value=" 등 록 " ></td>
+</tr>
+<tr>
+	<td align="center">
+		<? require_once "../wp_object/page_move.html";?>
+	</td>
+</tr>
+</table>
+</form>
+<?
+}
+if($prz_kind=="07")
+{
+?>
+<table class="tbButton-a">
+<tr>
+	<td>
+		<input type="button" name="send" value="목록으로" class="btn_send" onclick="history.back(-1);">
+	</td>
+</tr>
+</table>
+<?
+}
+?>

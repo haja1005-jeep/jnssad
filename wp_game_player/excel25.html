@@ -1,0 +1,1657 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=종목별 인솔자명단.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+?>
+<!--link type="text/css" rel="stylesheet" href="../wp_config/style.css"-->
+<body>
+<?
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+$T_WGP = " (SELECT distinct clu_code, pla_id, spo_code, kubun FROM wp_game_player WHERE gam_uid='$s_gam_uid') wgp";
+
+if($result_sex)
+{
+	$query = "SELECT wgp.kubun,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' GROUP BY wgp.kubun ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT kubun,count(spo_code) cnt FROM $T_WGP WHERE 1=1 GROUP BY kubun ORDER BY spo_code";
+}
+
+
+//echo $query;
+$result = mysql_query($query);
+while($obj = mysql_fetch_object($result))
+{
+	$list_01[$obj->kubun] = $obj->cnt;
+	$total_cnt += $obj->cnt;
+}
+unset($query);
+unset($result);
+unset($obj);
+
+
+
+//종목인솔
+if($result_sex)
+{
+	$query = "SELECT wgp.spo_code,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' AND wgp.kubun = '6' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP where kubun = '6' GROUP BY spo_code ORDER BY spo_code";
+}
+$result = mysql_query($query);
+
+while($obj = mysql_fetch_object($result)){
+	$list_06[$obj->spo_code] = $obj->cnt;  //종목별로 합계로 저장한다. 
+}
+unset($query);
+unset($result);
+unset($obj);
+
+
+
+
+//감독
+if($result_sex)
+{
+	$query = "SELECT wgp.spo_code,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' AND wgp.kubun = '7' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP where kubun = '7' GROUP BY spo_code ORDER BY spo_code";
+}
+$result = mysql_query($query);
+
+while($obj = mysql_fetch_object($result)){
+	$list_07[$obj->spo_code] = $obj->cnt;
+}
+unset($query);
+unset($result);
+unset($obj);
+
+//코치
+if($result_sex)
+{
+	$query = "SELECT wgp.spo_code,count(spo_code) cnt FROM $T_WGP LEFT JOIN wp_player_ctrl ON wgp.pla_id = wp_player_ctrl.wp_id WHERE wp_player_ctrl.sex = '$result_sex' AND wgp.kubun = '8' GROUP BY wgp.spo_code ORDER BY wgp.spo_code";
+}
+else
+{
+	$query = "SELECT spo_code,count(spo_code) cnt FROM $T_WGP where kubun = '8' GROUP BY spo_code ORDER BY spo_code";
+}
+$result = mysql_query($query);
+
+while($obj = mysql_fetch_object($result)){
+	$list_08[$obj->spo_code] = $obj->cnt;
+}
+unset($query);
+unset($result);
+unset($obj);
+
+
+
+//종목별 시군내역
+unset($query);
+unset($result);
+unset($obj);
+
+//종목별총계
+$query = "SELECT spo_code,clu_code FROM wp_game_player WHERE gam_uid='$s_gam_uid' GROUP BY spo_code, clu_code";
+
+$result = mysql_query($query);
+$b_spo_code = "";
+while($obj = mysql_fetch_object($result)){
+	if($b_spo_code != $obj->spo_code) $tmp_arr = array();
+	else $tmp_arr = $list_club[$obj->spo_code];
+	$tmp_cnt = $tmp_arr[cnt];
+	if(!$tmp_arr[cnt]) $tmp_cnt = 0;
+	else $tmp_cnt = $tmp_arr[cnt];
+	if(!$tmp_arr[clu_code]) $tmp_clu_code = "";
+	else $tmp_clu_code = $tmp_arr[clu_code];
+	$tmp_arr[cnt] = $tmp_cnt+1;
+	$tmp_arr[clu_code] = $tmp_clu_code."/".$obj->clu_code;
+	$list_club[$obj->spo_code] = $tmp_arr;
+	$b_spo_code = $obj->spo_code;
+}
+?>
+	<table border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td>
+			<table border="0" cellpadding="0" cellspacing="0">
+			<tr>
+				<td colspan= "6" height="50" align="center"><font size="4"><b><?=$wp_games[$s_gam_uid]?> 참가자 [종목별 인솔자명단]</b></font></td>
+			</tr>
+			</table>
+			<table border="1" cellpadding="0" cellspacing="0" style="font-size:0.8em">
+			<tr align="center">
+				<td colspan="2" rowspan="2"><b>구분</b></td>
+				<td rowspan="2"><b>시군</b></td>
+				<td height="35" colspan="6" align="center"><b>연락처</b></td>
+			</tr>
+			<tr>
+				<td width="60" align="center" colspan='2'><b>인솔자</b></td>
+				<td width="60" align="center" colspan='2'><b>감독</b></td>
+				<td width="60" align="center" colspan='2'><b>코치</b></td>
+			</tr>
+			<tr>
+				<td height="30" colspan="2" align="center"></td>
+				<td align="center">총계</td>
+				<td align="center" colspan='2'><?=$list_01[$wp_kubun_종목인솔자]?></td>
+				<td align="center" colspan='2'><?=$list_01[$wp_kubun_감독]?></td>
+				<td align="center" colspan='2'><?=$list_01[$wp_kubun_코치]?></td>
+			</tr>
+					<?
+					$clu_codes = explode("/",$list_club[GOALBALL][clu_code]);
+					$rows1 = sizeof($clu_codes);
+	                ?>
+					
+            <tr>
+                <th rowspan="<?=$rows1;?>" scope="col" colspan='2'>골볼</th>
+				<td align="center">계</td>
+				<td align="center" colspan='2'><?=$list_06[GOALBALL]?></td>
+				<td align="center" colspan='2'><?=$list_07[GOALBALL]?></td>
+				<td align="center" colspan='2'><?=$list_08[GOALBALL]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='GOALBALL' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+
+							if(!$hp6) $hp6 =  "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+							
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='GOALBALL' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='GOALBALL' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+
+
+			
+
+					<?
+					$clu_codes = explode("/",$list_club[BILLIARDS][clu_code]);
+					$rows2 = sizeof($clu_codes);
+	                ?>
+					
+            <tr>
+                <th rowspan="<?=$rows2;?>" scope="col" colspan='2'>당구</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[BILLIARDS]?></td>
+				<td align="center"><?=$list_07[BILLIARDS]?></td>
+				<td align="center"><?=$list_08[BILLIARDS]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BILLIARDS' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BILLIARDS' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BILLIARDS' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+
+                  <?
+					$clu_codes = explode("/",$list_club[LAWNBOWL][clu_code]);
+					$rows3 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows3;?>" scope="col" colspan='2'>론볼</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[LAWNBOWL]?></td>
+				<td align="center"><?=$list_07[LAWNBOWL]?></td>
+				<td align="center"><?=$list_08[LAWNBOWL]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='LAWNBOWL' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='LAWNBOWL' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='LAWNBOWL' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+
+<!-- 좌식배구 -->
+                  <?
+					$clu_codes = explode("/",$list_club[VOLLEYBALL][clu_code]);
+					$rows4 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows4;?>" scope="col" colspan='2'>좌식배구</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_07[VOLLEYBALL]?></td>
+				<td align="center"><?=$list_08[VOLLEYBALL]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='VOLLEYBALL' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='VOLLEYBALL' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='VOLLEYBALL' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+
+<!-- //좌식배구 -->
+
+<!-- 배드민턴-->
+                  <?
+					$clu_codes = explode("/",$list_club[BADMINTON][clu_code]);
+					$rows5 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows5;?>" scope="col" colspan='2'>배드민턴</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[BADMINTON]?></td>
+				<td align="center"><?=$list_07[BADMINTON]?></td>
+				<td align="center"><?=$list_08[BADMINTON]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BADMINTON' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BADMINTON' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BADMINTON' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+<!-- 보치아 -->
+                  <?
+					$clu_codes = explode("/",$list_club[BOCCIA][clu_code]);
+					$rows6 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows6;?>" scope="col" colspan='2'>보치아</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[BOCCIA]?></td>
+				<td align="center"><?=$list_07[BOCCIA]?></td>
+				<td align="center"><?=$list_08[BOCCIA]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BOCCIA' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BOCCIA' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BOCCIA' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+<!-- 7. 수영 -->
+                  <?
+					$clu_codes = explode("/",$list_club[SWIMMING][clu_code]);
+					$rows7 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows7;?>" scope="col" colspan='2'>수영</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[SWIMMING]?></td>
+				<td align="center"><?=$list_07[SWIMMING]?></td>
+				<td align="center"><?=$list_08[SWIMMING]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='SWIMMING' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='SWIMMING' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='SWIMMING' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+<!-- 8. 볼링 -->
+                  <?
+					$clu_codes = explode("/",$list_club[BOWLING][clu_code]);
+					$rows8 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows8;?>" scope="col" colspan='2'>볼링</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[BOWLING]?></td>
+				<td align="center"><?=$list_07[BOWLING]?></td>
+				<td align="center"><?=$list_08[BOWLING]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BOWLING' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BOWLING' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BOWLING' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+<!-- 9. 역도 -->
+                  <?
+					$clu_codes = explode("/",$list_club[POWERLIFTING][clu_code]);
+					$rows9 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows9;?>" scope="col" colspan='2'>역도</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[POWERLIFTING]?></td>
+				<td align="center"><?=$list_07[POWERLIFTING]?></td>
+				<td align="center"><?=$list_08[POWERLIFTING]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='POWERLIFTING' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='POWERLIFTING' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='POWERLIFTING' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+<!-- 10. 육상 -->
+                  <?
+					$clu_codes = explode("/",$list_club[ATHIETICS][clu_code]);
+					$rows10 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows10;?>" scope="col" colspan='2'>육상</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[ATHIETICS]?></td>
+				<td align="center"><?=$list_07[ATHIETICS]?></td>
+				<td align="center"><?=$list_08[ATHIETICS]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='ATHIETICS' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='ATHIETICS' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='ATHIETICS' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+<!-- 11. 실내조정 -->
+                  <?
+					$clu_codes = explode("/",$list_club[ROWING][clu_code]);
+					$rows11 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows11;?>" scope="col" colspan='2'>실내조정</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[ROWING]?></td>
+				<td align="center"><?=$list_07[ROWING]?></td>
+				<td align="center"><?=$list_08[ROWING]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='ROWING' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='ROWING' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='ROWING' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+<!-- 12. 축구 -->
+                  <?
+					$clu_codes = explode("/",$list_club[FOOTSAL][clu_code]);
+					$rows12 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows12;?>" scope="col" colspan='2'>축구</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[FOOTSAL]?></td>
+				<td align="center"><?=$list_07[FOOTSAL]?></td>
+				<td align="center"><?=$list_08[FOOTSAL]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='FOOTSAL' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='FOOTSAL' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='FOOTSAL' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+
+<!-- 13. 탁구 -->
+                  <?
+					$clu_codes = explode("/",$list_club[TABLETENNIS][clu_code]);
+					$rows13 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows13;?>" scope="col" colspan='2'>탁구</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[TABLETENNIS]?></td>
+				<td align="center"><?=$list_07[TABLETENNIS]?></td>
+				<td align="center"><?=$list_08[TABLETENNIS]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='TABLETENNIS' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='TABLETENNIS' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='TABLETENNIS' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+<!-- 14. 게이트볼 -->
+                  <?
+					$clu_codes = explode("/",$list_club[GATEBALL][clu_code]);
+					$rows14 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows14;?>" scope="col" colspan='2'>게이트볼</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[GATEBALL]?></td>
+				<td align="center"><?=$list_07[GATEBALL]?></td>
+				<td align="center"><?=$list_08[GATEBALL]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='GATEBALL' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='GATEBALL' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='GATEBALL' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+
+<!-- 15. 파크골프 -->
+                  <?
+					$clu_codes = explode("/",$list_club[GATEBALL][clu_code]);
+					$rows15 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows15;?>" scope="col" colspan='2'>파크골프</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[GOLF]?></td>
+				<td align="center"><?=$list_07[GOLF]?></td>
+				<td align="center"><?=$list_08[GOLF]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='GOLF' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='GOLF' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='GOLF' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+
+<!-- 16. 바둑 -->
+                  <?
+					$clu_codes = explode("/",$list_club[BADUK][clu_code]);
+					$rows16 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows16;?>" scope="col" colspan='2'>바둑</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[BADUK]?></td>
+				<td align="center"><?=$list_07[BADUK]?></td>
+				<td align="center"><?=$list_08[BADUK]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BADUK' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BADUK' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='BADUK' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+
+<!-- 17. 펜싱 -->
+                  <?
+					$clu_codes = explode("/",$list_club[FENCING][clu_code]);
+					$rows17 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows17;?>" scope="col" colspan='2'>펜싱</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[FENCING]?></td>
+				<td align="center"><?=$list_07[FENCING]?></td>
+				<td align="center"><?=$list_08[FENCING]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='FENCING' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='FENCING' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='FENCING' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+
+<!-- 18. 테니스 -->
+                  <?
+					$clu_codes = explode("/",$list_club[TENNIS][clu_code]);
+					$rows18 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows18;?>" scope="col" colspan='2'>테니스</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[TENNIS]?></td>
+				<td align="center"><?=$list_07[TENNIS]?></td>
+				<td align="center"><?=$list_08[TENNIS]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='TENNIS' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='TENNIS' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='TENNIS' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+
+<!-- 19. 다트 -->
+                  <?
+					$clu_codes = explode("/",$list_club[ARCHERY][clu_code]);
+					$rows19 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows19;?>" scope="col" colspan='2'>양궁</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[ARCHERY]?></td>
+				<td align="center"><?=$list_07[ARCHERY]?></td>
+				<td align="center"><?=$list_08[ARCHERY]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='ARCHERY' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='ARCHERY' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='ARCHERY' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+
+
+<!-- 20. 승마 -->
+                  <?
+					$clu_codes = explode("/",$list_club[HORSERIDING][clu_code]);
+					$rows20 = sizeof($clu_codes);
+	              ?>
+					
+            <tr>
+                <th rowspan="<?=$rows20;?>" scope="col" colspan='2'>승마</th>
+				<td align="center">계</td>
+				<td align="center"><?=$list_06[HORSERIDING]?></td>
+				<td align="center"><?=$list_07[HORSERIDING]?></td>
+				<td align="center"><?=$list_08[HORSERIDING]?></td>
+             </tr>
+
+             <?
+									
+					foreach($clu_codes as $kyes => $vals){
+						if(!$vals) continue;
+						
+						$q6 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='HORSERIDING' and kubun='6'";
+						$r6 = mysql_query($q6);
+						$v6 = mysql_fetch_array($r6);
+						
+						if($r6) {
+							$q61 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v6[pla_id]'";
+						    $r61 = mysql_query($q61);
+							$v61 = mysql_fetch_array($r61);
+
+							if($v61) $hp6 = "$v61[hp1]$v61[hp2]$v61[hp3]";
+							if(!$hp6) $hp6 = "$v61[tel1]$v61[tel2]$v61[tel3]";
+
+
+						
+						}
+
+						$q7 = "SELECT  pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='HORSERIDING' and kubun='7'";
+						$r7 = mysql_query($q7);
+						$v7 = mysql_fetch_array($r7);
+						
+						if($r7) {
+							$q71 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v7[pla_id]'";
+						    $r71 = mysql_query($q71);
+							$v71 = mysql_fetch_array($r71);
+
+							if($v71) $hp7  = "$v71[hp1]$v71[hp2]$v71[hp3]";
+							if(!$hp7) $hp7 =  "$v71[tel1]$v71[tel2]$v71[tel3]";
+						
+						}
+
+
+						$q8 = "SELECT pla_id  FROM `wp_game_player` where gam_uid='$gam_uid' and clu_class_name='$wp_club_code[$vals]' and spo_code='HORSERIDING' and kubun='8'";
+						$r8 = mysql_query($q8);
+						$v8 = mysql_fetch_array($r8);
+						
+						if($r8) {
+							$q81 = "SELECT name, hp1, hp2, hp3, tel1, tel2, tel3 FROM `wp_player_ctrl` where wp_id ='$v8[pla_id]'";
+						    $r81 = mysql_query($q81);
+							$v81 = mysql_fetch_array($r81);
+
+							if($v81)  $hp8  = "$v81[hp1]$v81[hp2]$v81[hp3]";
+							if(!$hp8) $hp8 =  "$v81[tel1]$v81[tel2]$v81[tel3]";
+						
+						}
+						
+
+						echo "<tr><td align='center'>$wp_club_code[$vals]</td><td align='center'>$v61[name]</td><td> $hp6</td><td align='center'>$v71[name]</td><td>$hp7</td><td>$v81[name]</td><td>$hp8</td></tr>";
+
+						$hp7 = "";
+						$hp6 = "";
+						$hp8 = "";
+					}
+			 ?>
+<!-- // -->
+			       
+			</table>
+			
+		</td>
+	</tr>
+	</table>
+
+</body>
