@@ -1,0 +1,101 @@
+<?
+	require_once "../wp_object/head.html";
+	$top_over_01 = ""; //종목관리
+	$top_over_02 = ""; //장애등급관리
+	$top_over_03 = ""; //대회일정관리
+	$top_over_04 = ""; //신상등록
+	$top_over_05 = ""; //대회참가
+	$top_over_06 = "o"; //대진표관리
+	$top_over_07 = ""; //경기실적관리
+	$top_over_08 = ""; //시/군클럽관리
+	$top_over_09 = ""; //집계관리
+	$top_over_10 = ""; //부가관리
+
+	if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+?>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<!-- 탑메뉴 시작-->
+		<? require_once "../wp_object/top.html"?>
+		<!-- 탑메뉴 끝 -->
+	</td>
+</tr>
+<tr>
+	<td align="left" style="padding-bottom:30px">
+		<!-- Document Start -->
+		<table width="100%" height="700" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td width="150" height="100% valign="top" style="padding:20 0 0 5">
+				<!-- 왼쪽메뉴 시작-->
+				<? require_once "../wp_object/left_06.html"?>
+				<!-- 왼쪽메뉴 끝 -->
+			</td>
+			<td width="4" height="100%" style="border-right:1 solid #fsfsfs;">&nbsp;</td>
+			<td valign="top" align="center">
+				<table width="95%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td class="tbTitleBlock">
+						<?
+						if(!$mode || $mode=="list"){
+							$title_txt = "대진표 레이아웃 설정";
+						}else if($mode=="match"){
+							$title_txt = "종목별 대진표 등록";
+						}else if($mode=="match_person"){
+							$title_txt = "종목별 토너먼트 인원";
+						}else if($mode=="serial_basic"){
+							$title_txt = "경기번호 기초생성";
+						}else if($mode=="serial"){
+							$title_txt = "경기번호 조정";
+						}else if($mode=="print"){
+							$title_txt = "대진표 출력";
+						}else if($mode=="powerlifting"){
+							$title_txt = "역도계체량조절";
+						}else if($mode=="game_edit"){
+							$title_txt = "경기 종목 설정";
+						}
+						?>
+						<img src="../wp_icon/title_icon.gif" align="absmiddle">&nbsp;&nbsp;<?=$title_txt?>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<?
+						//로그인 체크
+						if(!$site_auth->isLogin()){
+							Error("ADMIN_ERROR");
+							exit;
+						}
+						//권한 체크
+						if(!$site_auth->isConn($cd_match_program,$Admin_auth)){
+							Error("AUTH_ERROR");
+							exit;
+						}
+						if(!$mode || $mode=="list"){
+							require_once "./list.html";
+						}else if($mode=="match"){
+							require_once "./match.html";
+						}else if($mode=="match_person"){
+							require_once "./match_person.html";
+						}else if($mode=="serial_basic"){
+							require_once "./serial_basic.html";
+						}else if($mode=="serial"){
+							require_once "./serial.html";
+						}else if($mode=="print"){
+							require_once "./print.html";
+						}else if($mode=="powerlifting"){
+							require_once "./powerlifting.html";
+						}
+						?>
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		<!-- Document End -->
+	</td>
+</tr>
+</table>
+</body>
+</html>

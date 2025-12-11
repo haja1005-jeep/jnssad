@@ -1,0 +1,236 @@
+<?
+if($s_game_code) {
+	$game_code_arr = array();
+	$game_code_arr[] = $s_game_code;
+}
+foreach($game_code_arr as $keys => $vals){
+
+	$game_code = $vals;
+
+	$s_que = "SELECT *, group_concat(spo_code_detail order by spo_code_detail ASC separator '/') spo_code_details FROM wp_game_serial WHERE gam_uid='$s_gam_uid' AND game_code = '$game_code' GROUP BY game_code";
+	$s_res = mysql_query($s_que);
+	$s_obj = mysql_fetch_object($s_res);
+	$s_tmp = explode("/",$s_obj->spo_code_details);
+	$my_spo_code_details = "'";
+	foreach($s_tmp as $keys => $vals){
+		$my_spo_code_details .= $vals."','";
+	}
+	$my_spo_code_details = substr($my_spo_code_details, 0 ,strlen($my_spo_code_details) - 2);
+	//시범경기
+	unset($my_test_game);
+	if($s_obj->test_game == "1") $my_test_game = "<font color='#0000ff'>[미성립 세부경기]</font>";
+
+	/*
+	if($game_code == "ATHIETICS_AS200-05" || $game_code == "ATHIETICS_AS200-30")
+	{
+		$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code'  AND sex='$s_obj->sex' AND (tro_level_code = 'F44' OR tro_level_code = 'F46') AND spo_code_detail in ($my_spo_code_details)";
+	}
+	else if($game_code == "ATHIETICS_AS200-33")
+	{
+		$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code'  AND sex='$s_obj->sex' AND (tro_level_code = 'F35,F36' OR tro_level_code = 'F37,F38') AND spo_code_detail in ($my_spo_code_details)";
+	}
+	else
+	{
+	*/
+
+
+   /*2016년 5월 2일 수정 여자 개인전 BIS, BIW 통합 이었는데 2017년 대회는 분리 됨, 수영 3, 11번 경기 삭제 if 문 삭제함.
+
+   if($game_code == "BILLIARDS_BA100-03" || $game_code == "BILLIARDS_BA100-04")
+   {
+		$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code'  AND sex='$s_obj->sex' AND (tro_level_code = 'BIS' OR tro_level_code = 'BIW') AND spo_code_detail in ($my_spo_code_details)"; */
+   
+	
+   if($game_code == "VOLLEYBALL_VB100-01") {  //좌식배구일때 남_녀 모두 출력 2017.04.10
+
+		$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code'  AND tro_level_code = '$s_obj->tro_level_code' AND spo_code_detail in ($my_spo_code_details)";
+	
+	} else {
+
+		$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code'  AND sex='$s_obj->sex' AND tro_level_code = '$s_obj->tro_level_code' AND spo_code_detail in ($my_spo_code_details)";
+	}
+
+
+	$oderby = " ORDER BY clu_code asc, spo_code ASC, spo_sec_code ASC, spo_code_detail ASC, tro_code ASC, sex ASC, tro_level_code ASC, group_str ASC, pla_name ASC";
+
+	//종목별 경기 인원 구하기
+	if($s_obj->spo_code == "BOWLING")
+	{
+		$query = "SELECT *, group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') players  FROM wp_game_player $where GROUP BY clu_code, group_str $orderby";
+
+	}
+	else
+	{
+		$query = "SELECT *, group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') players  FROM wp_game_player $where GROUP BY clu_code $orderby";
+	}
+	$result = mysql_query($query);
+	//$a_article = mysql_num_rows($result);
+	$a_article = 1;
+
+	//종목별 토너먼트 갯수 구하기
+	$game_kind = $s_obj->game_kind; //개인전(1), 단체전(2), 시/군대항전(3)
+	//echo $s_obj->spo_code;
+	// 론볼 //
+	if($s_obj->spo_code == "LAWNBOWL")
+	{
+		// 단체전이면 //
+		if($s_obj->spo_sec_code == "LB200")
+		{
+			$game_kind = 2;
+			$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+		}
+		// 개인전이면 //
+		else
+		{
+			$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code,pla_id $orderby";
+		}
+	}
+	else if($spo_code == "SHUFFLEBOARD" || $spo_code == "CUROLLING" || $spo_code == "TARGET" || $spo_code == "HANDLER")
+	{
+		// 셔플보드이면 //
+		$game_kind = 2;
+		$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+	}
+	else if($s_obj->spo_code == "BILLIARDS")
+	{
+		if($s_obj->game_code == "BILLIARDS_BA200-07")
+		{
+			$game_kind = 3;
+			$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code $orderby";
+		}
+		
+		
+
+       else 
+		{
+			// 당구이면
+			$tot_que = "SELECT *, group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') players  FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+		}
+
+
+
+
+
+	}
+	else if($s_obj->spo_code == "BOCCIA" && $s_obj->spo_code_detail == "BC102")
+	{
+		$game_kind = 2;
+		//보치아 단체전
+		$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+	}
+	else if($s_obj->spo_code == "VOLLEYBALL" || $spo_code == "GATEBALL")
+	{
+		$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+	}
+	else if($s_obj->spo_code == "GOLF")
+	{
+		// 단체전이면 //
+		if($s_obj->game_code == "GOLF_GF200-04")
+		{
+			$game_kind = 2;
+			$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+		}
+		else if($s_obj->game_code == "GOLF_GF200-03")
+		{
+			$game_kind = 2;
+			$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code $orderby";
+		}
+		else
+		{
+			$tot_que = "SELECT *, group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') players  FROM wp_game_player $where GROUP BY clu_code,pla_id $orderby";
+		}
+	}
+	else if($s_obj->spo_code == "TABLETENNIS")
+	{
+		if($game_kind == "2")
+		{
+			$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+		}
+		else
+		{
+			$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code,pla_id $orderby";
+		}
+	}
+	else
+	{
+
+		$tot_que = "SELECT *, group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') players  FROM wp_game_player $where GROUP BY clu_code,pla_id $orderby";
+
+	}
+
+	$tot_res = mysql_query($tot_que);
+	$player_cnt = mysql_num_rows($tot_res);
+
+
+
+?>
+	<table width="750" cellpadding="0" cellspacing="0">
+	<tr>
+		<td style="padding-top:20px">
+			<div style="float:left"><b><u>종목 : <?=$s_obj->game_name?> (<?=$player_cnt?>) <?=$my_test_game?></u></b><br> >>> <?=$wp_game_kind[$game_kind]."[$game_kind]"?></div>
+			<div style="float:right">
+				<form>
+					<input type="button" name="matchInput" value="대진표작성" class="btnBox3" onclick="Match_Input(this.form)";>
+					<input type="hidden" name="s_game_kind" size="25" value="<?=$game_kind?>" readonly>
+					<input type="hiddena" name="s_game_code" size="25" value="<?=$s_obj->game_code?>" readonly>
+					<input type="hidden" name="spo_sec_code" size="25" value="<?=$s_obj->spo_sec_code?>" readonly>
+					<input type="hidden" name="tro_level_code" size="25" value="<?=$s_obj->tro_level_code?>" readonly>
+				</form>
+			</div>
+		</td>
+
+	</tr>
+	<tr>
+		<td>
+			<table width="750" cellpadding="3" cellspacing="1" bgcolor="#CACACA">
+			<tr bgcolor="#FAFAFA">
+				<td width="50px" align="center"><b>시/군</b></td>
+				<td width="130px" align="center"><b>시/군명</b></td>
+				<td align="center"><b>참가선수</b></td>
+				<td width="50px" align="center"><b>인원</b></td>
+			</tr>
+			<?
+			while($obj = mysql_fetch_object($result)){
+				$my_player = $obj->players;
+				$player_cnt = explode(",",$obj->players);
+				echo "
+				<tr bgcolor='#ffffff'>
+					<td align='center'>$a_article</td>
+					<td align='center'>".$wp_club_code[$obj->clu_code]."</td>
+					<td>$my_player</td>
+					<td align='center'>".count($player_cnt)."</td>
+				</tr>
+				";
+				$a_article++;
+			}
+			?>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td height="20px"></td>
+	</tr>
+	<tr>
+		<td>
+			<?
+			$pe_que = "SELECT *, (SELECT sex FROM wp_player_ctrl WHERE wp_id=wgp.pla_id) p_sex FROM wp_game_player wgp $where $oderby";
+			//echo $pe_que;
+			$pe_res = mysql_query($pe_que);
+			$article_num = 1;//mysql_num_rows($pe_res);
+			require "match_list_tonament.html";
+			?>
+		</td>
+	</tr>
+	</table>
+	<br>
+	<hr>
+<?
+} //while
+?>
+<form name="miForm" action="match_input.html?<?=$basic_get.$add_get?>" method="post" target="_blank">
+	<input type="hidden" name="game_kind" value="">
+	<input type="hidden" name="spo_code" value="<?=$spo_code?>">
+	<input type="hidden" name="spo_sec_code" value="<?=$spo_sec_code?>">
+	<input type="hidden" name="game_code" value="">
+
+</form>

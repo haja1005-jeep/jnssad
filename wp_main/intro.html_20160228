@@ -1,0 +1,125 @@
+<?
+// 캐시 금지 //
+session_cache_limiter("nocache, must-revalidate");
+
+session_start();
+
+header ("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header ("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+?>
+
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=euc-kr">
+<title><?=$company_title?></title>
+
+<script language="javascript" src="../wp_config/calendar.js"></script>
+<script language="javascript" src="../wp_config/script.js"></script>
+<script language="javascript" src="../wp_config/check.js"></script>
+<script language="javascript" src="../wp_config/calendar.js"></script>
+<script language="javascript" src="../wp_config/ie_patch.js"></script>
+<script type="text/javascript" src="../wp_seditor/js/HuskyEZCreator.js" charset="utf-8"></script>
+
+<link type="text/css" rel="stylesheet" href="../wp_config/calendar.css">
+<link type="text/css" rel="stylesheet" href="../wp_seditor/css/default.css">
+<link type="text/css" rel="stylesheet" href="../wp_config/style.css">
+<link type="text/css" rel="stylesheet" href="../wp_config/calendar.css">
+<body background="../wp_images/intro_back.jpg" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" class="align_left_top_x" bgcolor="#ffffff" onload="setRequireBgColor();goFirstFocus()">
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+	<td align="center"><img src="../wp_images/intro_back_img.jpg" width="770" height="100"></td>
+</tr>
+<tr>
+	<td align="center">
+		<table width="770" border="0" cellpadding="0" cellspacing="0" background="../wp_images/intro_bg.gif">
+		<tr>
+			<td><img src="../wp_images/intro_top.gif" width="770" height="65"></td>
+		</tr>
+		<tr>
+			<td style="padding-left:5px">
+				<table width="730"  border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td width="380" align="right" valign="top"><img src="../wp_images/intro_img.jpg" width="350" height="173"></td>
+					<td align="right">
+						<table width="330"  border="0" cellpadding="0" cellspacing="0" background="../wp_images/m_login_bg.gif">
+						<tr>
+							<td><img src="../wp_images/m_login_top.gif" width="330" height="71"></td>
+						</tr>
+						<tr>
+							<td align="center">
+								<table width="85%"  border="0" cellpadding="0" cellspacing="0" background="../wp_images/login_bg.gif">
+								<tr>
+									<td width="10"><img src="../wp_images/login_left.gif" width="10" height="68"></td>
+									<td align="center">
+										<form name="sForm" action="../wp_member/login.php" method="post" onSubmit="return validate(this)">
+										<table width="95%"  border="0" cellspacing="0" cellpadding="0">
+										<tr>
+											<td height="5"></td>
+										</tr>
+										<tr>
+											<td colspan="3" align="center">
+												<label name="lb"><input id="lb" type="radio" name="wp_kind" value="club" tabindex="1" checked>시/군</label>
+												<label name="lb"><input id="lb" type="radio" name="wp_kind" value="player" tabindex="1">선수</label>
+												<label name="lb"><input id="lb" type="radio" name="wp_kind" value="s_group" tabindex="1">경기단체</label>
+												<label name="lb"><input id="lb" type="radio" name="wp_kind" value="admin" tabindex="1">관리자</label>
+											</td>
+										</tr>
+										<tr>
+											<td height="5"></td>
+										</tr>
+										<tr>
+											<td width="50"><img src="../wp_images/id.gif" width="41" height="15"></td>
+											<td><input type="text" name="wp_id" size="15" maxlength="30" tabindex="2" class="input" hname="아이디" required range="5:30" style="ime-mode:disabled"></td>
+											<td width="65" rowspan="2" align="right"><input type="image" src="../wp_button/member_login.gif" width="59" height="38" tabindex="4"></td>
+										</tr>
+										<tr>
+											<td><img src="../wp_images/pw.gif" width="41" height="15"></td>
+											<td><input type="password" name="wp_passwd" size="15" maxlength="30" tabindex="3" class="input" hname="패스워드" required range="5:13" style="ime-mode:disabled"></td>
+											</tr>
+										</table>
+										</form>
+									</td>
+									<td width="10"><img src="../wp_images/login_right.gif" width="10" height="68"></td>
+								</tr>
+								</table>
+							</td>
+						</tr>
+						<tr>
+							<td style="padding:5px 0;" align="center">
+								<input type="button" name="send" value="사용자 아이디 신청하기" class="btn_send" onclick="javascript:window.open('../wp_club_ctrl/p_input.html','pop_club','width=800,height=600,scrollbars=yes')" title="사용자 아이디 신청하기">
+							</td>
+						</tr>
+						<tr>
+							<td height="10"><img src="../wp_images/m_login_bottom.gif" width="330" height="10"></td>
+						</tr>
+						</table>
+					</td>
+				</tr>
+				<tr>
+					<td><img src="../wp_images/intro_copyright.gif" width="330" height="37"></td>
+					<td>&nbsp;</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+
+</body>
+</html>

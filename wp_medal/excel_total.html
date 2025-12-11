@@ -1,0 +1,519 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=메달현황.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+
+// DB 생성 //
+$Mysql = new Mysql;
+
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+$real_game_code = $wp_real_game;
+$life_game_code = $wp_life_game;
+?>
+<body>
+<table border=1>
+<tbody>
+<tr>
+	<th width="5%" bgcolor='#E8F8FF'>순위</th>
+	<th width="5%"  bgcolor='#E8F8FF'>시/군</th>
+	<th width="13%" bgcolor='#E8F8FF'>
+		<table width="100%" border="0" cellpadding="0" cellspacing="0">
+		<tr>
+			<th colspan="4">총계</th>
+		</tr>
+		<tr>
+			<td width="20" align="right"><b>금</b></td>
+			<td width="20" align="right"><b>은</b></td>
+			<td width="20" align="right"><b>동</b></td>
+			<td width="20" align="right"><b>계</b></td>
+		</tr>
+		</table>
+	</th>
+	<?
+	foreach($real_game_code as $keys => $values){
+		echo ("
+		<th bgcolor='#E8F8FF'>
+			<table width='100%' cellpadding='0' cellspacing='0'>
+			<tr>
+				<th colspan='3'>$values</th>
+			</tr>
+			<tr>
+				<td width='20' align='right'><b>금</b></td>
+				<td width='20' align='right'><b>은</b></td>
+				<td width='20' align='right'><b>동</b></td>
+				<td width='20' align='right'><b>득점</b></td>
+			</tr>
+			</table>
+		</th>
+		");
+	}
+
+	foreach($life_game_code as $keys => $values){
+		echo ("
+		<th bgcolor='#E8F8FF'>
+			<table width='100%' cellpadding='0' cellspacing='0'>
+			<tr>
+				<th colspan='3'>$values</th>
+			</tr>
+			<tr>
+				<td width='20' align='right'><b>금</b></td>
+				<td width='20' align='right'><b>은</b></td>
+				<td width='20' align='right'><b>동</b></td>
+				<td width='20' align='right'><b>득점</b></td>
+			</tr>
+			</table>
+		</th>
+		");
+	}
+	?>
+</tr>
+<?
+/*
+// 종목 체크 //
+$where = "WHERE gam_uid = '$s_gam_uid'";
+foreach($real_game_code as $keys => $values){
+	$lg .= "'{$keys}',";
+}
+$where .= " AND spo_code in (";
+$where .= substr($lg,0,strlen($lg)-1).")";
+*/
+
+// 경기 체크 //
+$where = "WHERE gam_uid = '$s_gam_uid'";
+$where1 = "WHERE gam_uid = '$s_gam_uid'";
+
+// 정식종목 //
+foreach($real_game_code as $keys => $values)
+{
+	$lg .= "'{$keys}',";
+	$lg1 .= "'{$keys}',";
+}
+$where .= " AND spo_code in (";
+$where1 .= " AND spo_code in (";
+$where .= substr($lg,0,strlen($lg)-1).")";
+$where1 .= substr($lg,0,strlen($lg)-1).",";
+
+// 시범종목 //
+foreach($life_game_code as $keys => $values)
+{
+	$lg2 .= "'{$keys}',";
+}
+$where2 .= " ";
+$where2 .= substr($lg2,0,strlen($lg2)-1).")";
+
+// 리스트쿼리 //
+$que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $where1 $where2 GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+$res = mysql_query($que);
+// 총 레코드 수 //
+$total_record = mysql_num_rows($res);
+
+// 일련 번호 //
+$article_num = $total_record;
+
+$rank = 1;
+$rank_club_code = array();//순위에 입상한 시도
+while($obj = mysql_fetch_object($res))
+{
+	// 시/군 //
+	$my_clu_code = $wp_club_code[$obj->clu_code];
+	$my_total_medal = $obj->gold + $obj->silver + $obj->bronze;
+
+	$rank_club_code[]=$obj->clu_code;//순위에 입상한 시도
+?>
+<tr <?=$bgcolor?>>
+	<td align="center" nowrap><?=$rank?> 위</td>
+	<td align="center" nowrap><?=$my_clu_code?></td>
+	<td align="center">
+		<table width="100%" cellpadding="0" cellspacing="0" class="tbSmall-a">
+		<tr>
+			<td width="25%" align="right" nowrap><font color="#929900"><?=$obj->gold?></font></td>
+			<td width="25%" align="right" nowrap><font color="#A5A5A5"><?=$obj->silver?></font></td>
+			<td width="25%" align="right" nowrap><font color="#572C00"><?=$obj->bronze?></font></td>
+			<td width="25%" align="right" nowrap><font color="#cc0000"><?=$my_total_medal?></font></td>
+		</tr>
+		</table>
+	</td>
+	<?
+	foreach($real_game_code as $keys => $values){
+		unset($s_que);
+		unset($s_res);
+		unset($s_obj);
+
+		if($prt_name == "1")
+		{
+			$g_medalist = "";
+			$s_medailst = "";
+			$b_medalist = "";
+
+			// 입상자 //
+			$p_que = "SELECT name FROM wp_game_record WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND rank_tot = '1' AND test_game<>'1'";
+			$p_res = mysql_query($p_que);
+			while($p_obj = mysql_fetch_object($p_res))
+			{
+				if($keys == "GOALBALL" || $keys == "VOLLEYBALL" || $keys == "FOOTSAL")
+				{
+					$clu_que = "SELECT pla_name FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND kubun = '9'";
+					$clu_res = mysql_query($clu_que);
+					while($clu_obj = mysql_fetch_object($clu_res))
+					{
+						$g_medalist .= "<br>".$clu_obj->pla_name;
+					}
+				}
+				else
+				{
+					$g_medalist .= "<br>".$p_obj->name;
+				}
+			}
+
+			$sil_que = "SELECT name FROM wp_game_record WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND rank_tot = '2' AND test_game<>'1'";
+			$sil_res = mysql_query($sil_que);
+			while($sil_obj = mysql_fetch_object($sil_res))
+			{
+				if($keys == "GOALBALL" || $keys == "VOLLEYBALL" || $keys == "FOOTSAL")
+				{
+					$clu_que = "SELECT pla_name FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND kubun = '9'";
+					$clu_res = mysql_query($clu_que);
+					while($clu_obj = mysql_fetch_object($clu_res))
+					{
+						$s_medalist .= "<br>".$clu_obj->pla_name;
+					}
+				}
+				else
+				{
+					$s_medalist .= "<br>".$sil_obj->name;
+				}
+			}
+
+			$bron_que = "SELECT name FROM wp_game_record WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND rank_tot = '3' AND test_game<>'1'";
+			$bron_res = mysql_query($bron_que);
+			while($bron_obj = mysql_fetch_object($bron_res))
+			{
+				if($keys == "GOALBALL" || $keys == "VOLLEYBALL" || $keys == "FOOTSAL")
+				{
+					$clu_que = "SELECT pla_name FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND kubun = '9'";
+					$clu_res = mysql_query($clu_que);
+					while($clu_obj = mysql_fetch_object($clu_res))
+					{
+						$b_medalist .= "<br>".$clu_obj->pla_name;
+					}
+				}
+				else
+				{
+					$b_medalist .= "<br>".$bron_obj->name;
+				}
+			}
+		}
+		/*
+		if(strlen($g_medalist) > 2)
+		{
+			$g_medalist = "(".$g_medalist.")";
+		}
+		if(strlen($s_medalist) > 2)
+		{
+			$s_medalist = "(".$s_medalist.")";
+		}
+		if(strlen($b_medalist) > 2)
+		{
+			$b_medalist = "(".$b_medalist.")";
+		}
+		*/
+
+		$where2 = " WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code='$obj->clu_code'";
+		// 리스트쿼리 //
+		$s_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $where2 GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+		$s_res = mysql_query($s_que);
+		$s_obj = mysql_fetch_object($s_res);
+
+		if($prt_name == "1")
+		{
+			echo ("
+			<td align='center'>
+				<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+				<tr>
+					<td width='20' align='right' valign='top'><font color='#929900'>$s_obj->gold {$g_medalist}</font></td>
+					<td width='20' align='right' valign='top'><font color='#A5A5A5'>$s_obj->silver {$s_medalist}</font></td>
+					<td width='20' align='right' valign='top'><font color='#572C00'>$s_obj->bronze {$b_medalist}</font></td>
+					<td width='20' align='right' valign='top'><font color='#572C00'></font></td>
+				</tr>
+				</table>
+			</td>");
+		}
+		else
+		{
+			echo ("
+			<td align='center'>
+				<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+				<tr>
+					<td width='20' align='right'><font color='#929900'>$s_obj->gold</font></td>
+					<td width='20' align='right'><font color='#A5A5A5'>$s_obj->silver</font></td>
+					<td width='20' align='right'><font color='#572C00'>$s_obj->bronze</font></td>
+					<td width='20' align='right'><font color='#572C00'></font></td>
+				</tr>
+				</table>
+			</td>");
+		}
+		unset($g_medalist);
+		unset($s_medalist);
+		unset($b_medalist);
+	}
+
+	foreach($life_game_code as $keys => $values){
+		unset($s_que);
+		unset($s_res);
+		unset($s_obj);
+
+		if($prt_name == "1")
+		{
+			$g_medalist = "";
+			$s_medailst = "";
+			$b_medalist = "";
+
+			// 입상자 //
+			$p_que = "SELECT name FROM wp_game_record WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND rank_tot = '1' AND test_game<>'1'";
+			$p_res = mysql_query($p_que);
+			while($p_obj = mysql_fetch_object($p_res))
+			{
+				if($keys == "GOALBALL" || $keys == "VOLLEYBALL" || $keys == "FOOTSAL")
+				{
+					$clu_que = "SELECT pla_name FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND kubun = '9'";
+					$clu_res = mysql_query($clu_que);
+					while($clu_obj = mysql_fetch_object($clu_res))
+					{
+						$g_medalist .= "<br>".$clu_obj->pla_name;
+					}
+				}
+				else
+				{
+					$g_medalist .= "<br>".$p_obj->name;
+				}
+			}
+
+			$sil_que = "SELECT name FROM wp_game_record WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND rank_tot = '2' AND test_game<>'1'";
+			$sil_res = mysql_query($sil_que);
+			while($sil_obj = mysql_fetch_object($sil_res))
+			{
+				if($keys == "GOALBALL" || $keys == "VOLLEYBALL" || $keys == "FOOTSAL")
+				{
+					$clu_que = "SELECT pla_name FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND kubun = '9'";
+					$clu_res = mysql_query($clu_que);
+					while($clu_obj = mysql_fetch_object($clu_res))
+					{
+						$s_medalist .= "<br>".$clu_obj->pla_name;
+					}
+				}
+				else
+				{
+					$s_medalist .= "<br>".$sil_obj->name;
+				}
+			}
+
+			$bron_que = "SELECT name FROM wp_game_record WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND rank_tot = '3' AND test_game<>'1'";
+			$bron_res = mysql_query($bron_que);
+			while($bron_obj = mysql_fetch_object($bron_res))
+			{
+				if($keys == "GOALBALL" || $keys == "VOLLEYBALL" || $keys == "FOOTSAL")
+				{
+					$clu_que = "SELECT pla_name FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code = '$obj->clu_code' AND kubun = '9'";
+					$clu_res = mysql_query($clu_que);
+					while($clu_obj = mysql_fetch_object($clu_res))
+					{
+						$b_medalist .= "<br>".$clu_obj->pla_name;
+					}
+				}
+				else
+				{
+					$b_medalist .= "<br>".$bron_obj->name;
+				}
+			}
+		}
+		/*
+		if(strlen($g_medalist) > 2)
+		{
+			$g_medalist = "(".$g_medalist.")";
+		}
+		if(strlen($s_medalist) > 2)
+		{
+			$s_medalist = "(".$s_medalist.")";
+		}
+		if(strlen($b_medalist) > 2)
+		{
+			$b_medalist = "(".$b_medalist.")";
+		}
+		*/
+
+		$where2 = " WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code='$obj->clu_code'";
+		// 리스트쿼리 //
+		$s_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $where2 GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+		$s_res = mysql_query($s_que);
+		$s_obj = mysql_fetch_object($s_res);
+
+		if($prt_name == "1")
+		{
+			echo ("
+			<td align='center'>
+				<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+				<tr>
+					<td width='20' align='right' valign='top'><font color='#929900'>$s_obj->gold {$g_medalist}</font></td>
+					<td width='20' align='right' valign='top'><font color='#A5A5A5'>$s_obj->silver {$s_medalist}</font></td>
+					<td width='20' align='right' valign='top'><font color='#572C00'>$s_obj->bronze {$b_medalist}</font></td>
+					<td width='20' align='right' valign='top'><font color='#572C00'></font></td>
+				</tr>
+				</table>
+			</td>");
+		}
+		else
+		{
+			echo ("
+			<td align='center'>
+				<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+				<tr>
+					<td width='20' align='right'><font color='#929900'>$s_obj->gold</font></td>
+					<td width='20' align='right'><font color='#A5A5A5'>$s_obj->silver</font></td>
+					<td width='20' align='right'><font color='#572C00'>$s_obj->bronze</font></td>
+					<td width='20' align='right'><font color='#572C00'></font></td>
+				</tr>
+				</table>
+			</td>");
+		}
+		unset($g_medalist);
+		unset($s_medalist);
+		unset($b_medalist);
+	}
+	?>
+</tr>
+<?
+$rank++;
+$article_num--;
+}
+
+foreach($wp_club_code as $key_f => $val_f){
+
+	if(in_array($key_f, $rank_club_code)) continue;
+	if($key_f == "jnsad" || $key_f == "WEBPLUS") continue;
+	// 시/군 //
+	$my_clu_code = $wp_club_code[$key_f];
+
+	echo "
+		<tr $bgcolor>
+			<td align='center' nowrap>$rank 위</td>
+			<td align='center' nowrap>$my_clu_code</td>
+			<td align='center'>
+				<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+				<tr>
+					<td width='25%' align='right' nowrap><font color='#929900'>0</font></td>
+					<td width='25%' align='right' nowrap><font color='#A5A5A5'>0</font></td>
+					<td width='25%' align='right' nowrap><font color='#572C00'>0</font></td>
+					<td width='25%' align='right' nowrap><font color='#cc0000'>0</font></td>
+				</tr>
+				</table>
+			</td>
+	";
+	foreach($real_game_code as $keys => $values){
+		echo ("
+		<td align='center'>
+			<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+			<tr>
+				<td width='20' align='right'><font color='#929900'></font></td>
+				<td width='20' align='right'><font color='#A5A5A5'></font></td>
+				<td width='20' align='right'><font color='#572C00'></font></td>
+				<td width='20' align='right'><font color='#572C00'></font></td>
+			</tr>
+			</table>
+		</td>");
+	}
+
+	foreach($life_game_code as $keys => $values){
+		echo ("
+		<td align='center'>
+			<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+			<tr>
+				<td width='20' align='right'><font color='#929900'></font></td>
+				<td width='20' align='right'><font color='#A5A5A5'></font></td>
+				<td width='20' align='right'><font color='#572C00'></font></td>
+				<td width='20' align='right'><font color='#572C00'></font></td>
+			</tr>
+			</table>
+		</td>");
+	}
+	echo "</tr>";
+}
+
+// 총 합산 쿼리 //
+$t_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $where";
+$t_res = mysql_query($t_que);
+$t_obj = mysql_fetch_object($t_res);
+$all_medal_num = $t_obj->gold + $t_obj->silver + $t_obj->bronze;
+?>
+</tbody>
+<tr bgcolor="#FFEDFA">
+	<td align="center"><font color="#0E24CB"><b>합계</b></font></td>
+	<td align="center" ><b><font color="#0E24CB">22개 시/군</b></font></td>
+	<td align="center"><b><font color="#0E24CB">
+		<table width="100%" cellpadding="0" cellspacing="0" class="tbSmall-a">
+		<tr>
+			<td width="25%" align="right" nowrap><font color="#929900"><?=$t_obj->gold?></font></td>
+			<td width="25%" align="right" nowrap><font color="#A5A5A5"><?=$t_obj->silver?></font></td>
+			<td width="25%" align="right" nowrap><font color="#572C00"><?=$t_obj->bronze?></font></td>
+			<td width="25%" align="right" nowrap><font color="#cc0000"><?=$all_medal_num?></font></td>
+		</tr>
+		</table>
+	</td>
+	<?
+	foreach($real_game_code as $keys => $values){
+		$where2 = " WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys'";
+		// 총 합산 쿼리 //
+		$s_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze, sum(total_point) total_point FROM wp_medal $where2 ";
+		$s_res = mysql_query($s_que);
+		$s_obj = mysql_fetch_object($s_res);
+		echo ("
+		<td align='center'>
+			<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+			<tr>
+				<td width='20' align='right'><font color='#929900'>$s_obj->gold</font></td>
+				<td width='20' align='right'><font color='#A5A5A5'>$s_obj->silver</font></td>
+				<td width='20' align='right'><font color='#572C00'>$s_obj->bronze</font></td>
+				<td width='20' align='right'><font color='#572C00'></font></td>
+			</tr>
+			</table>
+		</td>");
+	}
+
+	foreach($life_game_code as $keys => $values){
+		$where2 = " WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys'";
+		// 총 합산 쿼리 //
+		$s_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze, sum(total_point) total_point FROM wp_medal $where2 ";
+		$s_res = mysql_query($s_que);
+		$s_obj = mysql_fetch_object($s_res);
+		echo ("
+		<td align='center'>
+			<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+			<tr>
+				<td width='20' align='right'><font color='#929900'>$s_obj->gold</font></td>
+				<td width='20' align='right'><font color='#A5A5A5'>$s_obj->silver</font></td>
+				<td width='20' align='right'><font color='#572C00'>$s_obj->bronze</font></td>
+				<td width='20' align='right'><font color='#572C00'></font></td>
+			</tr>
+			</table>
+		</td>");
+	}
+	?>
+</tr>
+</table>
+</body>

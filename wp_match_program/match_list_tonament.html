@@ -1,0 +1,45 @@
+<table <?=$tb_border?> width="750" cellpadding="3" cellspacing="1" bgcolor="#cacaca">
+<tr bgcolor="#F6F6F6">
+	<td align="center"><b>전체</b></td>
+	<td align="center"><b>번호</b></td>
+	<td align="center"><b>시/군명</b></td>
+	<td align="center"><b>선수명</b></td>
+	<td align="center"><b>성별</b></td>
+	<td align="center"><b>세부종목</b></td>
+	<td align="center"><b>장애유형</b></td>
+	<td align="center"><b>스포츠등급</b></td>
+</tr>
+<?
+$b_clu_code = "";
+$clu_num = 1;
+while($pe_obj = mysql_fetch_object($pe_res)){
+	if($b_clu_code != "" && $b_clu_code != $pe_obj->clu_code){
+		echo "
+		<tr>
+			<td colspan='8' height='1' bgcolor='#404040'></td>
+		</tr>
+		";
+		$clu_num = 1;
+	}
+	echo "
+		<tr bgcolor='#ffffff'>
+			<td align='center'>$article_num</td>
+			<td align='center'>$clu_num</td>
+			<td align='center'>".$wp_club_code[$pe_obj->clu_code]."</td>
+			<td align='center'>$pe_obj->pla_name</td>
+			<td align='center'>".$wp_sex_code[$pe_obj->p_sex]."</td>
+			<td align='center'>".$wp_game_code[$pe_obj->spo_code]." ".$wp_sports_detail_code[$pe_obj->spo_code_detail]."</td>
+			<td align='center'>".$wp_trouble_code[$pe_obj->tro_code]."</td>
+			<td align='center'>$pe_obj->tro_level_code
+	";
+	if($pe_obj->spo_code == 'POWERLIFTING'){
+		echo "&nbsp;<a href='powerlifting_delete.php?$basic_get$add_get&spo_code=$pe_obj->spo_code&spo_sec_code=$pe_obj->spo_sec_code&spo_code_detail=$pe_obj->spo_code_detail&pla_id=$pe_obj->pla_id&s_game_code=$game_code' onclick=\" return confirm('정말 삭제하시겠습니까?')\"><img src='../wp_button/s_delete.gif'></a>";
+	}
+	echo "</td></tr>";
+
+	$b_clu_code = $pe_obj->clu_code;
+	$article_num++;
+	$clu_num++;
+}
+?>
+</table>

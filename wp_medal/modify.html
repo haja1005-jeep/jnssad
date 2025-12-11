@@ -1,0 +1,80 @@
+<form name="schForm" action="modify.php?<?=$basic_get.$add_get?>" method="post" onsubmit="return validate(this)">
+<table class="tbSearch-c">
+<tr>
+	<th>대회선택</th>
+	<td>
+		<select name="gam_uid" tabindex="1" hname="대회선택" required>
+			<option value="">--선택-- </option>
+			<?
+				foreach($wp_games as $keys => $values)
+				{
+					if($keys == $gam_uid)
+					{
+						$is_selected = " selected";
+					}
+					else
+					{
+					 	$is_selected = "";
+					}
+					echo "<option value='$keys' $is_selected>$values</option>";
+				}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>시/군</th>
+	<td>
+		<select name="clu_code" hname="시/군" required>
+			<?
+			foreach($wp_club_code as $keys => $values){
+				echo "<option value='$keys' $is_selected>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>종목</th>
+	<td>
+		<select name="spo_code" hname="종목" required>
+			<option value=''>-----전체------</option>
+			<?
+			foreach($wp_sports_code as $keys => $values)
+			{
+				if($spo_code == $keys)
+				{
+					$is_selected = " selected ";
+				}
+				else
+				{
+					$is_selected = "";
+				}
+				echo "<option value='$keys' $is_selected>$values</option>";
+			}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>금메달</th>
+	<td><input type="text" name="gold" size="2" maxlength="2" class="input" style="ime-mode:disabled" onkeypress="Num_Check()">개</td>
+</tr>
+<tr>
+	<th>은메달</th>
+	<td><input type="text" name="silver" size="2" maxlength="2" class="input" style="ime-mode:disabled" onkeypress="Num_Check()">개</td>
+</tr>
+<tr>
+	<th>동메달</th>
+	<td><input type="text" name="bronze" size="2" maxlength="2" class="input" style="ime-mode:disabled" onkeypress="Num_Check()">개</td>
+</tr>
+</table>
+<table class="tbButton-a">
+<tr>
+	<td>
+		<input type="submit" name="send" value="추가하기" class="btn_send">
+		<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'">
+	</td>
+</tr>
+</table>
+</form>

@@ -1,0 +1,493 @@
+<?
+if($code == "real") $_game_code = $wp_real_game;
+if($code == "life") $_game_code = $wp_life_game;
+if($code == "exp") $_game_code = $wp_exp_game;
+
+
+
+// 지난년도 경기검색
+$que = "SELECT * FROM wp_game_ctrl WHERE isuse = '1' AND status = '2' ORDER BY uid desc LIMIT 1";
+$res = mysql_query($que);
+while($obj = mysql_fetch_object($res))
+{
+	$b_gam_uid = $obj->uid;
+}
+
+//$b_gam_uid = 13;
+
+foreach($_game_code as $keys => $values){
+	$lg .= "'{$keys}',";
+}
+
+// 시/군의 매달 집계 검색
+$n_where = "WHERE gam_uid = '$s_gam_uid'";
+$n_where .= " AND spo_code in (";
+$n_where .= substr($lg,0,strlen($lg)-1).")";
+$n_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $n_where GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+$n_res = mysql_query($n_que);
+$ii = 1;
+while($n_obj = mysql_fetch_object($n_res))
+{
+	$now_rank[$n_obj->clu_code] = $ii;
+	$ii++;
+}
+// 시/군의 전년도 매달 집계 검색
+$b_where = "WHERE gam_uid = '$b_gam_uid'";
+$b_where .= " AND spo_code in (";
+$b_where .= substr($lg,0,strlen($lg)-1).")";
+$b_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $b_where GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+$b_res = mysql_query($b_que);
+$pi = 1;
+while($b_obj = mysql_fetch_object($b_res))
+{
+	$post_rank[$b_obj->clu_code] = $pi;
+	$pi++;
+}
+?>
+<!-- 선수 검색 시작 -->
+<a name="list">
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li>
+				</li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<form name="sForm" action="index.html?code=<?=$code?>&mode=<?=$mode?>" method="post" onSubmit="return validate(this)">
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<th rowspan="3">검색조건</th>
+					<td>
+						<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_games as $keys => $values){
+									if($keys == $s_gam_uid)
+										$is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<input type="submit" name="sch" value="검색하기" class="btnBox3"> &nbsp;
+						<input type="button" value="엑셀출력" class="btnBox3" onclick="location.href='excel.html?code=<?=$code?>&mode=<?=$mode?>&s_gam_uid=<?=$s_gam_uid?>&prt_name=0';">
+						<input type="button" value="엑셀출력(명단포함)" class="btnBox3" onclick="location.href='excel.html?code=<?=$code?>&mode=<?=$mode?>&s_gam_uid=<?=$s_gam_uid?>&prt_name=1';">
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+<tr>
+	<td style="padding-top:10px;">
+		<img src="../wp_icon/pencil.gif" align="absmiddle"> <b><font color="#cc0000">전년도 데이터</font> <a href="#none" onclick="medal_close('open')"><img src="../wp_icon/f_open.gif"align="absmiddle"> 보기</a> <a href="#none" onclick="medal_close('close')"><img src="../wp_icon/f_close.gif"align="absmiddle"> 감추기</a></b>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="5%">순위</th>
+			<th width="5%" >시/군</th>
+			<th width="13%">
+				<table width="100%" border="0" cellpadding="0" cellspacing="0">
+				<tr>
+					<th colspan="4">총계</th>
+				</tr>
+				<tr>
+					<!--<td width="20" align="right"><b>금</b><a href="../wp_medal/index.html?code=real&mode=list&orderby=gold&desc=asc">↑</a><a href="../wp_medal/index.html?code=real&mode=list&orderby=gold&desc=desc">↓</a></td>-->
+					<td width="20" align="right"><b>금</b></td>
+					<td width="20" align="right"><b>은</b></td>
+					<td width="20" align="right"><b>동</b></td>
+					<td width="20" align="right"><b>계</b></td>
+				</tr>
+				</table>
+			</th>
+			<th width="13%">
+				<table width="100%" border="0" cellpadding="0" cellspacing="0">
+				<tr>
+					<th colspan="4">전년도 대비 증감</th>
+				</tr>
+				<tr>
+					<!--<td width="20" align="right"><b>금</b><a href="../wp_medal/index.html?code=real&mode=list&orderby=gold&desc=asc">↑</a><a href="../wp_medal/index.html?code=real&mode=list&orderby=gold&desc=desc">↓</a></td>-->
+					<td width="20" align="right"><b>금</b></td>
+					<td width="20" align="right"><b>은</b></td>
+					<td width="20" align="right"><b>동</b></td>
+					<td width="20" align="right"><b>계</b></td>
+				</tr>
+				</table>
+			</th>
+			<th>증감률</th>
+			<th>종합득점</th>
+			<th>증감</th>
+			<th>참가점수</th>
+			<?
+			foreach($_game_code as $keys => $values){
+				echo ("
+				<th bgcolor='#E8F8FF'>
+					<table width='100%' cellpadding='0' cellspacing='0'>
+					<tr>
+						<th colspan='4'>$values</th>
+					</tr>
+					<tr>
+						<td width='20' align='right'><b>금</b></td>
+						<td width='20' align='right'><b>은</b></td>
+						<td width='20' align='right'><b>동</b></td>
+						<td width='20' align='right'><b>득점</b></td>
+					</tr>
+					</table>
+				</th>
+				");
+			} //foreach?>
+		</tr>
+		<?
+		// 종목 체크 //
+		$where = "WHERE gam_uid = '$s_gam_uid'";
+		foreach($_game_code as $keys => $values){
+			$lg .= "'{$keys}',";
+		}
+		$where .= " AND spo_code in (";
+		$where .= substr($lg,0,strlen($lg)-1).")";
+
+		// 정렬 체크 //
+		if(!$orderby) { $orderby = "gold DESC, silver DESC, bronze DESC"; } else { $orderby = $orderby." ".$desc; }
+
+		// 리스트쿼리 //
+		$que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $where GROUP BY clu_code ORDER BY $orderby";
+
+	
+
+		$res = mysql_query($que);
+		// 총 레코드 수 //
+		$total_record = mysql_num_rows($res);
+
+		// 일련 번호 //
+		$article_num = $total_record;
+
+		$tr_cnt = 1;
+		$rank = 1;
+		$rank_club_code = array();//순위에 입상한 시도
+		while($obj = mysql_fetch_object($res))
+		{
+			// 시/군 //
+			$my_clu_code = $wp_club_code[$obj->clu_code];
+			$my_total_medal = $obj->gold + $obj->silver + $obj->bronze;
+
+			$rank_club_code[]=$obj->clu_code;//순위에 입상한 시도
+
+			// 시/군의 전년도 매달 집계 검색
+			$b_where = "WHERE gam_uid = '$b_gam_uid' AND clu_code = '$obj->clu_code'";
+			$b_where .= " AND spo_code in (";
+			$b_where .= substr($lg,0,strlen($lg)-1).")";
+			$b_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $b_where GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+			//echo "<br>".$b_que;
+			$b_res = mysql_query($b_que);
+			$b_obj = mysql_fetch_object($b_res);
+			$my_b_total_medal = $b_obj->gold + $b_obj->silver + $b_obj->bronze;
+
+			// 메달 수 구하기 //
+			$t_t_medal = $obj->gold-$b_obj->gold;
+			$t_t_silver = $obj->silver-$b_obj->silver;
+			$t_t_bronze = $obj->bronze-$b_obj->bronze;
+			$t_t_t_medal = $my_total_medal-$my_b_total_medal;
+
+			// 전년도 메달 기호 첨부 //
+			if($t_t_medal > 0)
+			{
+				$t_t_medal = "+".$t_t_medal;
+			}
+			if($t_t_silver > 0)
+			{
+				$t_t_silver = "+".$t_t_silver;
+			}
+			if($t_t_bronze > 0)
+			{
+				$t_t_bronze = "+".$t_t_bronze;
+			}
+			if($t_t_t_medal > 0)
+			{
+				$t_t_t_medal = "+".$t_t_t_medal;
+			}
+		?>
+		<tr <?=$bgcolor?>  onmouseover="this.style.background='#e7e7e7'" onmouseout="this.style.background='#ffffff'">
+			<td align="center" nowrap rowspan="2"><?=$rank?> 위</td>
+			<td align="center" nowrap><?=$my_clu_code?></td>
+			<td align="center">
+				<table width="100%" cellpadding="0" cellspacing="0" class="tbSmall-a">
+				<tr>
+					<td width="25%" align="right" nowrap><font color="#929900"><?=$obj->gold?></font></td>
+					<td width="25%" align="right" nowrap><font color="#A5A5A5"><?=$obj->silver?></font></td>
+					<td width="25%" align="right" nowrap><font color="#572C00"><?=$obj->bronze?></font></td>
+					<td width="25%" align="right" nowrap><font color="#cc0000"><?=$my_total_medal?></font></td>
+				</tr>
+				</table>
+			</td>
+			<?
+			/*
+			if(substr($t_t_medal,0,1) == "+")
+			{
+				$t_t_medal = "<font color = '#FF0000'><b>$t_t_medal</b></font>";
+			}
+			else
+			{
+				$t_t_medal = "<font color = '#0000FF'><b>$t_t_medal</b></font>";
+			}
+			*/
+			?>
+			<td align="center">
+				<table width="100%" cellpadding="0" cellspacing="0" class="tbSmall-a">
+				<tr>
+					<td width="25%" align="right" nowrap><font color="#929900"><?=$t_t_medal?></font></td>
+					<td width="25%" align="right" nowrap><font color="#A5A5A5"><?=$t_t_silver?></font></td>
+					<td width="25%" align="right" nowrap><font color="#572C00"><?=$t_t_bronze?></font></td>
+					<td width="25%" align="right" nowrap><font color="#cc0000"><?=$t_t_t_medal?></font></td>
+				</tr>
+				</table>
+			</td>
+			<td align="right">
+				<?
+				// 전년도 순위 검색 //
+				$my_gap = $post_rank[$obj->clu_code] - $now_rank[$obj->clu_code];
+
+				if($my_gap == "0") echo "=";
+				else if($my_gap > 0) echo "<font color='#ff0000'><b>+$my_gap</b></font>";
+				else if($my_gap < 0) echo "<font color='#0000ff'><b>$my_gap</b></font>";
+				?>
+			</td>
+
+			<td align="center"></td> <!--종합점수 -->
+			<td align="center"></td><!--증감 -->
+			<td align="center"></td><!--참가점수 -->
+			<?
+			foreach($_game_code as $keys => $values){
+				unset($s_que);
+				unset($s_res);
+				unset($s_obj);
+
+				$where2 = " WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys' AND clu_code='$obj->clu_code'";
+
+				// 리스트쿼리 //
+				$s_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $where2 GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+
+				$s_res = mysql_query($s_que);
+				$s_obj = mysql_fetch_object($s_res);
+				echo ("
+				<td align='center'>
+					<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+					<tr>
+						<td width='20' align='right'><font color='#929900'>$s_obj->gold</font></td>
+						<td width='20' align='right'><font color='#A5A5A5'>$s_obj->silver</font></td>
+						<td width='20' align='right'><font color='#572C00'>$s_obj->bronze</font></td>
+						<td width='20' align='right'><font color='#572C00'></font></td>
+					</tr>
+					</table>
+				</td>");
+			} //foreach
+			?>
+		</tr>
+		<tr id="b_<?=$tr_cnt?>" style="display:none; background:#e6e6e6">
+			<td align="center"><b>전년도</b></td>
+			<td align="center">
+				<table width="100%" cellpadding="0" cellspacing="0" class="tbSmall-a">
+				<tr>
+					<td width="25%" align="right" nowrap><font color="#929900"><?=$b_obj->gold?></font></td>
+					<td width="25%" align="right" nowrap><font color="#A5A5A5"><?=$b_obj->silver?></font></td>
+					<td width="25%" align="right" nowrap><font color="#572C00"><?=$b_obj->bronze?></font></td>
+					<td width="25%" align="right" nowrap><font color="#cc0000"><?=$my_b_total_medal?></font></td>
+				</tr>
+				</table>
+			</td>
+			<td align="center"></td>
+			<td align="center"></td>
+			<td align="center"></td> <!--종합점수 -->
+			<td align="center"></td><!--증감 -->
+			<td align="center"></td><!--참가점수 -->
+			<?
+			foreach($_game_code as $keys => $values){
+				unset($s_que);
+				unset($s_res);
+				unset($s_obj);
+
+				$where2 = " WHERE gam_uid = '$b_gam_uid' AND spo_code = '$keys' AND clu_code='$obj->clu_code'";
+				// 리스트쿼리 //
+				$s_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $where2 GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+				$s_res = mysql_query($s_que);
+				$s_obj = mysql_fetch_object($s_res);
+				echo ("
+				<td align='center'>
+					<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+					<tr>
+						<td width='20' align='right'><font color='#929900'>$s_obj->gold</font></td>
+						<td width='20' align='right'><font color='#A5A5A5'>$s_obj->silver</font></td>
+						<td width='20' align='right'><font color='#572C00'>$s_obj->bronze</font></td>
+						<td width='20' align='right'><font color='#572C00'></font></td>
+					</tr>
+					</table>
+				</td>");
+			} //foreach
+			?>
+		</tr>
+		<?
+		$rank++;
+		$tr_cnt++;
+		$article_num--;
+		}
+
+		foreach($wp_club_code as $key_f => $val_f){
+
+			if(in_array($key_f, $rank_club_code)) continue;
+			if($key_f == "jnsad" || $key_f == "WEBPLUS") continue;
+			// 시/군 //
+			$my_clu_code = $wp_club_code[$key_f];
+			echo "
+				<tr $bgcolor>
+					<td align='center' nowrap rowspan='2'>$rank 위</td>
+					<td align='center' nowrap>$my_clu_code</td>
+					<td align='center'>
+						<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+						<tr>
+							<td width='25%' align='right' nowrap><font color='#929900'>0</font></td>
+							<td width='25%' align='right' nowrap><font color='#A5A5A5'>0</font></td>
+							<td width='25%' align='right' nowrap><font color='#572C00'>0</font></td>
+							<td width='25%' align='right' nowrap><font color='#cc0000'>0</font></td>
+						</tr>
+						</table>
+					</td>
+			<td align=center></td>
+			<td align=center></td>
+			<td align=center></td> <!--종합점수 -->
+			<td align=center></td><!--증감 -->
+			<td align=center></td><!--참가점수 -->
+			";
+			foreach($_game_code as $keys => $values){
+				echo ("
+				<td align='center'>
+					<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+					<tr>
+						<td width='20' align='right'><font color='#929900'></font></td>
+						<td width='20' align='right'><font color='#A5A5A5'></font></td>
+						<td width='20' align='right'><font color='#572C00'></font></td>
+						<td width='20' align='right'><font color='#572C00'></font></td>
+					</tr>
+					</table>
+				</td>");
+			} //foreach
+
+			// 시/군의 전년도 매달 집계 검색
+			$b_where = "WHERE gam_uid = '$b_gam_uid' AND clu_code = '$key_f'";
+			$b_where .= " AND spo_code in (";
+			$b_where .= substr($lg,0,strlen($lg)-1).")";
+			$b_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $b_where GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+			//echo "<br>".$b_que;
+			$b_res = mysql_query($b_que);
+			$b_obj = mysql_fetch_object($b_res);
+			$my_b_total_medal = $b_obj->gold + $b_obj->silver + $b_obj->bronze;
+			echo "
+				<tr $bgcolorr id='b_{$tr_cnt}' style='display:none; background:#e6e6e6'>
+					<td align='center' nowrap><b>전년도</b></td>
+					<td align='center'>
+						<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+						<tr>
+							<td width='25%' align='right' nowrap><font color='#929900'>$b_obj->gold</font></td>
+							<td width='25%' align='right' nowrap><font color='#A5A5A5'>$b_obj->gold</font></td>
+							<td width='25%' align='right' nowrap><font color='#572C00'>$b_obj->gold</font></td>
+							<td width='25%' align='right' nowrap><font color='#cc0000'>$my_b_total_medal</font></td>
+						</tr>
+						</table>
+					</td>
+			<td align=center></td>
+			<td align=center></td>
+			<td align=center></td> <!--종합점수 -->
+			<td align=center></td><!--증감 -->
+			<td align=center></td><!--참가점수 -->
+			";
+			foreach($_game_code as $keys => $values){
+				unset($s_que);
+				unset($s_res);
+				unset($s_obj);
+
+				$where2 = " WHERE gam_uid = '$b_gam_uid' AND spo_code = '$keys' AND clu_code='$key_f'";
+				// 리스트쿼리 //
+				$s_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $where2 GROUP BY clu_code ORDER BY gold DESC, silver DESC, bronze DESC";
+				$s_res = mysql_query($s_que);
+				$s_obj = mysql_fetch_object($s_res);
+				echo ("
+				<td align='center'>
+					<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+					<tr>
+						<td width='20' align='right'><font color='#929900'>$s_obj->gold</font></td>
+						<td width='20' align='right'><font color='#A5A5A5'>$s_obj->silver</font></td>
+						<td width='20' align='right'><font color='#572C00'>$s_obj->bronze</font></td>
+						<td width='20' align='right'><font color='#572C00'></font></td>
+					</tr>
+					</table>
+				</td>");
+			} //foreach
+			echo "</tr>";
+			$tr_cnt++;
+		}
+
+		// 총 합산 쿼리 //
+		$t_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze FROM wp_medal $where";
+		$t_res = mysql_query($t_que);
+		$t_obj = mysql_fetch_object($t_res);
+		$all_medal_num = $t_obj->gold + $t_obj->silver + $t_obj->bronze;
+		?>
+		</tbody>
+		<tr bgcolor="#FFEDFA">
+			<td align="center"><font color="#0E24CB"><b>합계</b></font></td>
+			<td align="center" ><b><font color="#0E24CB">22개 시/군</b></font></td>
+			<td align="center"><b><font color="#0E24CB">
+				<table width="100%" cellpadding="0" cellspacing="0" class="tbSmall-a">
+				<tr>
+					<td width="25%" align="right" nowrap><font color="#929900"><?=$t_obj->gold?></font></td>
+					<td width="25%" align="right" nowrap><font color="#A5A5A5"><?=$t_obj->silver?></font></td>
+					<td width="25%" align="right" nowrap><font color="#572C00"><?=$t_obj->bronze?></font></td>
+					<td width="25%" align="right" nowrap><font color="#cc0000"><?=$all_medal_num?></font></td>
+				</tr>
+				</table>
+			</td>
+			<td> </td>
+			<td> </td>
+			<td align=center></td> <!--종합점수 -->
+			<td align=center></td><!--증감 -->
+			<td align=center></td><!--참가점수 -->
+			<?
+			foreach($_game_code as $keys => $values){
+				$where2 = " WHERE gam_uid = '$s_gam_uid' AND spo_code = '$keys'";
+				// 총 합산 쿼리 //
+				$s_que = "SELECT clu_code,sum(gold) gold, sum(silver) silver, sum(bronze) bronze, sum(total_point) total_point FROM wp_medal $where2 ";
+				$s_res = mysql_query($s_que);
+				$s_obj = mysql_fetch_object($s_res);
+				echo ("
+				<td align='center'>
+					<table width='100%' cellpadding='0' cellspacing='0' class='tbSmall-a'>
+					<tr>
+						<td width='20' align='right'><font color='#929900'>$s_obj->gold</font></td>
+						<td width='20' align='right'><font color='#A5A5A5'>$s_obj->silver</font></td>
+						<td width='20' align='right'><font color='#572C00'>$s_obj->bronze</font></td>
+						<td width='20' align='right'><font color='#572C00'></font></td>
+					</tr>
+					</table>
+				</td>");
+			} //foreach
+			?>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>

@@ -1,0 +1,110 @@
+<?
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+?>
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li></li>
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<form name="sForm" action="index.html?mode=match" method="post" onSubmit="return validate(this)">
+<input type="hidden" name="gam_uid" value="<?=$gam_uid?>">
+<tr>
+	<td>
+		<table class="tbList-b">
+		<tr>
+			<th width="15%" rowspan="2">종목선택</th>
+			<td>
+				<div style="float:left">
+				<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+					<option value="">--선택-- </option>
+					<?
+						foreach($wp_games as $keys => $values){
+							if($keys == $s_gam_uid)
+								$is_selected = " selected";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+				<select name="spo_code" tabindex="2" hname="종목" required onchange="Show_SecCode(this.form)">
+					<option value=''>--종목선택--</option>
+					<?
+					foreach($wp_sports_code as $keys => $values){
+						if($spo_code == $keys) $choice = " selected";
+						else $choice = "";
+						echo "<option value='$keys' $choice>$values</option>";
+					}
+					?>
+				</select>
+				</div>
+				<?
+				// 육상이면
+				if($spo_code == "ATHIETICS")
+				{
+					$is_display = "show";
+				}
+				else
+				{
+					$is_display = "none";
+				}
+
+				if($spo_sec_code == "AS100") $is_selected1 = " selected ";
+				if($spo_sec_code == "AS200") $is_selected2 = " selected ";
+				echo "
+				<div id='secDiv' style=' float:left;display:$is_display'>
+					<select name='spo_sec_code' hname='2차종목'>
+						<option value=''>- 선택 -</option>
+						<option value='AS100' $is_selected1>트랙</option>
+						<option value='AS200' $is_selected2>필드</option>
+					</select>
+				</div>
+				";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<?
+				if($spo_code){
+					if($spo_sec_code) $w_where = " AND spo_sec_code = '$spo_sec_code'";
+					$game_code_arr = array();
+					$g_que = "SELECT *, group_concat(tro_level_code order by tro_level_code ASC separator '/') tro_level_codes FROM wp_game_serial WHERE gam_uid='$s_gam_uid' AND spo_code = '$spo_code' $w_where GROUP BY game_code ORDER BY sort ASC";
+					//echo $g_que;
+					$g_res = mysql_query($g_que);
+					echo "<select name='s_game_code'><option value=''>-경기선택-</option>";
+					while($g_obj = mysql_fetch_object($g_res)){
+						unset($my_test_game);
+						if($s_game_code == $g_obj->game_code) $choice = " selected"; else $choice = "";
+						if($g_obj->test_game == "1") $my_test_game = "<font color='#0000ff'>[미성립 세부경기]</font>";
+						echo "<option value='$g_obj->game_code' $choice>$g_obj->game_name[$g_obj->game_code]$my_test_game</option>";
+						$game_code_arr[] = $g_obj->game_code;
+					}
+					echo "</select>";
+				}
+				?>
+				<input type="submit" name="sch" value="검 색" class="btnBox3" style="width:150; height:25;font-size:12pt">
+				<input type="button" name="excel" value="엑셀출력" class="btnBox3" onclick="excelForm.submit()">
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</form>
+<tr>
+	<td>
+		<?
+		if($spo_code){
+			require_once "match_list.html";
+		}
+		?>
+	</td>
+</tr>
+</table>
+<form name="excelForm" action="excel.html?<?=$basic_get.$add_get?>&s_gam_uid=<?=$s_gam_uid?>&s_game_code=<?=$s_game_code?>" method="post">
+</form>

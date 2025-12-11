@@ -1,0 +1,154 @@
+<?
+// ĳ�� ���� //
+session_cache_limiter("nocache, must-revalidate");
+
+session_start();
+
+header ("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header ("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+
+// Mysql Ŭ���� //
+require_once "../wp_library/mysql_class.php";
+// DB ���� //
+$Mysql = new Mysql;
+// DB ���� //
+$Mysql->Connect();
+
+// Error �Լ� //
+require_once "../wp_library/check.php";
+
+// Setup ���� //
+require_once "../wp_library/setup.php";
+
+?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=euc-kr">
+<title><?=$company_title?></title>
+
+
+
+<script type="text/javascript" src="/wp_im4u/js/common.js"></script>
+<!-- Common CSS -->
+<link rel="stylesheet" type="text/css" href="/wp_im4u/css/login_new.css">
+<!-- //Common CSS -->
+
+
+<script type="text/javascript">
+function showElement(id) {
+    document.getElementById(id).style.display='block';
+}
+
+function hideElement(id) {
+	document.getElementById(id).style.display='none';
+}
+
+
+</script>
+</head>
+
+<body>
+
+
+<div id='wrap'>
+  <div class="login_wrap">
+		<div id="header">
+			<h1><a href="http://www.jnsad.or.kr/wp_main/index.html" target="_blank">���󳲵������ü��ȸ</a></h1>
+		</div>
+		
+        <div id="container"><!-- start container -->
+          <div id="content">
+				<div class="login">
+                   <form name="sForm" action="../wp_member/login.php" method="post" onSubmit="return validate(this)">
+
+                     <fieldset>
+					  <legend>�α���</legend>
+							
+							<div id="id_input_box" class="input_box">
+								<label for="wp_id" id="label_id" class="lbl_in">���̵�</label>
+								<span class="int_box" style="width:209px">
+									<input type="text" maxlength="25" name="wp_id"  id="wp_id" title="���̵�" accesskey="L" class="int" onfocus="this.className='int focus';hideElement('label_id');"  onblur="if (this.value.length==0) {this.className='int';showElement('label_id');} else {this.className='int';}" style="width:209px" value="" >
+								</span>
+							</div>
+							
+							<div id="pw_input_box" class="input_box">
+								<label for="wp_passwd" id="label_pw" class="lbl_in">��й�ȣ</label>
+								<span class="int_box" style="width:209px">
+									<input type="password" maxlength="16" name="wp_passwd" id="wp_passwd" title="��й�ȣ" class="int" onfocus="this.className='int focus';hideElement('label_pw');"  onblur="if (this.value.length==0) {this.className='int';showElement('label_pw');} else {this.className='int';}" style="width:209px" >
+								</span>
+
+							</div>
+
+
+
+							<div class="chk_id">
+								                <label name="lb"><input id="lb" type="radio" name="wp_kind" value="club" tabindex="1" checked>��/��</label>
+												<label name="lb"><input id="lb" type="radio" name="wp_kind" value="player" tabindex="2">����</label>
+												<label name="lb"><input id="lb" type="radio" name="wp_kind" value="s_group" tabindex="3">����ü</label>
+												<label name="lb"><input id="lb" type="radio" name="wp_kind" value="admin" tabindex="4">������</label>
+
+							</div>
+
+                            <input type="image" src="/wp_im4u/images/common/btn_login.png" title="�α���" alt="�α���" class="btn_login">
+
+							<div class='notice_wrap'>
+
+
+							  <h5>��������</h5>
+							  <ul >
+			    <?
+				$a_code = notice;
+				require_once "../wp_board/am_board_intro.html";
+				?>
+							  </ul>
+
+							</div>
+				
+
+					</fieldset>
+					</form>
+				
+<div class="login_help">
+	<div class="fl">
+		<a href="javascript:;" onclick="javascript:window.open('../wp_club_ctrl/p_input.html','pop_club','width=800,height=600,scrollbars=yes')" title="����� ���̵� ��û�ϱ�"><strong>����� ���̵��û</strong></a>
+	</div>
+</div>			
+				
+				
+				
+				</div><!-- end login -->
+
+
+          </div><!-- end content -->
+
+
+		  <div class="ad"> 
+		    <a href='http://www.jnsadplayer.or.kr/wp_m' target='_blank' title="��27ȸ ���󳲵� �����ü����ȸ ����� ����"><img src='/wp_im4u/images/jnsad_27th.jpg'></a>
+		  </div><!-- end ad -->
+
+		</div><!-- end container -->
+
+	 
+
+		<div id="footer">
+		    <div class='info'>���� ���ȱ� ������ ����1�� 41���� ���󳲵������ü��ȸ�� 2�� | ��ȭ : 061) 288-1372, �ѽ� : 061) 288-1361 </div>
+			<address> 
+             
+			<em>Copyright &copy;</em> 
+			<a href="http://www.jnsad.or.kr/wp_main/index.html" target="_blank">http://www.jnsad.or.kr</a> 
+			<span>All Rights Reserved.</span> 
+			</address> 
+		</div>
+	 
+	 
+	 
+	 </div><!-- end login_wrap -->
+</div>
+
+
+
+
+</body>
+</html>

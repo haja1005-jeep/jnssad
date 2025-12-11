@@ -1,0 +1,104 @@
+<!-- Document Start -->
+<table width="100%" height="700" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td valign="top" align="center">
+		<?
+		$s_que = "SELECT *, group_concat(spo_code_detail order by spo_code_detail ASC separator '/') spo_code_details FROM wp_game_serial WHERE gam_uid='$s_gam_uid' AND game_code = '$game_code' GROUP BY game_code";
+		$s_res = mysql_query($s_que);
+		$s_obj = mysql_fetch_object($s_res);
+		$s_tmp = explode("/",$s_obj->spo_code_details);
+		$my_spo_code_details = "'";
+		foreach($s_tmp as $keys => $vals){
+			$my_spo_code_details .= $vals."','";
+		}
+		$my_spo_code_details = substr($my_spo_code_details, 0 ,strlen($my_spo_code_details) - 2);
+		//미성립 세부경기
+		unset($my_test_game);
+		if($s_obj->test_game == "1") $my_test_game = "<font color='#0000ff'>[미성립 세부경기]</font>";
+
+		$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code' AND spo_sec_code='$s_obj->spo_sec_code' AND sex='$s_obj->sex' AND tro_level_code = '$s_obj->tro_level_code' AND spo_code_detail in ($my_spo_code_details)";
+
+		//종목별 토너먼트 갯수 구하기
+		$orderby = " ORDER BY clu_class_name ASC, pla_name ASC";
+
+		// 단체전이면
+		$tot_que = "SELECT *,group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') pla_name  FROM wp_game_player $where GROUP BY clu_code $orderby";
+		$tot_res = mysql_query($tot_que);
+		$match_person = mysql_num_rows($tot_res);
+		$match_player = array();
+		while($tot_obj = mysql_fetch_object($tot_res))
+		{
+			$match_player[$tot_obj->clu_code] =$tot_obj->clu_class_name;
+		}
+
+		// 리그전일 경우에는 경기수를 먼저 구한다. (경기수 = 참가팀 -1 까지 더한값)
+		$match_cnt = 0;
+		for($i = $match_person-1; $i > 0; $i--)
+		{
+			$match_cnt += $i;
+		}
+		?>
+		<form name="signForm" action="match_input.php?gam_uid=<?=$gam_uid?>&game_code=<?=$game_code?>&spo_code=<?=$s_obj->spo_code?>&spo_sec_code=<?=$s_obj->spo_sec_code?>&spo_code_detail=<?=$s_obj->spo_code_detail?>&match_cnt=<?=$match_cnt?>&test_game=<?=$s_obj->test_game?>&game_kind=<?=$game_kind?>" method="post">
+		<table width="750" border="0" cellpadding="3" cellspacing="1" bgcolor="#cacaca">
+		<tr bgcolor="#ffffff">
+			<td style="padding-top:20px" colspan="5">
+				<b><u>종목 : <?=$s_obj->game_name?> (<?=$match_person?>) <?=$my_test_game?></u> | 게임번호 : <?=$game_code?></b>
+			</td>
+		</tr>
+		<?
+		foreach($match_player as $key_f => $val_f)
+		{
+			echo "<input type='hidden' name='pla_club[]' value='$key_f'>";
+		}
+		// 기존에 등록된 데이터 검색
+		$al_player = array();
+		$al_que = "SELECT * FROM wp_game_record WHERE gam_uid = '$gam_uid' AND game_code='$game_code' ORDER BY lane_no";
+		$al_res = mysql_query($al_que);
+		while($al_obj = mysql_fetch_object($al_res))
+		{
+			$al_player[] = $al_obj->lane_no."/".$al_obj->clu_code;
+			$other_player[] = $al_obj->lane_no."/".$al_obj->other_clu_code;
+		}
+		// 리그전 생성
+		for ( $i=1; $i<= $match_cnt; $i++){
+			echo "
+			<tr bgcolor='#ffffff'>
+				<input type='hidden' name='team[]' size='5' maxlength='5' class='input' value='$i'>
+				<td width='10%' align='right'>$i : </td>
+				<td width='10%' align='center'><input type='text' name='lane_{$i}' size='5' maxlength='5' class='input' value='$i'></td>
+				<td width='15%' align='center'>
+			";
+				echo "<select name='lteam_$i'>";
+				foreach($match_player as $key_f => $val_f)
+				{
+					unset($is_choice);
+					if(in_array($i."/".$key_f, $al_player)) $is_choice = " selected";
+					echo "<option value='$key_f' $is_choice>$val_f</option>";
+				}
+				echo "</select>";
+			echo "</td>
+				<td align='center'><-------------------></td>
+				<td width='15%' align='center'>
+			";
+				echo "<select name='rteam_$i'>";
+				foreach($match_player as $key_f => $val_f)
+				{
+					unset($is_choice);
+					if(in_array($i."/".$key_f, $other_player)) $is_choice = " selected";
+					echo "<option value='$key_f' $is_choice>$val_f</option>";
+				}
+				echo "</select>";
+			echo "</td>
+			</tr>
+			";
+		}
+		?>
+		<tr bgcolor="#ffffff">
+			<td colspan="5" align="center"><input type="submit" name="sch" value="대진표등록" class="btnBox3" style="width:150; height:25;font-size:12pt"></td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+</table>
+<!-- Document End -->

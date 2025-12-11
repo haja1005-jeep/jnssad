@@ -1,0 +1,121 @@
+<table width="750" cellpadding="0" cellspacing="0">
+<tr>
+	<td><input type="button" name="excel" value="엑셀출력" class="btnBox3" onclick="excelForm.submit()"></td>
+</tr>
+<tr>
+	<td height="20px"></td>
+</tr>
+<tr>
+	<td>
+		<table width="750" cellpadding="3" cellspacing="1" bgcolor="#CACACA">
+		<tr bgcolor="#FAFAFA">
+			<td width="100px" align="center"><b>경기종목</b></td>
+			<td width="130px" align="center"><b>종목명</b></td>
+			<td width="50px" align="center"><b>순번</b></td>
+			<td align="center"><b>토너먼트갯수</b></td>
+			<td align="center"><b>구분</b></td>
+			<td align="center"><b>참가시/군</b></td>
+			<td align="center"><b>참가인원</b></td>
+		</tr>
+<?
+// 경기 종목별로  수만큼 인원을 구함.
+//print_r(count($wp_tot_game));
+//$s_gam_uid = 5;
+$a_cnt = 1;
+$b_spo_code = "";
+for($i = 0; $i < count($wp_tot_game); $i++){
+	//종목의 경기번호를 구하여 배열로 저장한다. -- 시작
+	$spo_code = $wp_tot_game[$i];
+	$game_code_arr = array(); // 경기 번호 저장배열
+	$g_que = "SELECT *, group_concat(tro_level_code order by tro_level_code ASC separator '/') tro_level_codes FROM wp_game_serial WHERE gam_uid='$s_gam_uid' AND spo_code = '$spo_code' GROUP BY game_code ORDER BY sort ASC";
+	//echo $g_que."<br>";
+	$g_res = mysql_query($g_que);
+	while($g_obj = mysql_fetch_object($g_res)){
+		$game_code_arr[] = $g_obj->game_code;
+	}
+	//종목의 경기번호를 구하여 배열로 저장한다. -- 끝
+
+	if($b_spo_code != "" && $b_spo_code != $spo_code){
+		$a_cnt = 1;
+		echo "<tr><td height='2' bgcolor='#CACACA'></td></tr>";
+	}
+//print_r($game_code_arr);
+	//경기수 에 대한 참가 인원 및 토너먼트 수를 구한다..
+	foreach($game_code_arr as $keys => $vals){
+
+			$game_code = $vals; //경기번호
+			// 해당 경기번호에 대한 정보를 가져오기 시작..
+			$s_que = "SELECT *, group_concat(spo_code_detail order by spo_code_detail ASC separator '/') spo_code_details FROM wp_game_serial WHERE gam_uid='$s_gam_uid' AND game_code = '$game_code' GROUP BY game_code";
+			$s_res = mysql_query($s_que);
+			$s_obj = mysql_fetch_object($s_res);
+			$s_tmp = explode("/",$s_obj->spo_code_details);
+			$my_spo_code_details = "'";
+			foreach($s_tmp as $keys => $vals){
+				$my_spo_code_details .= $vals."','";
+			}
+			// 해당 경기번호에 대한 정보 가지오기 끝...
+			$my_spo_code_details = substr($my_spo_code_details, 0 ,strlen($my_spo_code_details) - 2);
+			//시범경기
+			unset($my_test_game);
+			if($s_obj->test_game == "1") $my_test_game = "<font color='#0000ff'>[미성립 세부경기]</font>";
+
+			$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code' AND spo_sec_code='$s_obj->spo_sec_code' AND sex='$s_obj->sex' AND tro_level_code = '$s_obj->tro_level_code' AND spo_code_detail in ($my_spo_code_details)";
+			$oderby = " ORDER BY clu_code asc, spo_code ASC, spo_sec_code ASC, spo_code_detail ASC, tro_code ASC, sex ASC, tro_level_code ASC, pla_name ASC";
+
+			//종목별 토너먼트 갯수 구하기 시작
+			if($spo_code == "LAWNBOWL"){
+				if($s_obj->spo_sec_code == "LB100") { //개인전
+					$query = "SELECT * FROM wp_game_player $where GROUP BY clu_code,pla_id $orderby";
+				}else if($s_obj->spo_sec_code == "LB200") { //단체전
+					$query = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+				}
+			}else if($spo_code == "BILLIARDS"){
+				$query = "SELECT *, group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') players  FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+			}else if($spo_code == "BOCCIA" && $s_obj->spo_code_detail=="BC102"){ //보치아 단체전
+				$query = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+			}else if($spo_code == "GOALBALL" || $spo_code == "VOLLEYBALL" || $spo_code == "GATEBALL" || $spo_code == "SHUFFLEBOARD" || $spo_code == "CUROLLING" || $spo_code == "TARGET" || $spo_code == "HANDLER"){ // 단체전
+				$query = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+			}else if($spo_code == "TABLETENNIS"){
+				if($s_obj->spo_sec_code == "TT100") { //개인전
+					$query = "SELECT * FROM wp_game_player $where GROUP BY clu_code,pla_id $orderby";
+				}else if($s_obj->spo_sec_code == "TT200") { //단체전
+					$query = "SELECT * FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+				}
+			}else{
+				$query = "SELECT *, group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') players  FROM wp_game_player $where GROUP BY clu_code,pla_id $orderby";
+			}
+			$result = mysql_query($query);
+			$a_article = mysql_num_rows($result);
+			// 토너먼트 갯수 구하기 끝..
+
+			$a_que = "SELECT clu_code,count(*) cnt FROM wp_game_player WHERE gam_uid = '$s_gam_uid' AND kubun='9' AND spo_code='$spo_code' AND spo_sec_code='$s_obj->spo_sec_code' AND tro_level_code='$s_obj->tro_level_code' AND sex = '$s_obj->sex' AND spo_code_detail in ($my_spo_code_details) GROUP BY clu_code,spo_code_detail";
+			$a_res = mysql_query($a_que);
+			$club_cnt = 0;
+			$tot_cnt = 0;
+			while($a_obj = mysql_fetch_object($a_res)){
+				$club_cnt++;
+				$tot_cnt += $a_obj->cnt;
+			}
+
+		?>
+			<tr bgcolor="#FFFFFF">
+				<td align="center"><?=$wp_game_code[$spo_code]?></td>
+				<td><?=$s_obj->game_name?></td>
+				<td align="center"><?=$a_cnt?></td>
+				<td align="center"><?=$a_article?></td>
+				<td align="center"><?=$my_test_game?></td>
+				<td align="center"><?=$club_cnt?></td>
+				<td align="center"><?=$tot_cnt?></td>
+			</tr>
+	<?
+	$a_cnt++;
+	$b_spo_code = $spo_code;
+	} //while
+} //for
+?>
+		</table>
+	</td>
+</tr>
+</table>
+<form name="excelForm" action="excel2.html?<?=$basic_get.$add_get?>&s_gam_uid=<?=$s_gam_uid?>&s_game_code=<?=$s_game_code?>" method="post">
+</form>

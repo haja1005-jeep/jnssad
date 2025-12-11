@@ -1,0 +1,210 @@
+<!-- Document Start -->
+<table width="100%" height="700" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td valign="top" align="center">
+		<?
+		$s_que = "SELECT *, group_concat(spo_code_detail order by spo_code_detail ASC separator '/') spo_code_details FROM wp_game_serial WHERE gam_uid='$s_gam_uid' AND game_code = '$game_code' GROUP BY game_code";
+		$s_res = mysql_query($s_que);
+		$s_obj = mysql_fetch_object($s_res);
+		$s_tmp = explode("/",$s_obj->spo_code_details);
+		$my_spo_code_details = "'";
+		foreach($s_tmp as $keys => $vals){
+			$my_spo_code_details .= $vals."','";
+		}
+		$my_spo_code_details = substr($my_spo_code_details, 0 ,strlen($my_spo_code_details) - 2);
+		
+		
+		//시범경기
+		unset($my_test_game);
+		if($s_obj->test_game == "1") $my_test_game = "<font color='#0000ff'>[시범경기]</font>";
+
+		/*
+		if($game_code == "ATHIETICS_AS200-05" || $game_code == "ATHIETICS_AS200-30")
+		{
+			$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code' AND spo_sec_code='$s_obj->spo_sec_code' AND sex='$s_obj->sex' AND (tro_level_code = 'F44' OR tro_level_code = 'F46') AND spo_code_detail in ($my_spo_code_details)";
+		}
+		else if($game_code == "ATHIETICS_AS200-33")
+		{
+			$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code' AND spo_sec_code='$s_obj->spo_sec_code' AND sex='$s_obj->sex' AND (tro_level_code = 'F35,F36' OR tro_level_code = 'F37,F38') AND spo_code_detail in ($my_spo_code_details)";
+		}
+		else
+		{
+		*/
+			$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code' AND spo_sec_code='$s_obj->spo_sec_code' AND sex='$s_obj->sex' AND tro_level_code = '$s_obj->tro_level_code' AND spo_code_detail in ($my_spo_code_details)";
+		//}
+
+		//$where = " WHERE gam_uid='$s_gam_uid' AND spo_code='$s_obj->spo_code' AND spo_sec_code='$s_obj->spo_sec_code' AND sex='$s_obj->sex' AND tro_level_code = '$s_obj->tro_level_code' AND spo_code_detail in ($my_spo_code_details)";
+		//$orderby = " ORDER BY clu_class_name asc, spo_code ASC, spo_sec_code ASC, spo_code_detail ASC, tro_code ASC, sex ASC, tro_level_code ASC, pla_name ASC";
+
+		//종목별 토너먼트 갯수 구하기
+		$orderby = " ORDER BY clu_class_name ASC, pla_name ASC";
+		
+		// 단체전(시/군)이면
+		if($game_kind == "3")
+		{
+			$tot_que = "SELECT *,group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') pla_name  FROM wp_game_player $where GROUP BY clu_code $orderby";
+		}
+		// 단체전이면 
+		else if($game_kind == "2")
+		{
+			$tot_que = "SELECT *,group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') pla_name  FROM wp_game_player $where GROUP BY clu_code, spo_code_detail, group_str $orderby";
+		}
+		else
+		{
+			$tot_que = "SELECT * FROM wp_game_player $where GROUP BY clu_code,pla_id $orderby";
+		}
+
+		if($s_obj->game_code == "GOLF_GF200-03")
+		{
+			$tot_que = "SELECT *,group_concat(pla_name order by spo_code_detail ASC, pla_name ASC separator ',') pla_name  FROM wp_game_player $where GROUP BY clu_code, spo_code_detail $orderby";
+		}
+		//echo $tot_que;
+		$tot_res = mysql_query($tot_que);
+		$match_person = mysql_num_rows($tot_res);
+		?>
+		<form name="signForm" action="match_input.php?gam_uid=<?=$gam_uid?>&game_code=<?=$game_code?>&spo_code=<?=$s_obj->spo_code?>&spo_sec_code=<?=$s_obj->spo_sec_code?>&spo_code_detail=<?=$s_obj->spo_code_detail?>&match_cnt=<?=$match_cnt?>&test_game=<?=$s_obj->test_game?>&game_kind=<?=$game_kind?>" method="post">
+		<table width="750" border="0" cellpadding="3" cellspacing="0">
+		<tr>
+			<td style="padding-top:20px" colspan="4">
+				<b><u>종목 : <?=$s_obj->game_name?> (<?=$match_person?>) <?=$my_test_game?></u> | 게임번호 : <?=$game_code?></b>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<table width="100%" border="0" cellpadding="3" cellspacing="1" class="border_gray_a" bgcolor="#cacaca">
+				<tr bgcolor="#f1f1f1">
+					<th width="6%">순번</th>
+					<th>경기번호</th>
+					<th width="15%">소속</th>
+					<th width="15%">선수명</th>
+					<?
+						/* 2014-09-19 박민철 수정
+							구례에서 단체전 수정 부분의 소스를 제거하고 group_str을 이용하여 소스 재작업
+						if($spo_code == "BOWLING")
+						{
+							echo "
+							<th width='15%'>레인</th>
+							";
+						}
+						else
+						*/
+						if($spo_code == "ATHIETICS")
+						{
+							echo "
+							<th width='15%'>조</th>
+							<th width='15%'>레인</th>
+							<th width='15%'>등번호</th>
+							";
+						}
+						else
+						{
+							echo "
+							<th width='15%'>조</th>
+							<th width='15%'>레인</th>
+							";
+						}
+					?>
+				</tr>
+				<?
+				// 기존에 등록된 데이터 검색
+				$al_player = array();
+				$al_que = "SELECT * FROM wp_game_record WHERE gam_uid = '$gam_uid' AND game_code='$game_code' ORDER BY lane_no";
+				$al_res = mysql_query($al_que);
+				while($al_obj = mysql_fetch_object($al_res))
+				{
+					$al_player[$al_obj->id] = $al_obj;
+				}
+				//print_r($al_player);
+				$article_num = mysql_num_rows($tot_res);
+				$al_cnt = 1;
+				// 기록경기 표 작성
+				while($tot_obj = mysql_fetch_object($tot_res))
+				{
+					$tmp_pla = $al_player[$tot_obj->pla_id];
+					if(!$tmp_pla->lane_no)
+					{
+						$my_lane_no = $al_cnt;
+					}
+					else
+					{
+						$my_lane_no = $tmp_pla->lane_no;
+					}
+					if(!$tmp_pla->back_no)
+					{
+						$my_back_no = $al_cnt;
+					}
+					else
+					{
+						$my_back_no = $tmp_pla->back_no;
+					}
+					if(!$tmp_pla->group_no)
+					{
+						$my_group_no = 1;
+					}
+					else
+					{
+						$my_group_no = $tmp_pla->group_no;
+					}
+					/* 2014-09-19 박민철 추가 
+					   단체전 팀구분이 있을 시 화면상 표시 부분을 추가 
+					 */
+					$team_str = ""; //팀구분
+					if($tmp_pla->group_str) $team_str = "(".$tmp_pla->group_str."팀)";
+
+					echo "
+					<tr bgcolor='#ffffff'>
+						<input type='hidden' name='pla_id[]' value='$tot_obj->pla_id'>
+						<td align='center'>$article_num</td>
+						<td align='center'>$game_code</td>
+						<td align='center'>$tot_obj->clu_class_name $team_str</td>
+						<td align='center'><font size='3' color='#0000ff'>$tot_obj->pla_name</font></td>
+					";
+						/* 2014-09-19 박민철 수정
+							구례에서 단체전 수정 부분의 소스를 제거하고 group_str을 이용하여 소스 재작업
+						if($spo_code == "BOWLING")
+						{
+							echo "
+							<td align='center'>L:<input type='text' name='lane_{$tot_obj->pla_id}' size='5' maxlength='5' class='input' value='$my_lane_no'>G:<input type='text' name='group_{$tot_obj->pla_id}' size='5' maxlength='5' class='input' value='$my_group_no'></td>
+							";
+						}
+						else 
+						*/
+						if($spo_code == "ATHIETICS")
+						{
+							echo "
+							<td align='center'><input type='text' name='group_{$tot_obj->pla_id}' size='5' maxlength='5' class='input' value='$my_group_no'></td>
+							<td align='center'><input type='text' name='lane_{$tot_obj->pla_id}' size='5' maxlength='5' class='input' value='$my_lane_no'></td>
+							<td align='center'><input type='text' name='back_{$tot_obj->pla_id}' size='5' maxlength='5' class='input' value='$my_back_no'></td>
+							";
+						}
+						else if($spo_code == "SWIMMING" || $spo_code == "ROWING")
+						{
+							echo "
+							<td align='center'><input type='text' name='group_{$tot_obj->pla_id}' size='5' maxlength='5' class='input' value='$my_group_no'></td>
+							<td align='center'><input type='text' name='lane_{$tot_obj->pla_id}' size='5' maxlength='5' class='input' value='$my_lane_no'></td>
+							";
+						}
+						else
+						{
+							echo "
+							<td align='center'><input type='text' name='group_{$tot_obj->pla_id}' size='5' maxlength='5' class='input' value='$my_group_no'></td>
+							<td align='center'><input type='text' name='lane_{$tot_obj->pla_id}' size='5' maxlength='5' class='input' value='$my_lane_no'></td>
+							";
+						}
+					echo "</tr>";
+					$article_num--;
+					$al_cnt++;
+				}
+				?>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="5" align="center"><input type="submit" name="sch" value="레인번호 설정" class="btnBox3" style="width:150; height:25;font-size:12pt"></td>
+		</tr>
+		</table>
+		</form>
+	</td>
+</tr>
+</table>
+<!-- Document End -->

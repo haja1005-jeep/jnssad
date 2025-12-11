@@ -1,0 +1,178 @@
+<table class="table-global">
+<tr>
+	<form name="sForm" action="index.html?mode=<?=$mode?>" method="post" onSubmit="return validate(this)">
+	<td>
+		<!-- 선수 검색 시작 -->
+		<table class="tbSearch-c">
+		<tr>
+			<th width="10%">대회선택</th>
+			<td>
+				<div style=" float:left">
+				<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+					<option value="">--선택-- </option>
+					<?
+						foreach($wp_games as $keys => $values){
+							if($keys == $s_gam_uid)
+								$is_selected = " selected";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+				<select name="clu_code" tabindex="1" hname="소속시도" >
+					<option value="">--시/군선택-- </option>
+					<?
+						foreach($wp_club_code as $keys => $values){
+							if($keys == $clu_code) $is_selected = " selected";
+							else $is_selected = "";
+							echo "<option value='$keys' $is_selected>$values</option>";
+						}
+					?>
+				</select>
+				<select name="keyfield">
+					<option value="pla_name">성명</option>
+				</select>
+				<input type="text" name="key" size="10" maxlength="10" class="input">
+				<input type="submit" name="sch" tabindex="5" value="검색" class="btnBox3">
+			</td>
+		</tr>
+		</table>
+	</td>
+	</form>
+</tr>
+<tr>
+	<form name="signForm" action="powerlifting.php?gam_uid=<?=$s_gam_uid?>&spo_code=<?=$spo_code?>&spo_sec_code=<?=$spo_sec_code?>&clu_code=<?=$clu_code?>&keyfield=<?=$keyfield?>&key=<?=$key?>" method="post" onSubmit="return validate(this)">
+	<td>
+		<table class="tbList-a">
+		<tr align="center">
+			<th><b>순번</b></th>
+			<th><b>시/근</b></th>
+			<th><b>이름</b></th>
+			<th><b>주민번호</b></th>
+			<th><b>성별</b></th>
+			<th colspan="3"><b>세부종목</b></th>
+			<th><b>변경</b></th>
+			<th width="5%"><b>관리</b></th>
+		</tr>
+
+		<?
+		$male_arr_300 = array();
+		$male_arr_600 = array();
+		$female_arr_300 = array();
+		$female_arr_600 = array();
+		$a_que = "SELECT * FROM wp_sports_event_detail WHERE gam_uid='$s_gam_uid' AND spo_code = 'POWERLIFTING' AND sex='male' AND code in ('PL300','PL600') ORDER BY sex ASC, code_detail ASC";
+		$a_res = mysql_query($a_que);
+		while($a_obj = mysql_fetch_object($a_res))
+		{
+			if($a_obj->code == "PL300") $male_arr_300[$a_obj->code_detail] = $a_obj->code_detail_name;
+			if($a_obj->code == "PL600") $male_arr_600[$a_obj->code_detail] = $a_obj->code_detail_name;
+		}
+		$a_que = "SELECT * FROM wp_sports_event_detail WHERE gam_uid='$s_gam_uid' AND spo_code = 'POWERLIFTING' AND sex='female' AND code in ('PL300','PL600') ORDER BY sex ASC, code_detail ASC";
+		$a_res = mysql_query($a_que);
+		while($a_obj = mysql_fetch_object($a_res))
+		{
+			if($a_obj->code == "PL300") $female_arr_300[$a_obj->code_detail] = $a_obj->code_detail_name;
+			if($a_obj->code == "PL600") $female_arr_600[$a_obj->code_detail] = $a_obj->code_detail_name;
+		}
+
+		//LIMIT절 생성
+		if(!$page) $page=1;
+		$offset = ($page - 1) * $max_record;
+		$limit = $max_record;
+
+		//ORDER BY절 생성
+		if(!$orderby) $orderby = " pla_name ASC, spo_sec_code ASC, spo_code_detail ASC";
+		else $orderby = $orderby." ".$desc;
+
+		//검색조건
+		$where = " WHERE gam_uid = '$s_gam_uid' AND spo_code = 'POWERLIFTING' AND spo_sec_code in ('PL300','PL600') AND kubun='9'";
+
+		//시/군
+		if($clu_code){
+			$where .= " AND clu_code = '$clu_code'";
+		}
+
+		//2차종목코드가 있으면
+		if($spo_sec_code) $where .= " AND spo_sec_code = '$spo_sec_code'";
+
+		if(eregi("[^[:space:]]+",$key))
+			$where .= " AND  $keyfield LIKE '%$key%' ";
+
+		// 등록된 경기 쿼리
+		$query = "SELECT *  FROM wp_game_player $where ORDER BY $orderby Limit $offset, $limit";
+		$result = mysql_query($query);
+
+		// 총 레코드 수 //
+		$total_record = $Mysql->getTotalRecord("wp_game_player", $where);
+
+		// 페이지 목록 //
+		$PageNumber = new PageNumber($total_record,$max_record,$max_page,$page);
+
+		// 일련 번호 //
+		$article_num = $total_record - $max_record*($PageNumber->page-1);
+
+		while($obj = mysql_fetch_object($result)){
+			$my_spo_sec_code = getSpo_sec_code($obj->spo_code,$obj->spo_sec_code);
+
+			$my_tro_code = substr($wp_trouble_code[$obj->tro_code],0,4);
+			$my_tro_level_code = getTrouble_level_code($obj->spo_code, $obj->tro_level_code)."[$obj->tro_level_code] ";
+			$my_sex = $wp_sex_code[$obj->sex]." ";
+			$my_detail_code = $wp_sports_detail_code[$obj->spo_code_detail];
+
+			if($obj->sex=="male" && $obj->spo_sec_code == "PL300")
+			{
+				$p_spo_code_detail = $male_arr_300;
+			}
+			else if($obj->sex=="male" && $obj->spo_sec_code == "PL600")
+			{
+				$p_spo_code_detail = $male_arr_600;
+			}
+			else if($obj->sex=="female" && $obj->spo_sec_code == "PL300")
+			{
+				$p_spo_code_detail = $female_arr_300;
+			}
+			else if($obj->sex=="female" && $obj->spo_sec_code == "PL600")
+			{
+				$p_spo_code_detail = $female_arr_600;
+			}
+
+		echo "
+		<tr>
+
+			<td align='center'>$article_num</td>
+			<td align='center' nowrap>".$wp_club_code[$obj->clu_code]."</td>
+			<td align='center' nowrap>$obj->pla_name <input type='hidden' name='pla_id[]' value='{$obj->pla_id}_{$obj->spo_code}_{$obj->spo_sec_code}_{$obj->spo_code_detail}'></td>
+			<td align='center' nowrap>$obj->pla_id</td>
+			<td align='center' nowrap>".$wp_sex_code[$obj->sex]."</td>
+			<td align='center' nowrap>$my_spo_sec_code</td>
+			<td nowrap nowrap>$my_tro_level_code</td>
+			<td nowrap>$my_detail_code($obj->spo_code_detail)</td>
+			<td nowrap><select name='p_spo_code_detail_{$obj->pla_id}'>
+		";
+			foreach($p_spo_code_detail as $key_f => $val_f)
+			{
+				unset($is_choice);
+				if($obj->spo_code_detail == $key_f) $is_choice = " selected";
+				echo "<option value='$key_f' $is_choice>$val_f($key_f)</option>";
+			}
+		echo "</select></td>
+			<td align='center' nowrap><a href='powerlifting_delete.php?$basic_get$add_get&spo_code=$obj->spo_code&spo_sec_code=$obj->spo_sec_code&spo_code_detail=$obj->spo_code_detail&pla_id=$obj->pla_id' onclick=\" return confirm('정말 삭제하시겠습니까?')\"><img src='../wp_button/s_delete.gif'></a></td>
+		</tr>";
+		$article_num--;
+		 }
+		 ?>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<!--페이지 번호설정 -->
+		<? require_once "../wp_object/page_move.html";?>
+		<!--페이지 번호설정 -->
+	</td>
+</tr>
+<tr>
+	<td style="padding-top:10px" align="center"><input type="submit" name="add" tabindex="5" value="수 정" class="btnBox3" style="width:150px;height:30px;font-size:12pt"></td>
+</tr>
+</table>
+</form>

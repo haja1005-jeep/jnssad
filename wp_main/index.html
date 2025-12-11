@@ -1,0 +1,24 @@
+<?
+session_start();
+
+if($Admin_auth == "sponsor" && $Admin_level == "2") // 기록관리자이면
+{
+	echo "<meta http-equiv='Refresh' content='0; URL=../wp_game_result/index.html?mode=input&type=real'>";
+	/*
+	echo "
+		<script language='javascript'>
+		alert('사용기간이 만료되었습니다.');
+		</script>
+	";
+	*/
+}
+else if($Admin_auth == "user" || $Admin_auth == "s_group")
+{
+	echo "<meta http-equiv='Refresh' content='0; URL=../wp_game_player/index.html?mode=list'>";
+}
+else
+{
+	echo "<meta http-equiv='Refresh' content='0; URL=../wp_player_ctrl/index.html?mode=list'>";
+}
+?>
+

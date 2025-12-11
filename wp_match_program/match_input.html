@@ -1,0 +1,37 @@
+<?
+	require_once "../wp_object/head.html";
+?>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td align="center" style="padding-top:70px;"><h3><font color="#ffffff">대진표 작성</font></h3></td>
+</tr>
+<tr>
+	<td align="left" style="padding-bottom:30px">
+		<!-- Document Start -->
+		<?
+		if(in_array($spo_code,$wp_tot_game))
+		{
+			if($game_kind == "3")
+			{
+				require_once "match_input_tona_city.html";
+			}
+			else
+			{
+				require_once "match_input_tonament.html";
+			}
+		}
+		else if(in_array($spo_code,$wp_score_game))
+		{
+			require_once "match_input_score.html";
+		}
+		else if(in_array($spo_code,$wp_league_game))
+		{
+			require_once "match_input_league.html";
+		}
+		?>
+		<!-- Document End -->
+	</td>
+</tr>
+</table>
+</body>
+</html>
