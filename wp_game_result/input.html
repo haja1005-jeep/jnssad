@@ -1,0 +1,295 @@
+<table class="table-global">
+<tr>
+	<td>
+		<fieldset class="help_wrap">
+			<legend>도움말</legend>
+			<ul class="help_body">
+				<li><font color="#cc0000">토너먼트 경기 - 론볼, 골볼, 배드민턴, 보치아, 게이트볼, 다트, 당구, 셔플보드, 커롤링, 타겟3종, 핸들러, 탁구</font></li>
+				<ul>
+					<li>토너먼트 경기는 16강전 다음의 8강전을 치르기 위해서는 하단의 <font color="#cc0000">[8강전생성]</font> 버튼을 클릭하여 생성하신 후 8강전을 선택 후 등록합니다.</li>
+					<li>8강전 데이터가 정상적으로 생성되지 않았을 경우 16강전에서 다시 [8강전생성]버튼을 클릭하여 재 생성 후 기록합니다.</li>
+				</ul>
+				<li><font color="#cc0000">기록경기 - 육상, 수영, 볼링 등</font></li>
+				<ul>
+					<li>기록 경기는 선수들의 기록을 입력하 신 후 <font color="#cc0000">[경기기록등록]</font> 버튼을 클릭하면 자동으로 순위가 생성됩니다.</li>
+					<li><font color="#cc0000">[기권자 또는 실격자]</font>는 경기여부의 기권 또는 실격을 선택하여주세요.</li>
+				</ul>
+
+			</ul>
+		</fieldset>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table class="tbSearch-c">
+		<tr>
+			<td>
+				<a name="list">
+				<form name="sForm" action="index.html?mode=input&type=<?=$type?>#list" method="post" onSubmit="return validate(this)">
+				<input type="hidden" name="sch_val" value="">
+				<table cellpadding="0" cellspacing="0" border="0" class="border_gray_e">
+				<tr>
+					<!-- 선수 검색 시작 -->
+					<th width="15%">검색조건</th>
+					<td>
+						<select name="s_gam_uid" tabindex="1" hname="대회선택" required>
+							<option value="">--선택-- </option>
+							<?
+								foreach($wp_games as $keys => $values){
+									if($keys == $s_gam_uid)
+										$is_selected = " selected";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>$values</option>";
+								}
+							?>
+						</select>
+						<?
+						 // 기록관리자이면
+						if($Admin_level == "2")
+						{
+							echo "<input type='hidden' name='spo_code' value='$spo_code'>";
+						}
+						else
+						{
+							echo "
+							<select name='spo_code' tabindex='2' hname='경기종목' onchange=\"reloadTournament(this.form,'0')\">
+								<option value=''>전체</option>
+							";
+								foreach($wp_sports_code as $keys => $values){
+									if($keys == $spo_code)
+										$is_selected = " selected ";
+									else $is_selected = "";
+									echo "<option value='$keys' $is_selected>&nbsp;&nbsp;┗$values</option>";
+								}
+							echo "</select>";
+						}
+						//echo $spo_sec_code;
+						if($spo_code=="ATHIETICS"){
+							if($spo_sec_code == "AS100") $is_selected1 = " selected ";
+							if($spo_sec_code == "AS200") $is_selected2 = " selected ";
+							echo "<select name='spo_sec_code' onchange=\"reloadTournament(this.form,'1')\">
+								<option value=''>선택</option>
+								<option value='AS100' $is_selected1>트랙</option>
+								<option value='AS200' $is_selected2>필드</option>
+								</select>
+							";
+						}
+						//게임 번호 검색
+						$g_where = " WHERE gam_uid = '$gam_uid' AND spo_code='$spo_code'";
+						if($spo_sec_code) $g_where .= " AND spo_sec_code = '$spo_sec_code'";
+						$g_que = "SELECT game_code FROM $tbName $g_where GROUP BY game_code ORDER BY game_code ASC";
+						$g_res = mysql_query($g_que);
+						echo "<select name='game_code' tabindex='2' hname='대진코드' onchange=\"reloadTournament(this.form,'2')\"><option value=''>선택</option>";
+
+						while($g_obj = mysql_fetch_object($g_res))
+						{
+							unset($is_choice);
+							if(!strcmp($g_obj->game_code,$game_code)){$is_choice = " selected";}
+							echo "<option value='$g_obj->game_code' $is_choice>&nbsp;&nbsp;┗ $g_obj->game_code</option>";
+						}
+						echo "</select>";
+						/*
+						if($spo_code=="DART"){
+							if($level == "2") $is_selected1 = " selected ";
+							if($level == "1") $is_selected2 = " selected ";
+							echo "<select name='level'>
+								<option value=''>선택</option>
+								<option value='2' $is_selected1>1차전</option>
+								<option value='1' $is_selected2>2차전</option>
+								</select>
+							";
+						}
+						*/
+
+						//토너먼트 게임이면 몇강인지 출력한다.
+						if(in_array($spo_code,$wp_tot_game)){ //토너먼트 게임이면
+							$l_where = " WHERE gam_uid = '$gam_uid' AND spo_code='$spo_code' AND game_code='$game_code'";
+							// 해당 경기의 토너먼트 시작을 검색
+							$l_que = "SELECT max(level) level FROM $tbName $l_where";
+							$l_res = mysql_query($l_que);
+							$l_obj = mysql_fetch_object($l_res);
+							$max_level = $l_obj->level;
+							echo "<select name='level' tabindex='2' hname='대진번호'><option value=''>선택</option>";
+								foreach($wp_game_level as $key_f => $val_f)
+								{
+									if($key_f > $max_level) continue;
+									unset($is_choice);
+									if($key_f == $level) $is_choice = " selected ";
+									echo "<option value='$key_f' $is_choice>&nbsp;&nbsp;┗$val_f</option>";
+								}
+							echo "</select>";
+						}
+						?>
+						<input type="button" name="sch" value="검색하기" tabindex="8" class="btnBox3" onclick="reloadTournament(this.form,'3')">
+					</td>
+				</tr>
+				</table>
+				</form>
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td class="table_sview_gradient" height="30">
+		<div style="float: left; font-size:10pt; letter-spacing:1px;"><b> 경기정보 :</b>
+			<a href="#none" onClick="find_tr.style.display=''"><b>[게임번호 열기]</b></a>
+		</div>
+		<div align="left"><a href="#none" onClick="find_tr.style.display='none'"><b>[게임번호 닫기]</b></a></div>
+	</td>
+</tr>
+<tr id="find_tr" style="display:show">
+	<td>
+		<table width="100%" border="0" cellpadding="0" cellspacing="1" bgcolor="#cacaca">
+		<tr bgcolor="#ffffff">
+		<?
+		if($spo_sec_code) $gn_where = " AND spo_sec_code = '$spo_sec_code'";
+		// 경기번호별 경기구분을 검색, 단체전(2),개인전(1),시군전(3)
+		
+		//2018.4.6 경기종료 전체 보이게
+		if($spo_code) {
+		
+		$gn_que = "SELECT * FROM wp_game_serial WHERE gam_uid='$gam_uid'  AND spo_code = '$spo_code' $gn_where GROUP BY game_code ORDER BY game_code ASC";
+      
+	    } else {
+
+		$gn_que = "SELECT * FROM wp_game_serial WHERE gam_uid='$gam_uid' $gn_where GROUP BY game_code ORDER BY game_code ASC";
+
+		}
+
+		//echo $gn_que;
+		$gn_res = mysql_query($gn_que);
+		$gn_tot = mysql_num_rows($gn_res);
+		$gn_cnt = 0;
+		while($obj = mysql_fetch_object($gn_res))
+		{
+			if($gn_cnt != 0 && $gn_cnt % 2 == 0)
+			{
+			//	echo "</tr><tr>";
+			}
+
+			// 종료된 경기면 문구를 출력한다 //
+			if($obj->game_done == 1)
+			{
+				$endTime = date('Y-m-d H:i', $obj->signdate); //경기종료시간 추가 2019.04.30일
+				$dg = "<td width='200'><font color='#FF0000'>[경기종료]</font>&nbsp;$endTime</td>";
+
+			}
+			else
+			{
+				$dg="<td width='200'></td>";
+			}
+
+			if($obj->test_game == 1){
+				$tg="<td width='130'><font color='#5555ff'>[미성립 세부경기]</font></td>";
+			}
+			else
+			{
+				$tg="<td width='130'></td>";
+			}
+
+			$tmp_game_kind = $game_kind_code[$obj->spo_code."-".$obj->spo_sec_code."-".$obj->spo_code_detail]; //개인전(1), 단체전(2), 시/군대항전(3)
+
+			if($obj->game_code == $game_code)
+			{
+				$game_kind = $tmp_game_kind;
+			}
+//if($obj->spo_code == "HANDLER") $game_kind = 2; // 구례에서 버그 잡기위하여 임시 작업
+			echo "<td bgcolor='f1f1f1' width='160'>$obj->game_code $dg $tg</td><td width='120'>".$wp_game_kind[$tmp_game_kind]."[$tmp_game_kind]</td><td bgcolor='#ffffff'>$obj->game_name</td>";
+			echo "</tr><tr bgcolor='#ffffff'>";
+			$gn_cnt ++;
+
+			//print_r($game_kind_code);
+			$game_name_code[$obj->game_code] = $obj->game_name;
+		}
+		?>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<?
+		//=== 대회 정보 체크 시작
+		//대회정보검색
+		if(!$s_gam_uid) return;
+		$query = "SELECT * FROM wp_game_ctrl where uid='$s_gam_uid'";
+
+		$result = mysql_query($query);
+		if (!$result) {
+		   	Error("QUERY_ERROR");
+		}
+		$obj = mysql_fetch_object($result);
+
+		//권한 체크 - 관리자, 주최관리자만 볼 수 있음
+		if(!$site_auth->isConn($cd_player,$Admin_auth)){
+			Error("AUTH_ERROR");
+			exit;
+		}
+		//진행중인 대회인지 확인
+		if($obj->status != "2" || $obj->isuse != "0"){ //승인된 대회가 아니면 에러
+			Error("END_GAME_ERROR");
+			exit;
+		}
+
+		//=== 대회 정보 체크 끝
+		//echo "TYPE:$type <br>";
+
+		if($spo_code && $sch_val && $game_code)
+		{
+			if($level == "3")
+			{
+				$level_txt = "3,4위전";
+			}
+			else if($level == "1")
+			{
+				$level_txt = "결승전";
+			}
+			else
+			{
+				$level_txt = $level."강";
+			}
+
+
+			echo "<div style='padding:10 0 10 0; font-size:13pt; font-weight:bold; color:#cc0000'><img src='../wp_icon/arrow_03.gif' valign='absmiddle'> $game_name_code[$game_code] $level_txt</div>";
+			//토너먼트 게임이면
+			if(in_array($spo_code,$wp_tot_game))
+			{
+				if($game_kind == "3")
+				{
+					require_once "G_TOURNAMENT_CITY.html";
+				}
+				else
+				{
+					require_once "G_TOURNAMENT.html";
+				}
+			}
+			else if(in_array($spo_code,$wp_score_game))
+			{
+				if($spo_code == "ATHIETICS")
+				{
+                    //2018년 여수대회부터 멀리뛰기 필드
+					if($game_code == 'ATHIETICS_AS100-53' || $game_code == 'ATHIETICS_AS100-54' || $game_code == 'ATHIETICS_AS100-55' || $game_code == 'ATHIETICS_AS100-55' || $game_code == 'ATHIETICS_AS100-56' )
+                    {
+                      $spo_sec_code = "AS200";
+					}
+
+					if($spo_sec_code) require_once "G_".$spo_code."_".$spo_sec_code.".html";
+				}
+				else
+				{
+					require_once "G_".$spo_code.".html";
+				}
+			}
+			else if(in_array($spo_code,$wp_league_game))
+			{
+				require_once "G_LEAGUE.html";
+			}
+		}
+		?>
+	</td>
+</tr>
+</table>
+
+
+

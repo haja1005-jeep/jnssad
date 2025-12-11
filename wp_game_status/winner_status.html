@@ -1,0 +1,251 @@
+<?php
+/**
+ * condition
+ * - s_gam_uid : 대회
+ * - clu_code : 시/군
+ * - spo_code : 종목
+ *
+ * table
+ * - wp_game_record // 기록 관리
+ * - wp_player_ctrl // 선수 관리
+ * + 수정사항
+ 1) 메달획득날짜
+    - 경기실적관리 -> 기록등록 -> 경기종료된 날짜 확인
+
+ 2) 선수들 장애유형이 나왔으면 좋겠습니다.
+
+ 3) 세부종목에서 "시범" 경기일 경우 별도의 버튼을 만들어서 보여줬으면 좋겠습니다.
+ */
+
+// 금메달 두개부터 체크
+$where = 'medal_cnt >= 2';
+
+// 대회
+if ($s_gam_uid) {
+    $where .= " AND t.gam_uid = '{$s_gam_uid}'";
+}
+
+// 시/군
+if ($clu_code) {
+    $where .= " AND t.clu_code = '{$clu_code}'";
+}
+
+// 종목
+if ($spo_code) {
+    $where .= " AND t.spo_code = '{$spo_code}'";
+}
+
+$sql = "
+    SELECT
+        t.*,
+        t2.name,
+        t2.picture_chg
+    FROM
+        (
+            SELECT
+                id,
+                gam_uid,
+                clu_code,
+                spo_code,
+                -- GROUP_CONCAT(game_code) as game_code,
+                GROUP_CONCAT(spo_sec_code) as spo_sec_code,
+                GROUP_CONCAT(spo_code_detail) as spo_code_detail,
+                GROUP_CONCAT(tro_code) as tro_code,
+                GROUP_CONCAT(tro_level_code) as tro_level_code,
+                GROUP_CONCAT(rank_tot) as rank_tot,
+                GROUP_CONCAT(test_game) as test_game,
+                -- SUM(if (rank_tot = 1, 1, 0)) as medal_cnt
+                COUNT(1) as medal_cnt
+            FROM
+                wp_game_record
+            WHERE
+                id != ''
+                AND rank_tot = 1
+                AND gam_uid = '{$s_gam_uid}'
+            GROUP BY id, gam_uid, clu_code
+        ) AS t
+        JOIN wp_player_ctrl AS t2 ON t.id = t2.wp_id
+    WHERE
+        {$where}
+    ORDER BY medal_cnt DESC, spo_code ASC
+";
+$result = mysql_query($sql);
+$total = mysql_num_rows($result);
+
+$html_list = '';
+while($list = mysql_fetch_object($result)) {
+    $sigun = $wp_club_code[$list->clu_code];
+    if ($list->picture_chg) {
+        $list->picture_chg = "<img src='" . $photo_path . urlencode($list->picture_chg) . "' class='thumb'>";
+    }
+
+    // 종목
+    $sports = $wp_sports_code[$list->spo_code] ? $wp_sports_code[$list->spo_code] : '';
+    $spo_code_txt = $wp_sports_code[$list->spo_code];
+
+    // 세부종목
+    $sec_code_arr    = @explode(',', $list->spo_sec_code);
+    $code_detail_arr = @explode(',', $list->spo_code_detail);
+    $tro_code_arr    = @explode(',', $list->tro_code);
+    $level_code_arr  = @explode(',', $list->tro_level_code);
+    $rank_tot_arr    = @explode(',', $list->rank_tot);
+    $test_game_arr   = @explode(',', $list->test_game);
+    //$game_code_arr   = @explode(',', $list->game_code);
+
+    $sports_detail_txt = '';
+    foreach ((array) $sec_code_arr as $key => $cd) {
+        $sec_code_txt   = getSpo_sec_code($list->spo_code, $cd);
+        $detail_txt     = $wp_sports_detail_code[$code_detail_arr[$key]];
+        $tro_code_txt   = $wp_trouble_code[$tro_code_arr[$key]];
+        $level_code_txt = $level_code_arr[$key];
+        //$game_code_txt  = $game_code_arr[$key];
+        $is_test        = $test_game_arr[$key];
+
+        $rank_txt = $rank_tot_arr[$key];
+        if (empty($rank_txt) || $rank_txt <> 1) continue;
+
+        $dtl = "<ol class='breadcrumb'>";
+        //$dtl .= "<li>" . $spo_code_txt . "</li>";
+        if ($sec_code_txt && $list->spo_code != 'ATHIETICS')   $dtl .= "<li>" . $sec_code_txt . "</li>";
+        if ($detail_txt)     $dtl .= "<li>" . $detail_txt . "</li>";
+        if ($tro_code_txt)   $dtl .= "<li>" . $tro_code_txt . "</li>";
+        if ($level_code_txt) $dtl .= "<li>" . $level_code_txt . "</li>";
+        //if ($game_code_txt)  $dtl .= "<li>" . $game_code_txt . "</li>";
+        if ($is_test)        $dtl .= "<li><span class='label label-primary'>시범</span></li>";
+        $dtl .= "</ol>";
+
+        $sports_detail_txt .= $dtl;
+    }
+
+    $html_list .= "
+    <tr>
+        <td>{$sigun}</td>
+        <td>{$list->name}</td>
+        <td>{$list->picture_chg}</td>
+        <td>" . number_format($list->medal_cnt) . "</td>
+        <td>{$sports}</td>
+        <td class='text-left'>{$sports_detail_txt}</td>
+        <td>" . $wp_games[$s_gam_uid] . "</td>
+        <td><button class='btn btn-info btn-xs' onclick=\"showPopup('winner_detail.html?gam_uid={$list->gam_uid}&player_id={$list->id}')\">상세정보</button></td>
+    </tr>
+    ";
+}
+
+$xlsUrl = "./winner_proc.php?mode=get_winner_xls&s_gam_uid={$s_gam_uid}&clu_code={$clu_code}&spo_code={$spo_code}";
+?>
+
+<style>
+    .table tr td .thumb {
+        width: 80px;
+    }
+    #modal-player {
+        width: 740px;
+    }
+    .breadcrumb {
+        margin-bottom:5px;
+    }
+</style>
+
+<!-- s : search form -->
+<?php require_once dirname(__FILE__) . "/search_form.html" ?>
+<!-- e : search form -->
+
+<div id="modal-player" style="display:none">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <b>OOO</b>님의 메달 획득 현황
+            <button type="button" class="close btn-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div id="player-detail"></div>
+    </div>
+</div>
+
+<div class="clearfix">
+    <div class="pull-left">
+        총 <?= number_format($total) ?>건
+    </div>
+    <div class="pull-right clearfix" style="margin-bottom:5px;">
+        <button type="button" class="btn btn-success btn-sm" onclick="location.href='<?= $xlsUrl ?>'"><span class="glyphicon glyphicon-save"></span> 엑셀 다운로드</button>
+    </div>
+</div>
+
+<table class="table table-bordered text-center">
+    <colgroup>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col width="100">
+    </colgroup>
+	<thead>
+		<tr>
+			<th>시군</th>
+			<th>선수명</th>
+			<th>사진</th>
+			<th>메달수</th>
+			<th>종목</th>
+			<th>세부종목</th>
+			<th>메달획득 일자</th>
+            <th>메뉴</th>
+		</tr>
+	</thead>
+	<tbody>
+		<?= $html_list ?>
+	</tbody>
+</table>
+
+<script>
+
+    function showPopup(str)
+    {
+        window.open(str,'detail','width=900,height=780,scrollbars=yes');
+    }
+    /*
+    $(function() {
+        var _width = $(window).width();
+        var _x = (_width/2) - 370;
+
+        var gam_uid = "<?= $s_gam_uid ?>";
+
+        $('body').on('click', '[data-btn=btn-detail]', function() {
+            var _id = $(this).data('id');
+            var _name = $(this).data('name');
+            var _this = $(this);
+
+            if (_name) {
+                $('.panel-heading b').html(_name);
+            }
+
+            $.ajax({
+                type: 'post',
+                url: './winner_proc.php',
+                data: {mode : 'get_player_data', player_id : _id, s_gam_uid : gam_uid},
+                dataType: 'json',
+                beforeSend: function() {
+                    _this.html('<img src="/wp_icon/ajax-loader.gif" alt="loading">');
+                },
+                success: function(d) {
+                    if (d.code == 200) {
+                        $('#player-detail').html(d.html);
+
+                        $('#modal-player').bPopup({
+                            closeClass: 'btn-close',
+                            positionStyle: 'fixed',
+                            position: [_x, 150]
+                        });
+                    }
+                },
+                complete: function() {
+                    _this.html('상세정보');
+                },
+                error: function(request,status,error) {
+                    console.log(request.responseText);
+                }
+            });
+        });
+    });
+    */
+</script>

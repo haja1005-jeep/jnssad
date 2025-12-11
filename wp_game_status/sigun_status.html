@@ -1,0 +1,145 @@
+<?php
+/**
+ * condition
+ * - s_gam_uid : 대회
+ * - clu_code : 시/군
+ * - spo_code : 종목
+ *
+ * table
+ * - wp_game_record // 기록 관리
+ * - wp_player_ctrl // 선수 관리
+ */
+
+// 획득한 메달이 있는 경우만...
+$where = 'pla_name NOT IN("add_point", "base")';
+
+// 대회
+if ($s_gam_uid) {
+    $where .= " AND t.gam_uid = '{$s_gam_uid}'";
+}
+
+// 시/군
+if ($clu_code) {
+    $where .= " AND t.clu_code = '{$clu_code}'";
+}
+
+// 종목
+if ($spo_code) {
+    $where .= " AND t.spo_code = '{$spo_code}'";
+}
+
+$sql = "
+    SELECT
+        t.*,
+        if (t.rank='', 100, rank) as rank,
+        (t.score + t.medal_score) AS total_score,
+        t2.game_name
+    FROM
+        wp_score AS t
+        LEFT JOIN wp_game_serial AS t2 ON t.game_code = t2.game_code AND t.gam_uid = t2.gam_uid
+    WHERE
+        {$where}
+    ORDER BY game_code ASC, rank ASC
+";
+//dump($sql);
+
+$result = mysql_query($sql);
+$total = mysql_num_rows($result);
+
+$html_list = '';
+while($obj = mysql_fetch_object($result)) {
+    //dump($list);
+
+    $sports = $wp_sports_code[$obj->spo_code] ? $wp_sports_code[$obj->spo_code] : '';
+    if (!empty($obj->rank) && $obj->rank >=5) {
+        //$obj->rank = 5;
+    }
+    if ($obj->rank == 100) $obj->rank = ''; // 순서상 제일 아래로 내리기 위해 숫자를 높였음. 그래서 제거함.
+    $rank_txt = !empty($obj->rank) ? $obj->rank . '위' : '';
+
+    $etc = array();
+    $etc[] = getGameKindTxt($obj->game_kind);
+    if ($obj->note) {
+        $etc[] = $obj->note;
+    }
+    $etcTxt = implode(' - ', $etc);
+
+    // 구기단체종목(골볼, 좌식배구, 축구)는 가산점 100점 추가
+    $isTeamPlayer = 0;
+    if($obj->spo_code == "GOALBALL"
+        || $obj->spo_code == "VOLLEYBALL"
+        || $obj->spo_code == "FOOTSAL") {
+        $isTeamPlayer = 100;
+    }
+
+    $html_list .= "
+    <tr>
+        <td>{$sports}</td>
+        <td>{$etcTxt}</td>
+        <td class='text-left'>{$obj->game_name}</td>
+        <td>{$obj->pla_name}</td>
+
+        <td>{$rank_txt}</td>
+        <td class='text-right'>" . number_format($obj->total_score) . "</td>
+        <td class='text-right'>" . number_format($obj->score) . "</td>
+        <td class='text-right'>" . number_format($obj->medal_score) . "</td>
+        <td class='text-right'>". number_format($isTeamPlayer) ."</td>
+        <td></td>
+    </tr>
+    ";
+}
+
+if (!$total) {
+    $html_list .= "
+    <tr>
+        <td colspan='9' class='text-center'>검색된 내역이 없습니다.</td>
+    </tr>
+    ";
+}
+
+/**
+ * 경기종류
+ */
+function getGameKindTxt($game_kind)
+{
+    $etc = '';
+    if ($game_kind==1) {
+        $etc = '<span class="label label-default">개인전</span>';
+    } else if ($game_kind==2) {
+        $etc = '<span class="label label-info">단체전</span>';
+    } else if ($game_kind==3) {
+        $etc = '<span class="label label-danger">시/군대항전</span>';
+    }
+
+    return $etc;
+}
+?>
+
+
+<!-- s : search form -->
+<?php require_once dirname(__FILE__) . "/search_form.html" ?>
+<!-- e : search form -->
+
+<!-- <div class="pull-right clearfix" style="margin-bottom:5px;">
+    <button type="button" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-save"></span> 엑셀 다운로드</button>
+</div> -->
+<table class="table table-bordered text-center">
+	<thead>
+		<tr>
+			<th>종목</th>
+            <th>경기번호</th>
+			<th>세부종목</th>
+			<th>성명</th>
+
+			<th>순위</th>
+			<th>득점합계</th>
+			<th>기본득점</th>
+			<th>메달가산점</th>
+            <th>단체종목점수<br>(골볼,배구,축구)</th>
+            <th >비고</th>
+		</tr>
+	</thead>
+	<tbody>
+		<?= $html_list ?>
+	</tbody>
+</table>

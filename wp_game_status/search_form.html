@@ -1,0 +1,76 @@
+<?php
+/**
+ * 검색 폼
+ */
+
+// 관리자가 아니면 최근 1개의 대회만 보여줘라.
+if ($Admin_auth != "top") {
+    $seq = 1;
+    $data = array();
+    foreach((array) $wp_games as $key => $val) {
+        if ($seq==1) {
+            $data[$key] = $val;
+        }
+        $seq++;
+    }
+    $wp_games = $data;
+}
+?>
+<div style="width:900px;">
+    <form name="fsearch" method="get" class="form-inline">
+        <input type="hidden" name="mode" value="<?= $mode ?>">
+    	<table class="table table-bordered">
+    		<colgroup>
+                <col width="10%">
+                <col width="23%">
+    			<col width="10%">
+    			<col width="23%">
+    			<col width="10%">
+    			<col>
+    		</colgroup>
+    		<tbody>
+    			<tr>
+                    <th>대회</th>
+                    <td>
+                        <select name="s_gam_uid" class="form-control input-sm">
+                            <option value=''>-대회선택-</option>
+                            <?php
+                            foreach($wp_games as $keys => $values){
+                                $is_selected = ($keys == $s_gam_uid) ? "selected" : "";
+                            ?>
+                            <option value="<?= $keys ?>" <?= $is_selected ?>><?= $values ?></option>
+                            <?php } ?>
+                        </select>
+                    </td>
+    				<th>시군</th>
+    				<td>
+    					<select name="clu_code" class="form-control input-sm">
+    						<option value=''>-시/군선택-</option>
+    						<?php
+    						foreach ((array)$wp_club_code as $keys => $values) {
+    							$is_selected = ($keys == $clu_code) ? "selected" : "";
+    						?>
+    						<option value="<?= $keys ?>" <?= $is_selected ?>><?= $values ?></option>
+    						<?php } ?>
+    					</select>
+    				</td>
+    				<th>종목</th>
+    				<td>
+    					<select name="spo_code" class="form-control input-sm">
+    						<option value=''>-경기종목-</option>
+    						<?php
+    						foreach ((array)$wp_sports_code as $keys => $values) {
+    							$is_selected = ($keys == $spo_code) ? "selected" : "";
+    						?>
+    						<option value="<?= $keys ?>" <?= $is_selected ?>><?= $values ?></option>
+    						<?php } ?>
+    					</select>
+    					<span class="pull-right">
+    						<button type="submit" name="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-search"></span> 검색</button>
+    					</span>
+    				</td>
+    			</tr>
+    		</tbody>
+    	</table>
+    </form>
+</div>

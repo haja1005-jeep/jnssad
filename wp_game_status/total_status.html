@@ -1,0 +1,439 @@
+<?php
+/**
+ * condition
+ * - s_gam_uid : 대회
+ * - clu_code : 시/군
+ * - spo_code : 종목
+ *
+ * table
+ * - wp_game_record // 기록 관리
+ * - wp_player_ctrl // 선수 관리
+ */
+// 획득한 메달이 있는 경우만...
+$where = 'pla_name NOT IN("add_point", "base")';
+
+// 대회
+if ($s_gam_uid) {
+    $where .= " AND t.gam_uid = '{$s_gam_uid}'";
+}
+
+// 시/군
+if ($clu_code) {
+    $where .= " AND t.clu_code = '{$clu_code}'";
+}
+
+// 종목
+if ($spo_code) {
+    $where .= " AND t.spo_code = '{$spo_code}'";
+}
+
+// 전체시군
+$sql = "
+    SELECT COUNT(DISTINCT clu_code) AS cnt
+    FROM wp_game_player
+    WHERE gam_uid = '{$s_gam_uid}'
+";
+$result = mysql_query($sql);
+$data = mysql_fetch_assoc($result);
+$reg_all_city_cnt = !empty($data['cnt']) ? $data['cnt'] : 0;
+
+// 리스트
+$sql = "
+    SELECT
+        t.*,
+        (t.score + t.medal_score) AS total_score,
+        t2.game_name,
+        t2.sex,
+        t2.spo_sec_code,
+        t2.spo_code_detail,
+        (
+            SELECT COUNT(distinct clu_code)
+            FROM wp_game_record
+            WHERE gam_uid = t.gam_uid
+            AND game_code = t.game_code
+        ) AS reg_city_cnt,
+        CASE
+            WHEN t2.spo_code = 'ATHIETICS' THEN
+            (
+                SELECT player_cnt
+                FROM wp_sports_event_detail
+                WHERE
+                    gam_uid = t.gam_uid
+                    AND spo_code = t.spo_code
+                    AND code = t2.spo_sec_code
+                    AND sex = t2.sex
+                    AND code_detail = t2.spo_code_detail
+            )
+            ELSE
+            (
+                SELECT player_cnt
+                FROM wp_sports_event_detail
+                WHERE
+                    gam_uid = t.gam_uid
+                    AND spo_code = t.spo_code
+                    AND sex = t2.sex
+                    AND code_detail = t2.spo_code_detail
+            )
+        END AS score_cnt,
+        t3.gam_type,
+        t3.gam_kind
+    FROM
+        wp_score AS t
+        LEFT JOIN wp_game_serial AS t2 ON t.game_code = t2.game_code AND t.gam_uid = t2.gam_uid
+        LEFT JOIN wp_sports_event AS t3 ON t.gam_uid = t3.gam_uid AND t.spo_code = t3.code
+    WHERE
+        {$where}
+    ORDER BY t.game_code ASC, rank ASC
+";
+if ($_SERVER['REMOTE_ADDR'] == '125.191.246.187') {
+    //dump($sql);
+}
+
+$result = mysql_query($sql);
+$total = mysql_num_rows($result);
+
+$html_list = '';
+
+
+while($obj = mysql_fetch_object($result)) {
+
+    // 경기 참여 인원
+    if($obj->gam_kind == "score") { // 기록경기이면
+        //역도경기는 별도관리
+        if($obj->spo_code == "POWERLIFTING") {
+            $query = "SELECT * FROM wp_game_record WHERE gam_uid = '{$obj->gam_uid}' AND game_code = '{$obj->game_code}' GROUP BY id";
+        } else {
+            $query = "SELECT * FROM wp_game_record WHERE gam_uid = '{$obj->gam_uid}' AND game_code = '{$obj->game_code}'";
+        }
+    } else if ($obj->gam_kind == "tot") { // 토너먼트경기이면
+        if($obj->game_kind == "1") { // 개인전이면
+            $query = "SELECT count(clu_code) city FROM wp_game_record WHERE gam_uid = '{$obj->gam_uid}' AND game_code = '{$obj->game_code}' GROUP BY id";
+        }
+        if($obj->game_kind == "2") { // 단체전이면
+            $query = "SELECT count(clu_code) city FROM wp_game_record WHERE gam_uid = '{$obj->gam_uid}' AND game_code = '{$obj->game_code}' GROUP BY clu_code, group_no";
+        } else if ($obj->game_kind == "3") { // 시/군대항전이면
+            $query = "SELECT count(clu_code) city FROM wp_game_record WHERE gam_uid = '{$obj->gam_uid}' AND game_code = '{$obj->game_code}' GROUP BY clu_code";
+        }
+    }
+    $rsQry = mysql_query($query);
+    $player_cnt = mysql_num_rows($rsQry);
+    unset($query);
+
+    // 참여시군 (중복가능)
+    $query = "
+        SELECT clu_code
+        FROM wp_game_record
+        WHERE
+            gam_uid = '{$obj->gam_uid}'
+            AND game_code = '{$obj->game_code}'
+        GROUP BY clu_code, group_str
+    ";
+    $rsQry = mysql_query($query);
+    $city_count = mysql_num_rows($rsQry);
+    unset($query);
+
+    // 예외조건 추가 - //2018년 26회 여수대회. 대진표 표준 맞지 않아서..
+    if ($obj->gam_uid == 15) {
+        if($obj->game_code == 'VOLLEYBALL_VB100-01') {
+            $obj->reg_city_cnt = 8;
+            $city_count = 8;
+            $player_cnt = 8;
+        }
+        if($obj->game_code == 'GATEBALL_GB100-01') {
+            $obj->reg_city_cnt = 20;
+            $city_count = 20;
+            $player_cnt = 20;
+        }
+        if($obj->game_code == 'BADUK_BD100-01') {
+            $obj->reg_city_cnt = 10;
+            $city_count = 10;
+            $player_cnt = 10;
+        }
+        if($obj->game_code == 'BADUK_BD100-02') {
+            $obj->reg_city_cnt = 7;
+            $city_count = 7;
+            $player_cnt = 7;
+        }
+
+        if($obj->game_code == 'BADUK_BD100-04') {
+            $obj->reg_city_cnt = 6;
+            $city_count = 6;
+            $player_cnt = 7;
+        }
+
+        if($obj->game_code == 'BOWLING_BL300-25') {
+            $obj->reg_city_cnt = 4;
+            $city_count = 4;
+            $player_cnt = 4;
+        }
+
+
+
+    }
+
+
+
+
+
+    $rank_start = $city_count; // 참가시군
+    if ($obj->gam_kind == 'score') { // 기록경기 : wp_sports_event
+        if ($obj->game_kind == '1') { // 개인전 : score
+            $rank_start = $player_cnt;
+        }
+
+        if ($rank_start > 8) $rank_start = 8;
+    } else if ($obj->gam_kind == 'tot') {
+        if ($player_cnt > 8) {
+            $rank_start = 8;
+        } else {
+            $rank_start = $player_cnt;
+        }
+    }
+
+    // 기준점수 리스트 추출
+    $query = "
+        SELECT *
+        FROM
+            wp_score_table
+        WHERE
+            gam_uid = '{$obj->gam_uid}'
+            AND spo_code = '{$obj->spo_code}'
+            AND player_cnt = '{$obj->score_cnt}'
+    ";
+    $result2 = mysql_query($query);
+    $list = mysql_fetch_assoc($result2);
+    unset($query);
+
+    // 기준점수 테이블 재작성
+    $rc1 = 9 - $rank_start;
+    $score_tbl = array();
+    for ($r=1; $r<=8; $r++) {
+        $rc1 = ($r==1) ? $rc1 : ($rc1+1);
+        $score_tbl[$r] = $list['score_' . $rc1];
+    }
+
+    // 참가시군이 8개 미만일경우 참가시군 이상의 순위는 0으로 설정
+    for($i = $rank_start+1; $i <= 8; $i++) {
+        $score_tbl[$i] = 0;
+    }
+
+    // 토너먼트경기이면
+    if ($obj->gam_kind == 'tot') {
+        if($rank_start == 4) {
+            $rank5678 = 0;
+        } else {
+            $rank5678 = ($score_tbl[5] + $score_tbl[6] + $score_tbl[7] + $score_tbl[8]) / ($rank_start - 4);
+        }
+
+        $score_tbl[5] = $score_tbl[6] = $score_tbl[7] = $score_tbl[8] = $rank5678;
+    }
+
+    // 기준점수 추출
+    $default_score = !empty($score_tbl[$obj->rank]) ? $score_tbl[$obj->rank] : 0;
+
+    // 점수계산
+    $cal_score = round($default_score * $obj->reg_city_cnt / ($reg_all_city_cnt * 0.01));
+    if ($obj->gam_type == 2) {
+        $cal_score = round($cal_score / 2);
+    }
+
+    // 구기단체종목(골볼, 좌식배구, 축구)는 가산점 100점 추가
+    $teamPlayerPoint = '';
+    if($obj->spo_code == "GOALBALL"
+        || $obj->spo_code == "VOLLEYBALL"
+        || $obj->spo_code == "FOOTSAL") {
+        $cal_score += 100;
+        $teamPlayerPoint = 100;
+    }
+
+    // 비고
+    $etc = array();
+    $etc[] = getGameKindTxt($obj->game_kind);
+    if ($obj->note) $etc[] = $obj->note;
+    $etcTxt = implode(' - ', $etc);
+
+    // 순위
+    $rankTxt = showRank($obj->rank);
+
+    // 메달점수 - 오류날 확률이 없을 듯.
+    // $medal_score = getMedalScore($obj->rank);
+
+    //$isDiff = ($obj->score != $cal_score) ? 'style="background-color:yellow"' : '';
+
+    /*
+    $dp = "
+    <pre style='text-align:left'>
+    * score uid : {$obj->uid}
+    * 식 : $default_score * $obj->reg_city_cnt / ($reg_all_city_cnt * 0.01)
+    * spo_code : {$obj->spo_code}
+    * game_code : {$obj->game_code}
+    * gam_kind(evt) : {$obj->gam_kind}
+    * gam_type(evt) : {$obj->gam_type}
+    * game_kind(score) : {$obj->game_kind}
+    * player_cnt : {$player_cnt}
+    * reg_city_cnt : {$obj->reg_city_cnt}
+    * city_count : {$city_count}
+    * rank_start : {$rank_start}
+    * sex : {$obj->sex}
+    * rank : {$obj->rank}
+    * spo_code_detail : {$obj->spo_code_detail}
+    * 계산점수 : {$cal_score}
+    ---
+    * 기준표
+    ---
+    ".print_r($list, true)."
+    ".print_r($score_tbl, true)."
+    </pre>
+    ";
+    */
+    //if (empty($isDiff)) $dp = '';
+
+    // html
+    $html_list .= "
+        <tr {$cls}>
+            <td>" . $wp_sports_code[$obj->spo_code] . "</td>
+            <td>{$etcTxt}</td>
+            <td class='text-left'>{$obj->game_name}{$dp}</td>
+            <td>" . $sigun_code[$obj->clu_code] . "</td>
+            <td>{$obj->pla_name}</td>
+
+
+            <td>{$rankTxt}</td>
+            <td class='text-right'>{$default_score}</td>
+            <td class='text-right'>{$obj->reg_city_cnt}</td>
+            <td class='text-right'>{$reg_all_city_cnt}</td>
+            <td class='text-right'>100</td>
+            <td class='text-right' {$isDiff}>".number_format($obj->score)."</td>
+            <td class='text-right'>".number_format($obj->medal_score)."</td>
+            <td class='text-right'>{$teamPlayerPoint}</td>
+            <td class='text-right'>".number_format($obj->score + $obj->medal_score)."</td>
+			<td></td>
+
+        </tr>
+    ";
+
+
+
+
+}
+
+
+
+
+
+if (!$total) {
+    $html_list .= "
+    <tr>
+        <td colspan='14' class='text-center'>검색된 내역이 없습니다.</td>
+    </tr>
+    ";
+}
+
+/* --------------------------
+    FUNCTIONS
+--------------------------- */
+function showRank($rank)
+{
+    if (!empty($rank) && $rank >=5) $rank = 5;
+    return !empty($rank) ? $rank . '위' : '';
+}
+
+/**
+ * 메달종류에 따른 가산점
+ */
+function getMedalScore($rank)
+{
+    $score = 0;
+    if ($rank==1) $score = 60;
+    else if ($rank==2) $score = 40;
+    else if ($rank==3) $score = 20;
+
+    return $score;
+}
+
+/**
+ * 경기종류
+ */
+function getGameKindTxt($game_kind)
+{
+    $etc = '';
+    if ($game_kind==1) {
+        $etc = '<span class="label label-default">개인전</span>';
+    } else if ($game_kind==2) {
+        $etc = '<span class="label label-info">단체전</span>';
+    } else if ($game_kind==3) {
+        $etc = '<span class="label label-danger">시/군대항전</span>';
+    }
+
+    return $etc;
+}
+?>
+
+<!-- s : search form -->
+<?php require_once dirname(__FILE__) . "/search_form.html" ?>
+<!-- e : search form -->
+
+<style>
+.well {
+    margin-bottom: 0;
+    padding:5px;
+}
+table tbody td span {
+    font-size: 15px;
+}
+table tbody tr.line td {
+    border-bottom:1px solid #000;
+}
+</style>
+
+<!-- <div class="pull-right clearfix" style="margin-bottom:5px;">
+    <button type="button" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-save"></span> 엑셀다운</button>
+</div> -->
+
+<table class="table table-bordered table-hover text-center">
+    <colgroup>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+        <col>
+    </colgroup>
+	<thead>
+        <tr>
+            <th rowspan="2">종목</th>
+            <th rowspan="2">경기번호</th>
+            <th rowspan="2">세부종목</th>
+            <th rowspan="2">시/군명</th>
+            <th rowspan="2">성명</th>
+
+
+            <th rowspan="2">순위</th>
+            <th colspan="4">산출공식</th>
+            <th rowspan="2">점수</th>
+            <th rowspan="2">메달가산점</th>
+            <th rowspan="2">단체종목점수<br>(골볼, 배구, 축구)</th>
+            <th rowspan="2">총점수</th>
+            <th rowspan="2">비고</th>
+
+        </tr>
+        <tr>
+            <th>기준점수X</th>
+            <th>참가시군</th>
+            <th>/전체시군</th>
+            <th>*100</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?= $html_list ?>
+    </tbody>
+</table>

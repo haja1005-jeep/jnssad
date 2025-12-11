@@ -1,0 +1,283 @@
+<?
+header("Content-type: application/vnd.ms-excel");
+header("Content-Disposition: attachment; filename=경기기록.xls");
+header("Content-Description: PHP4 Generated Data");
+
+// Session 시작 //
+session_start();
+
+// Mysql 클래스 //
+require_once "../wp_library/mysql_class.php";
+// DB 생성 //
+$Mysql = new Mysql;
+// DB 연결 //
+$Mysql->Connect();
+
+// Setup 설정 //
+require_once "../wp_library/setup.php";
+
+// Paging 클래스 //
+require_once "../wp_library/page_class.php";
+
+// Error 함수 //
+require_once "../wp_library/check.php";
+
+?>
+<table width="100%" border="1" cellspacing="0" cellpadding="0">
+	<tr>
+		<th width="5%">번호</th>
+		<th width="20%">게임번호</th>
+		<th width="6%">시/군</th>
+		<th width="6%">선수명</th>
+		<th>종목</th>
+		<th>장애등급</th>
+		<th>세부종목</th>
+		<?
+		if($spo_code == "BOWLING")
+		{
+			echo "<th width='6%'>1G</th>";
+			echo "<th width='6%'>2G</th>";
+			echo "<th width='6%'>3G</th>";
+			echo "<th width='6%'>총점</th>";
+		}
+		else if($spo_code == "POWERLIFTING")
+		{
+			echo "<th width='10%'>종목</th>";
+			echo "<th width='6%'>1차</th>";
+			echo "<th width='6%'>2차</th>";
+			echo "<th width='6%'>3차</th>";
+		}
+		else
+		{
+			echo "<th width='6%'>기록</th>";
+		}
+		?>
+		<th width="3%">순위</th>
+	</tr>
+	<?
+	//ORDER BY절 생성
+	//출력순
+	if(!$orderby1 && !$orderby2 && !$orderby3 && !$orderby4)
+		$orderby = " game_code ASC, rank_tot ASC,";
+	if($orderby1)
+		$orderby = " $orderby1 ASC, ";
+	if($orderby2)
+		$orderby = " $orderby2 ASC, ";
+	if($orderby3)
+		$orderby = " $orderby3 ASC, ";
+	if($orderby4)
+		$orderby = " $orderby4 ASC, ";
+	if($spo_code == "POWERLIFTING")
+		$orderby = " game_code ASC,spo_sec_code ASC, rank_tot ASC,";
+	$orderby .= " uid desc ";
+
+	//WHERE절 생성 //
+	$where = " WHERE gam_uid='$s_gam_uid' ";
+
+	//경기번호
+	if($game_code)
+	{
+		$where .= " AND  game_code = '$game_code'";
+	}
+	//시/군선택
+	if($clu_code) $where .= " AND clu_code='$clu_code'";
+	//종목선택
+	if($spo_code) $where .= " AND spo_code='$spo_code'";
+	if($spo_code == "POWERLIFTING")
+	{
+		 $where .= " AND spo_sec_code in ('PL100','PL400')";
+	}
+	else
+	{
+		//2차종목선택
+		if($spo_sec_code) $where .= " AND spo_sec_code='$spo_sec_code'";
+	}
+	//순위 입상자만.
+	if($rank) $where .= " AND rank_tot in(1,2,3) ";
+	//시범경기제외
+	if($test_game == "1") $where .= " AND test_game <> '1' ";
+	//시범경기만
+	if($test_game1 == "1") $where .= " AND test_game = '1' ";
+	//기권자만
+	if($giveup == "1"){
+		$where .= " AND (record_tot is null or record_tot in ('-','','0')) ";
+	}
+	if(eregi("[^[:space:]]+",$key))
+		$where .= " AND  $keyfield LIKE '%$key%' ";
+
+	// 레코드 쿼리 //
+	$query = "SELECT * FROM wp_game_record $where ORDER BY $orderby  ";
+	//echo $query;
+	$result = mysql_query($query);
+	if(!$result)
+	{
+		Error("QUERY_ERROR");
+		exit;
+	}
+
+	$article_num = mysql_num_rows($result);
+	// 레코드 결과 //
+	while($obj = mysql_fetch_object($result))
+	{
+
+		$my_spo_sec_code = getSpo_sec_code($obj->spo_code, $obj->spo_sec_code);
+		$signdate_d = date('Y.m.d',$obj->signdate);
+
+		$my_game_code = $obj->game_code;
+
+		if($obj->rank_tot =="" || $obj->rank_tot =="0") $my_rank = "";
+		else $my_rank = $obj->rank_tot."위";
+
+		$my_spo_txt = "";
+		if($obj->spo_code == "ATHIETICS"){
+			$my_spo_code = $wp_sports_code[$obj->spo_code]." ".$my_spo_sec_code;
+		}
+		else if($obj->spo_code == "POWERLIFTING"){
+			$rowspan = " rowspan='3'";
+			$my_spo_txt = $wp_sports_code[$obj->spo_code]."|".$wp_sports_detail_code[$obj->spo_code_detail]."|".$wp_trouble_code[$obj->tro_code]."|".$my_spo_sec_code;
+			if($obj->spo_sec_code == "PL100"){
+				$_t_1 = "파워리프팅";
+				$_t_2 = "웨이트리프팅";
+				$_t_3 = "종합";
+			}
+			if($obj->spo_sec_code == "PL400"){
+				$_t_1 = "스쿼트";
+				$_t_2 = "데드리프트";
+				$_t_3 = "종합";
+			}
+		}
+		else
+		{
+			$my_spo_code = $wp_sports_code[$obj->spo_code];
+		}
+		$my_spo_code_detail = $wp_sports_detail_code[$obj->spo_code_detail];
+		$my_tro_level_code = getTrouble_level_code($obj->spo_code,$obj->tro_level_code);
+		$my_tro_level = $wp_trouble_code[$obj->tro_code]."[".$my_tro_level_code."($obj->tro_level_code)]";
+
+		if($obj->spo_code == "POWERLIFTING"){
+			$my_tro_level = $wp_trouble_code[$obj->tro_code]."[".$my_spo_sec_code."]";
+		}
+
+		if($obj->test_game) $game_info = "<font color='#0000ff'>[시범경기]</font>";
+		else $game_info = "";
+
+	?>
+	<tr <?=$bgcolor?>>
+		<td align="center" style='mso-number-format:"\@";'  <?=$rowspan?>><?=$article_num?></td>
+		<td align="center" style='mso-number-format:"\@";'  <?=$rowspan?>><?=$my_game_code?></td>
+		<td align="center" style='mso-number-format:"\@";'  <?=$rowspan?>><?=$wp_club_code[$obj->clu_code]?></td>
+		<td align="center" style='mso-number-format:"\@";'  <?=$rowspan?>><?=$obj->name?></td>
+		<td align="center" style='mso-number-format:"\@";'  <?=$rowspan?>><?=$my_spo_code?></td>
+		<td align="center" style='mso-number-format:"\@";'  <?=$rowspan?>><?=$my_tro_level?></td>
+		<td align="center" style='mso-number-format:"\@";'  <?=$rowspan?>><?=$my_spo_code_detail?></td>
+		<?
+		// 기록 경기면
+		if(in_array($spo_code, $wp_score_game))  //기록경기이면
+		{
+			if($obj->spo_code == "BOWLING")
+			{
+				echo "
+					<td align='center'>$obj->record_01</td>
+					<td align='center'>$obj->record_02</td>
+					<td align='center'>$obj->record_03</td>
+					<td align='center'>$obj->record_tot</td>
+					<td align='center'>$my_rank</td>
+				";
+			}
+			else if($obj->spo_code == "POWERLIFTING")
+			{
+				echo "
+					<td align='center'>$_t_1</td>
+					<td align='center'>$obj->record_01</td>
+					<td align='center'>$obj->record_02</td>
+					<td align='center'>$obj->record_03</td>
+					<td align='center'>$my_rank</td>
+				";
+			}
+			else if($obj->spo_code == "ATHIETICS")
+			{
+				if($obj->spo_sec_code == "AS100")
+				{
+					// 초를 시:분:초로 환산 //
+					$my_time = explode(".", $obj->record_tot);
+					$my_minute = getTimeFromSeconds($my_time[0]);
+					echo "<td align='center'>".$my_minute.".".$my_time[1]."</td>
+						<td align='center'>$my_rank</td>
+					";
+				}
+				else
+				{
+					echo "<td align='center'>$obj->record_best</td>
+						<td align='center'>$my_rank</td>
+					";
+				}
+			}
+			else
+			{
+				echo "<td align='center'>$obj->record_tot</td>
+					<td align='center'>$my_rank</td>
+				";
+			}
+		}
+		else if(in_array($spo_code, $wp_tot_game)) //토너먼트 게임이면
+		{
+			echo "<td align='center'>$obj->record_tot</td>
+					<td align='center'>$my_rank</td>
+				";
+		}
+		else
+		{
+			// 개인전이거나 단체전이면
+			if($obj->game_kind == "1" || $obj->game_kind == "2")
+			{
+				echo "<td align='center'>$obj->record_tot</td>
+					<td align='center'>$my_rank</td>
+				";
+			}
+			else
+			{
+				echo "<td align='center'>$obj->record_tot</td>
+					<td align='center'>$my_rank</td>
+				";
+			}
+		}
+		?>
+	</tr>
+	<?
+		// 역도이면 나머지 세경기를 검색하여 출력한다.
+		if($obj->spo_code == "POWERLIFTING"){
+			if($obj->spo_sec_code == "PL100")
+			{
+				$p_que = "SELECT * FROM wp_game_record WHERE gam_uid='$s_gam_uid' AND game_code='$obj->game_code' AND id='$obj->id' AND spo_sec_code in ('PL200','PL300') ORDER BY spo_sec_code ASC";
+			}
+			else
+			{
+				$p_que = "SELECT * FROM wp_game_record WHERE gam_uid='$s_gam_uid' AND game_code='$obj->game_code' AND id='$obj->id' AND spo_sec_code in ('PL500','PL600') ORDER BY spo_sec_code ASC";
+			}
+			$p_res = mysql_query($p_que);
+			while($p_obj = mysql_fetch_object($p_res))
+			{
+				$_title = $_t_2;
+				if($p_obj->spo_sec_code == "PL300" || $p_obj->spo_sec_code == "PL600")
+					$_title = $_t_3;
+			echo "
+				<tr>
+					<td align='center'>$_title</td>
+					<td align='center'>$p_obj->record_01</td>
+					<td align='center'>$p_obj->record_02</td>
+					<td align='center'>$p_obj->record_03</td>
+					<td align='center'>{$p_obj->rank_tot}위</td>
+				</tr>
+				";
+			}
+		}
+
+		unset($my_rank);
+		unset($my_clu_code);
+		unset($my_spo_sec_code);
+		unset($my_spo_code_detail);
+		$article_num--;
+	}//for
+?>
+</table>
+

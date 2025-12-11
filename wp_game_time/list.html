@@ -1,0 +1,109 @@
+<form name="schForm" action="index.html?mode=input" method="post">
+<table class="tbSearch-c">
+<tr>
+	<th>대회선택</th>
+	<td>
+		<select name="gam_uid" tabindex="1" hname="대회선택" required>
+			<option value="">--선택-- </option>
+			<?
+				foreach($wp_games as $keys => $values)
+				{
+					if($keys == $gam_uid)
+					{
+						$is_selected = " selected";
+					}
+					else
+					{
+					 	$is_selected = "";
+					}
+					echo "<option value='$keys' $is_selected>$values</option>";
+				}
+			?>
+		</select>
+	</td>
+</tr>
+</table>
+<table class="tbList-a">
+<tbody>
+<tr>
+	<th width="10%" rowspan="2">경기종목</th>
+	<th colspan="2">경기일정(2일)</th>
+	<th width="10%">경기장</th>
+	<th width="20%" colspan="2">종목별 담장자</th>
+	<th width="5%" rowspan="2">수정</th>
+</tr>
+<tr>
+	<th width="8%">6/11(목)</th>
+	<th width="10%">6/12(금)</th>
+	<th>장소</th>
+	<th width="10%">고흥군</th>
+	<th width="10%">경기단체 담당자</th>
+</tr>
+<?
+$que = "SELECT * FROM wp_game_time WHERE gam_uid='$gam_uid' ORDER BY sort";
+$res = mysql_query($que);
+while($obj = mysql_fetch_object($res))
+{
+	// 경기종목 //
+	foreach($wp_sports_code as $keys => $values)
+	{
+		if($obj->spo_code == $keys)
+		{
+			$my_spo_code = $values;
+		}
+	}
+
+	// 육상 체크 //
+	if($obj->spo_code == "ATHIETICS")
+	{
+		if($obj->spo_sec_code =="AS100")
+		{
+			$my_spo_sec_code = "( 트 랙 )";
+		}
+		if($obj->spo_sec_code =="AS200")
+		{
+			$my_spo_sec_code = "( 필 드 )";
+		}
+	}
+?>
+<tr>
+	<td align="center"><?=$my_spo_code?> <?=$my_spo_sec_code?></td>
+	<td align="center"><?=$obj->st_hour_01?>:<?=$obj->st_minute_01?>~<?=$obj->et_hour_01?>:<?=$obj->et_minute_01?></td>
+	<td align="center"><?=$obj->st_hour_02?>:<?=$obj->st_minute_02?>~<?=$obj->et_hour_02?>:<?=$obj->et_minute_02?></td>
+	<td align="center"><?=$obj->place?></td>
+	<td align="center"><?=$obj->office?></td>
+	<td align="center">
+		<?=$obj->official_01?><br>
+		<?=$obj->tel1_01?>-<?=$obj->tel2_01?>-<?=$obj->tel2_01?>
+		<?
+		if($obj->official_02)
+		{
+		?>
+		<br>
+		<?=$obj->official_02?><br>
+		<?=$obj->tel1_02?>-<?=$obj->tel2_02?>-<?=$obj->tel3_02?>
+		<?
+		}
+		?>
+	</td>
+	<td align="center">
+		<a href="./index.html?<?=$basic_get.$add_get?>&mode=modify&spo_code=<?=$obj->spo_code?>&spo_sec_code=<?=$obj->spo_sec_code?>&&uid=<?=$obj->uid?>"><img src="../wp_button/s_modify.gif"></a>&nbsp;
+		<a href="./delete.php?<?=$basic_get.$add_get?>&mode=list&uid=<?=$obj->uid?>" onClick="return confirm('정말 삭제하시겠습니까?')"><img src="../wp_button/s_delete.gif"></a>
+	</td>
+</tr>
+<?
+unset($my_spo_sec_code);
+unset($my_spo_code);
+}
+?>
+
+</tbody>
+</table>
+<table class="tbButton-a">
+<tr>
+	<td>
+		<input type="button" name="input" value="입력하기" class="btn_send" onclick="location.href='./index.html?<?=$basic_get.$add_get?>&mode=input'">
+		<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='index.html?<?=$basic_get.$add_get?>'">
+	</td>
+</tr>
+</table>

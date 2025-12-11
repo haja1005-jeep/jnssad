@@ -1,0 +1,69 @@
+<?
+require_once "../wp_object/head_pop.html";
+
+$sql = "
+    SELECT
+        *
+    FROM
+        wp_game_record
+    WHERE
+        id = '{$player_id}'
+        AND gam_uid = '{$gam_uid}'
+    ORDER BY uid
+";
+$result = mysql_query($sql);
+
+$html_list = '';
+while($obj = mysql_fetch_object($result)) {
+    $sigun = $wp_club_code[$obj->clu_code];
+    $rank = $obj->rank_tot ? $obj->rank_tot . '위' : '';
+
+    $sports = $wp_sports_code[$obj->spo_code] ? $wp_sports_code[$obj->spo_code] : '';
+    $sports_detail = $wp_sports_detail_code[$obj->spo_code_detail];
+
+    $gubun = $wp_game_kind[$obj->game_kind];
+
+    $html_list .= "
+    <tr>
+        <td>{$sigun}</td>
+        <td>{$rank}</td>
+        <td>{$gubun}</td>
+        <td>{$sports}</td>
+        <td>{$sports_detail}</td>
+    </tr>
+    ";
+}
+
+?>
+<style>
+    table {
+        width : 100%;
+        border-collapse: collapse
+    }
+    table tr th,
+    table tr td {
+        padding : 5px;
+        text-align: center;
+    }
+    table tr th {
+        background-color: #f4f4f4;
+        border:1px solid #999
+    }
+    table tr td {
+        border:1px solid #999
+    }
+</style>
+<table>
+    <thead>
+        <tr>
+            <th>시/군</th>
+            <th>순위</th>
+            <th>경기구분</th>
+            <th>종목명</th>
+            <th>세부종목</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?= $html_list ?>
+    </tbody>
+</table>

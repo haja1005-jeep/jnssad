@@ -1,0 +1,129 @@
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+	<td>
+		<?
+		//선택한 대회의 정보 검색
+		unset($query);
+		unset($result);
+		unset($obj);
+
+		//ORDER BY절 생성
+		if(!$orderby) $orderby = " game_code ASC, group_no ASC, lane_no ASC, rank ASC, rank_tot ASC";
+		else $orderby = $orderby." ".$desc;
+
+		//WHERE절 생성 //
+		$where = " WHERE gam_uid = '$s_gam_uid' ";
+
+		//종목코드가있으면
+		if($spo_code) $where .= " AND spo_code = '$spo_code' ";
+
+		//게임코드가있으면
+		if($game_code) $where .= " AND game_code = '$game_code' ";
+
+
+		// 레코드 쿼리 //
+		$query = "SELECT * FROM $tbName $where ORDER BY $orderby";
+		$result = mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		?>
+
+		<form name="signForm" action="input.php?<?=$basic_get.$add_get?>&type=<?=$type?>&sch_val=<?=$sch_val?>&game_kind=<?=$game_kind?>" method="post">
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="5%">순번</th>
+			<th width="15%">경기</th>
+			<th width="5%">레인번호</th>
+			<th width="8%">선수명</th>
+			<th width="8%">소속</th>
+			<th width="7%">경기여부</th>
+			<th width="7%">1G</th>
+			<th width="7%">2G</th>
+			<th width="7%">3G</th>
+			<th width="7%">합계</th>
+			<th width="7%">평균</th>
+			<th width="7%">순위</th>
+			<th width="10%">비고</th>
+		</tr>
+		<?
+		// 총 레코드 수 //
+		$total_record = mysql_num_rows($result);
+
+		// 일련 번호 //
+		$article_num = $total_record;
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result))
+		{
+
+			if($obj->rank_tot == "1" || $obj->rank_tot == "2" || $obj->rank_tot == "3" ){
+				$rank_txt = "<font color='#cc0000'><b><u>$obj->rank_tot</u></b></font>";
+			}else{
+				$rank_txt = $obj->rank_tot;
+			}
+		?>
+		<tr <?=$bgcolor?>>
+
+			<input type="hidden" name="groupno_<?=$obj->uid?>" size="2" maxlength="2" value="<?=$obj->group_no?>" class="input" style="ime-mode:disabled">
+			<input type="hidden" name="backno_<?=$obj->uid?>" size="5" maxlength="5" value="<?=$obj->back_no?>" class="input" style="ime-mode:disabled">
+			<td align="center"><?=$article_num?><input type="hidden" name="pla_id[]" value="<?=$obj->uid?>"></td>
+			<td align="center" nowrap><?=$obj->game_code?></td>
+			<td align="center"><?=$obj->lane_no?><input type="hidden" name="laneno_<?=$obj->uid?>" size="2" maxlength="2" value="<?=$obj->lane_no?>" class="input" style="ime-mode:disabled"></td>
+			<td align="center"><?=$obj->name?></td>
+			<td align="center"><?=$wp_club_code[$obj->clu_code]?></td>
+			<td align="center">
+				<select name="win_<?=$obj->uid?>">
+				<option value="">-승/패-</option>
+				<?
+				foreach($wp_win_code as $keys => $values){
+					if($keys == $obj->win) $is_selected = " selected";
+					else $is_selected = "";
+					echo "<option value='$keys' $is_selected>$values</option>";
+				}
+				?>
+				</select>
+			</td>
+			<td align="center"><input type="text" name="record_01_<?=$obj->uid?>" size="5" maxlength="3" value="<?=$obj->record_01?>" class="input" style="ime-mode:disabled" onkeypress="Num_Check()"></td>
+			<td align="center"><input type="text" name="record_02_<?=$obj->uid?>" size="5" maxlength="3" value="<?=$obj->record_02?>" class="input" style="ime-mode:disabled" onkeypress="Num_Check()"></td>
+			<td align="center"><input type="text" name="record_03_<?=$obj->uid?>" size="5" maxlength="3" value="<?=$obj->record_03?>" class="input" style="ime-mode:disabled" onkeypress="Num_Check()"></td>
+			<!--
+			<td align="center"><input type="text" name="record_04_<?=$obj->uid?>" size="5" maxlength="3" value="<?=$obj->record_04?>" class="input" style="ime-mode:disabled" onkeypress="Num_Check()"></td>
+			<td align="center"><input type="text" name="record_05_<?=$obj->uid?>" size="5" maxlength="3" value="<?=$obj->record_05?>" class="input" style="ime-mode:disabled" onkeypress="Num_Check()"></td>
+			-->
+			<td align="center"><?=$obj->record_tot?></td>
+			<td align="center"><?=$obj->record_best?></td>
+			<td align="center"><?=$rank_txt?></td>
+			<td align="left">
+				<select name="record_prz_<?=$obj->uid?>">
+				<option value="">-기록-</option>
+				<?
+				foreach($wp_best_code as $keys => $values){
+					if($keys == $obj->record_prz) $is_selected = " selected";
+					else $is_selected = "";
+					echo "<option value='$keys' $is_selected>$values</option>";
+				}
+				?>
+				</select>
+			</td>
+		</tr>
+		<?
+			$article_num--;
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="center">
+		<input type="submit" name="input" value="경기기록등록" class="btnBox3" style="height:35px">
+		<input type="button" name="make_game" value="경기종료확인" class="btnBox" style="height:35px" onclick="location.href='input.php?<?=$basic_get.$add_get?>&mode=input&game_code=<?=$game_code?>&level=<?=$level?>&game_kind=<?=$game_kind?>&done=done'">
+	</td>
+</tr>
+</table>
+</form>

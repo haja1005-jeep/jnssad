@@ -1,0 +1,125 @@
+<?php
+require_once "../wp_object/head.html";
+
+if (!$mode) $mode = 'winner';
+switch($mode) {
+	case 'total' :
+		$title_txt = "종합득점 현황";
+		break;
+	case 'sigun' :
+		$title_txt = "시&#183;군 득점 현황";
+		break;
+	default :
+		$title_txt = "다관왕 현황";
+		break;
+}
+
+if(!$s_gam_uid) $s_gam_uid = $gam_uid;
+?>
+<link rel="stylesheet" href="/wp_config/bootstrap.min.css">
+<!-- s : loading -->
+<style>
+#loading {
+	position: absolute;
+	top: 150px;
+	width: 250px;
+	background-color: #fff;
+	border-radius: 10px;
+	padding: 20px;
+	text-align: center;
+	font-size:1.5em;
+	display: none;
+}
+#loading img {
+	width:45px
+}
+#loading p {
+	margin-top: 10px;
+}
+table th {
+	background-color: #f4f4f4;
+	text-align: center;
+}
+</style>
+
+<div id="loading">
+    <img src="/wp_icon/loading.gif" alt="loading">
+    <p>로딩중..</p>
+</div>
+
+<script>
+	// $(function() {
+	// 	var _w = $(window).width();
+	// 	var _half = parseInt((_w/2) - 125);
+	// 	$('#loading').bPopup({
+	// 		position: [_half, 250]
+	// 	});
+	// });
+</script>
+<!-- e : loading -->
+
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<!-- 탑메뉴 시작-->
+		<? require_once "../wp_object/top.html"?>
+		<!-- 탑메뉴 끝 -->
+	</td>
+</tr>
+<tr>
+	<td align="left" style="padding-bottom:30px">
+		<!-- Document Start -->
+		<table width="100%" height="700" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td width="150" height="100% valign="top" style="padding:20 0 0 5">
+				<!-- 왼쪽메뉴 시작-->
+				<?php require_once "../wp_object/left_status.html" ?>
+				<!-- 왼쪽메뉴 끝 -->
+			</td>
+			<td width="4" height="100%" style="border-right:1 solid #fsfsfs;">&nbsp;</td>
+			<td valign="top" align="center">
+				<table id="container" width="95%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td class="tbTitleBlock">
+						<img src="../wp_icon/title_icon.gif" align="absmiddle">&nbsp;&nbsp;<?=$title_txt?>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<?
+						//로그인 체크
+						if(!$site_auth->isLogin())
+						{
+							Error("ADMIN_ERROR");
+							exit;
+						}
+
+						//권한 체크
+						if(!$site_auth->isConn($cd_player,$Admin_auth) && $Admin_auth != 's_group')
+						{
+							Error("AUTH_ERROR");
+							exit;
+						}
+
+						require_once "./{$mode}_status.html";
+						?>
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+		<!-- Document End -->
+	</td>
+</tr>
+</table>
+
+<script>
+	// $(function() {
+    // 	$('#loading').bPopup().close();
+	// });
+</script>
+<!-- <script src="/wp_config/jquery.bpopup.min.js"></script> -->
+<!-- <script src="/wp_config/bootstrap.min.js"></script> -->
+</body>
+</html>

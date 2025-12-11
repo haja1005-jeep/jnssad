@@ -1,0 +1,155 @@
+<?
+// 순서쿼리 //
+$que = "SELECT * FROM wp_game_time";
+$res = mysql_query($que);
+$num = mysql_num_rows($res);
+$sort = $num + 1;
+
+// 종목 중복체크
+if($spo_code)
+{
+	$where = "WHERE gam_uid = '$gam_uid' AND spo_code='$spo_code'";
+
+	// 육상 체크 //
+	if($spo_code == "ATHIETICS")
+	{
+		if($spo_sec_code)
+		{
+			$where .= "AND spo_sec_code = '$spo_sec_code'";
+			$s_que = "SELECT * FROM wp_game_time $where";
+			$s_res = mysql_query($s_que);
+			$num = mysql_num_rows($s_res);
+			if($num)
+			{
+				print_r($s_res);
+				echo "<script>alert('이미 등록된 육상 세부종목입니다.');location.href('index.html?mode=input&spo_code=$spo_code');</script>";
+			}
+		}
+	}
+	else
+	{
+		$s_que = "SELECT * FROM wp_game_time $where";
+		$s_res = mysql_query($s_que);
+		$num = mysql_num_rows($s_res);
+		if($num)
+		{
+			print_r($s_que);
+			echo "<script>alert('이미 등록된 종목입니다.');location.href('index.html?mode=input');</script>";
+		}
+	}
+}
+?>
+<form name="schForm" action="index.html?mode=input" method="post">
+<table class="tbSearch-c">
+<tr>
+	<th>대회선택</th>
+	<td colspan="3">
+		<select name="gam_uid" tabindex="1" hname="대회선택" required class="input">
+			<option value="">--선택-- </option>
+			<?
+				foreach($wp_games as $keys => $values)
+				{
+					if($keys == $gam_uid)
+					{
+						$is_selected = " selected";
+					}
+					else
+					{
+					 	$is_selected = "";
+					}
+					echo "<option value='$keys' $is_selected>$values</option>";
+				}
+			?>
+		</select>
+	</td>
+</tr>
+<tr>
+	<th>경기종목</th>
+	<td colspan="3">
+		<select name="spo_code" onchange="javascript:document.schForm.submit();">
+			<option value=''>-----전체------</option>
+			<?
+			foreach($wp_sports_code as $keys => $values)
+			{
+				if($spo_code == $keys)
+				{
+					$is_selected = " selected ";
+				}
+				else
+				{
+					$is_selected = "";
+				}
+				echo "<option value='$keys' $is_selected>$values</option>";
+			}
+			?>
+		</select>
+		<?
+		if($spo_code=="ATHIETICS")
+		{
+			if($spo_sec_code == "AS100")
+			{
+				$is_selected1 = " selected ";
+			}
+			if($spo_sec_code == "AS200")
+			{
+				$is_selected2 = " selected ";
+			}
+			echo "
+				<select name='spo_sec_code' onchange='javascript:document.schForm.submit();'>
+				<option value=''>선택</option>
+				<option value='AS100' $is_selected1>트랙</option>
+				<option value='AS200' $is_selected2>필드</option>
+				</select>
+			";
+		}
+		?>
+	</td>
+</tr>
+</form>
+<form name="inputForm" action="input.php?<?=$basic_get.$add_get?>&gam_kind=<?=$gam_kind?>" method="post" onsubmit="return validate(this)">
+<tr>
+	<input type="hidden" name="gam_kind" value="<?=$gam_kind?>">
+	<input type="hidden" name="spo_code" value="<?=$spo_code?>">
+	<input type="hidden" name="spo_sec_code" value="<?=$spo_sec_code?>">
+	<th rowspan="2">경기 일정</th>
+	<td colspan="3">
+		6/11(목) <input type="text" name="st_hour_01" size="2" maxlength="2" class="input"> : <input type="text" name="st_minute_01" size="2" maxlength="2" class="input"> ~ <input type="text" name="et_hour_01" size="2" maxlength="2" class="input"> : <input type="text" name="et_minute_01" size="2" maxlength="2" class="input">
+	</td>
+</tr>
+<tr>
+	<td colspan="3">
+		6/12(금) <input type="text" name="st_hour_02" size="2" maxlength="2" class="input"> : <input type="text" name="st_minute_02" size="2" maxlength="2" class="input"> ~ <input type="text" name="et_hour_02" size="2" maxlength="2" class="input"> : <input type="text" name="et_minute_02" size="2" maxlength="2" class="input">
+	</td>
+</tr>
+<tr>
+	<th>경기장소</th>
+	<td colspan="3"><input type="text" name="place" size="20" maxlength="20" class="input"></td>
+</tr>
+<tr>
+	<th>담당부서</th>
+	<td colspan="3"><input type="text" name="office" size="20" maxlength="20" class="input"></td>
+</tr>
+<tr>
+	<th>담당자</th>
+	<td><input type="text" name="official_01" size="20" maxlength="20" class="input"></td>
+	<th>연락처</th>
+	<td><input type="text" name="tel1_01" size="4" maxlength="4" class="input"> - <input type="text" name="tel2_01" size="4" maxlength="4" class="input"> - <input type="text" name="tel3_01" size="4" maxlength="4" class="input"></td>
+</tr>
+<tr>
+	<th>담당자</th>
+	<td><input type="text" name="official_02" size="20" maxlength="20" class="input"></td>
+	<th>연락처</th>
+	<td><input type="text" name="tel1_02" size="4" maxlength="4" class="input"> - <input type="text" name="tel2_02" size="4" maxlength="4" class="input"> - <input type="text" name="tel3_02" size="4" maxlength="4" class="input"></td>
+</tr>
+<tr>
+	<th>출력순서</th>
+	<td colspan="3"><input type="text" name="sort" size="3" maxlength="3" value="<?=$sort?>" class="input"></td>
+</tr>
+<tr>
+	<td colspan="4" align="right">
+		<input type="submit" name="input" class="btn_send" value=" 입 력 ">
+		<input type="button" name="send" value="목록으로" class="btn_send" onclick="location.href='index.html?<?=$basic_get.$add_get?>&mode=list'">
+	</td>
+</tr>
+</table>
+</form>

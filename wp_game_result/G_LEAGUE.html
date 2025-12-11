@@ -1,0 +1,147 @@
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+	<td>
+		<?
+		//선택한 대회의 정보 검색
+		unset($query);
+		unset($result);
+		unset($obj);
+
+		//ORDER BY절 생성
+		if(!$orderby) $orderby = " game_code ASC, group_no ASC, lane_no ASC, rank ASC, rank_tot ASC";
+		else $orderby = $orderby." ".$desc;
+
+		//WHERE절 생성 //
+		$where = " WHERE gam_uid = '$s_gam_uid' AND level = 0";
+
+		//종목코드가있으면
+		if($spo_code) $where .= " AND spo_code = '$spo_code' ";
+
+		//게임코드가있으면
+		if($game_code) $where .= " AND game_code = '$game_code' ";
+
+
+		// 레코드 쿼리 //
+		$query = "SELECT * FROM $tbName $where ORDER BY $orderby";
+		$result = mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		?>
+		<table class="tbList-a" style="width:50%">
+		<div align="left" style="color:#0000ff"> 기록 입력 예) 4<font color="#FF0000"><b>:</b></font>3 ※점수와 점수사이를 꼭 <font color="#FF0000"><b>:</b></font> 로 구분하여 주십시오.</div>
+		<tbody>
+		<tr>
+			<th width="30%">순위</th>
+			<th width="30%">시/군</th>
+			<th>승점</th>
+		</tr>
+		<?
+		// 총 레코드 수 //
+		$total_record = mysql_num_rows($result);
+
+		// 일련 번호 //
+		$article_num = $total_record;
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result))
+		{
+			if($obj->rank_tot == "1" || $obj->rank_tot == "2" || $obj->rank_tot == "3" ){
+				$rank_txt = "<font color='#cc0000'><b><u>$obj->rank_tot</u></b></font>";
+			}else{
+				$rank_txt = $obj->rank_tot;
+			}
+		?>
+		<tr <?=$bgcolor?>>
+			<td align="center"><?=$rank_txt?></td>
+			<td align="center"><?=$wp_club_code[$obj->clu_code]?></td>
+			<td align="center"><?=$obj->record_tot?></td>
+		</tr>
+		<?
+			$article_num--;
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<?
+		//선택한 대회의 정보 검색
+		unset($query);
+		unset($result);
+		unset($obj);
+
+		//ORDER BY절 생성
+		if(!$orderby) $orderby = " game_code ASC, group_no ASC, lane_no ASC, rank ASC, rank_tot ASC";
+		else $orderby = $orderby." ".$desc;
+
+		//WHERE절 생성 //
+		$where = " WHERE gam_uid = '$s_gam_uid' AND level > 0";
+
+		//종목코드가있으면
+		if($spo_code) $where .= " AND spo_code = '$spo_code' ";
+
+		//게임코드가있으면
+		if($game_code) $where .= " AND game_code = '$game_code' ";
+
+
+		// 레코드 쿼리 //
+		$query = "SELECT * FROM $tbName $where ORDER BY $orderby";
+		$result = mysql_query($query);
+		if(!$result)
+		{
+			Error("QUERY_ERROR");
+			exit;
+		}
+
+		?>
+		<form name="signForm" action="input.php?<?=$basic_get.$add_get?>&type=<?=$type?>&sch_val=<?=$sch_val?>&game_kind=<?=$game_kind?>" method="post">
+		<table class="tbList-a">
+		<tbody>
+		<tr>
+			<th width="5%">순번</th>
+			<th width="15%">경기</th>
+			<th width="10%">시/군</th>
+			<th>기록</th>
+			<th width="10%">상대시/군</th>
+		</tr>
+		<?
+		// 총 레코드 수 //
+		$total_record = mysql_num_rows($result);
+
+		// 일련 번호 //
+		$article_num = $total_record;
+
+		// 레코드 결과 //
+		while($obj = mysql_fetch_object($result))
+		{
+		?>
+		<tr <?=$bgcolor?>>
+			<input type="hidden" name="pla_id[]" size="5" maxlength="5" value="<?=$obj->clu_code?>/<?=$obj->other_clu_code?>" class="input" style="ime-mode:disabled">
+			<td align="center"><?=$article_num?></td>
+			<td align="center" nowrap><?=$obj->game_code?></td>
+			<td align="center"><?=$wp_club_code[$obj->clu_code]?></td>
+			<td align="center"><--- <input type="text" name="record_01_<?=$obj->clu_code?>" size="20" maxlength="10" value="<?=$obj->record_01?>" class="input" style="ime-mode:disabled"> ----> </td>
+			<td align="center"><?=$wp_club_code[$obj->other_clu_code]?></td>
+		</tr>
+		<?
+			$article_num--;
+		}//for
+		?>
+		</tbody>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="center">
+		<input type="submit" name="input" value="경기기록등록" class="btnBox3" style="height:35px">
+		<input type="button" name="make_game" value="경기종료확인" class="btnBox" style="height:35px" onclick="location.href='input.php?<?=$basic_get.$add_get?>&mode=input&game_code=<?=$game_code?>&level=<?=$level?>&game_kind=<?=$game_kind?>&done=done'">
+	</td>
+</tr>
+</table>
+</form>
